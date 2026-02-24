@@ -433,11 +433,11 @@
         // -----------------------------------------------------------
         // IMPORTANTE: COLOQUE SEU EMAIL DE ADMIN AQUI
         // -----------------------------------------------------------
-        const ADMIN_EMAIL = "ThiagoFelipeND@gmail.com"; 
+        const ADMIN_EMAIL = "seu.email.admin@gmail.com"; 
         // -----------------------------------------------------------
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -623,8 +623,10 @@
         formChamado.addEventListener('submit', async function(evento) {
             evento.preventDefault(); 
             loading.style.display = 'flex';
+            const numeroInput = document.getElementById('numero').value.trim();
+
             const dadosFormulario = {
-                numero: document.getElementById('numero').value,
+                numero: numeroInput,
                 analista: document.getElementById('analista').value,
                 categoria: document.getElementById('categoria').value,
                 problema: document.getElementById('problema').value,
@@ -633,14 +635,36 @@
                 sla: document.getElementById('sla').value,
                 dataQuestionamento: document.getElementById('dataQuestionamento').value,
                 dataFechamento: document.getElementById('dataFechamento').value,
-                // SALVA QUEM CRIOU O CHAMADO (Se for novo)
                 criadoPor: idChamadoEmEdicao ? (listaChamados.find(c => c.id === idChamadoEmEdicao).criadoPor || userEmail) : userEmail
             };
+            
             try {
                 if (idChamadoEmEdicao) {
+                    // Update
+                    // Check duplicate on edit only if number changed
+                    const original = listaChamados.find(c => c.id === idChamadoEmEdicao);
+                    if (original.numero !== numeroInput) {
+                        const q = query(chamadosCollection, where("numero", "==", numeroInput));
+                        const querySnapshot = await getDocs(q);
+                        if (!querySnapshot.empty) {
+                            alert("Este número de chamado já está registrado!");
+                            loading.style.display = 'none';
+                            return;
+                        }
+                    }
+
                     const docRef = doc(db, "chamados", idChamadoEmEdicao);
                     await updateDoc(docRef, dadosFormulario);
                 } else {
+                    // Create - Check Duplicate
+                    const q = query(chamadosCollection, where("numero", "==", numeroInput));
+                    const querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty) {
+                        alert("Este número de chamado já está registrado!");
+                        loading.style.display = 'none';
+                        return;
+                    }
+
                     await addDoc(chamadosCollection, { createdAt: new Date(), ...dadosFormulario });
                 }
                 fecharFormulario();
