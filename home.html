@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Chamados - Seguro</title>
+    <style>
+        /* --- VARIÁVEIS DE CORES --- */
+        :root {
+            --bg-color: #F4F4F4;
+            --panel-bg: #ffffff;
+            --text-color: #333333;
+            --text-muted: #555555;
+            --border-color: #cccccc;
+            --border-light: #eeeeee;
+            --input-bg: #ffffff;
+            
+            --claro-red: #DA291C;
+            --claro-red-dark: #B81F15;
+            --danger-color: #dc3545;
+            --edit-color: #0056b3;
+            --excel-color: #107c41;
+            --teams-color: #464EB8;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-color: #f4f4f4;
+            --text-muted: #aaaaaa;
+            --border-color: #444444;
+            --border-light: #333333;
+            --input-bg: #2c2c2c;
+            --edit-color: #4da3ff;
+            --excel-color: #21a555;
+            --teams-color: #7B83EB;
+        }
+
+        /* Estilos Gerais */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* TELA DE LOGIN */
+        #telaLogin {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color); z-index: 3000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .login-box {
+            background: var(--panel-bg); padding: 40px; border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center;
+            border-top: 5px solid var(--claro-red);
+        }
+        .btn-google {
+            background-color: #4285F4; color: white; border: none; padding: 12px 24px;
+            border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; gap: 10px; margin-top: 20px;
+        }
+        .btn-google:hover { background-color: #357ae8; }
+
+        /* CABEÇALHO DO USUÁRIO */
+        .user-header {
+            display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-bottom: 20px;
+        }
+        .user-info {
+            display: flex; align-items: center; gap: 10px; font-size: 14px;
+        }
+        .user-avatar {
+            width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--claro-red);
+        }
+        .btn-logout {
+            background: transparent; border: 1px solid var(--border-color); color: var(--text-color);
+            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+        }
+        .btn-logout:hover { background: var(--border-light); }
+
+        h1 { text-align: center; color: var(--claro-red); margin-bottom: 30px; margin-top: 10px; }
+        
+        /* Botões Flutuantes e de Tema */
+        .btn-tema {
+            position: fixed; top: 20px; left: 20px; /* Mudou para esquerda */
+            background-color: var(--panel-bg); color: var(--text-color);
+            border: 2px solid var(--border-color); padding: 10px 16px;
+            border-radius: 30px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .btn-tema:hover { background-color: var(--border-light); transform: scale(1.05); }
+
+        h2 { color: var(--claro-red); border-bottom: 2px solid var(--border-light); padding-bottom: 10px; margin-top: 0; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Seletor de Visão */
+        .seletor-visao { display: flex; gap: 5px; background-color: var(--border-light); padding: 4px; border-radius: 6px; }
+        .btn-visao { background-color: transparent; color: var(--text-muted); border: none; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; transition: all 0.2s; }
+        .btn-visao:hover { color: var(--text-color); }
+        .btn-visao.ativo { background-color: var(--panel-bg); color: var(--claro-red); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        /* Painéis */
+        .painel { background: var(--panel-bg); padding: 25px; border-radius: 8px; border-top: 4px solid var(--claro-red); box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 25px; transition: background-color 0.3s; }
+
+        /* Formulários */
+        .linha-formulario { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .campo { flex: 1; min-width: 200px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--text-muted); }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; background-color: var(--input-bg); color: var(--text-color); transition: border-color 0.3s, background-color 0.3s, color 0.3s; font-family: inherit; }
+        input:focus, select:focus { outline: none; border-color: var(--claro-red); }
+
+        /* Botoes de Ação Principais */
+        .grupo-botoes { display: flex; gap: 15px; margin-top: 10px; }
+        button { font-family: inherit; }
+        button.btn-salvar { background-color: var(--claro-red); color: white; border: none; padding: 12px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 16px; flex: 1; transition: background-color 0.3s; }
+        button.btn-salvar:hover { background-color: var(--claro-red-dark); }
+        button.btn-cancelar { background-color: transparent; color: var(--text-color); border: 2px solid var(--border-color); padding: 12px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 16px; flex: 1; display: none; transition: background-color 0.3s; }
+        button.btn-cancelar:hover { background-color: var(--border-light); }
+        
+        /* Botões de Ícone */
+        .btn-acao-icone { background-color: transparent; padding: 0; border-radius: 6px; cursor: pointer; transition: all 0.3s; height: 42px; width: 42px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .btn-filtro { color: var(--text-color); border: 1px solid var(--border-color); }
+        .btn-filtro:hover, .btn-filtro.ativo { background-color: var(--border-light); border-color: var(--text-color); }
+        .btn-limpar { color: var(--text-muted); border: 1px solid var(--border-color); }
+        .btn-limpar:hover { background-color: var(--border-light); color: var(--text-color); }
+        .btn-colunas { color: var(--edit-color); border: 1px solid var(--edit-color); }
+        .btn-colunas:hover, .btn-colunas.ativo { background-color: var(--edit-color); color: white; }
+        .btn-exportar { color: var(--excel-color); border: 1px solid var(--excel-color); }
+        .btn-exportar:hover { background-color: var(--excel-color); color: white; }
+        .btn-teams { color: var(--teams-color); border: 1px solid var(--teams-color); }
+        .btn-teams:hover { background-color: var(--teams-color); color: white; }
+
+        /* Estrutura de Filtros e Colunas */
+        .painel-expansivel { background-color: var(--bg-color); padding: 15px; border-radius: 6px; border: 1px solid var(--border-light); margin-bottom: 20px; display: none; }
+        .grid-colunas { display: flex; flex-wrap: wrap; gap: 15px; }
+        .grid-colunas label { display: flex; align-items: center; gap: 5px; margin-bottom: 0; cursor: pointer; font-weight: normal; }
+
+        /* Tabela Matriz de Resumo */
+        .tabela-resumo { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .tabela-resumo th { background-color: var(--border-light); color: var(--text-color); border: 1px solid var(--border-color); text-align: center; }
+        .tabela-resumo td { border: 1px solid var(--border-color); text-align: center; }
+        .tabela-resumo td:first-child { text-align: left; }
+        body.dark-mode .tabela-resumo th { background-color: #2c2c2c; }
+
+        /* Tabela Principal */
+        .btn-icone { background: transparent; border: none; cursor: pointer; padding: 6px; border-radius: 4px; transition: transform 0.2s, background-color 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-icone:hover { transform: scale(1.1); background-color: var(--border-light); }
+        .icone-editar { color: var(--edit-color); }
+        .icone-excluir { color: var(--danger-color); }
+        .link-chamado { color: var(--claro-red); text-decoration: none; font-size: 15px; transition: color 0.3s; }
+        .link-chamado:hover { color: var(--claro-red-dark); text-decoration: underline; }
+        body.dark-mode .link-chamado { color: #ff6b6b; }
+        body.dark-mode .link-chamado:hover { color: #ff8787; }
+        .status-aberto { color: var(--claro-red); font-weight: bold; }
+        body.dark-mode .status-aberto { color: #ff6b6b; }
+        .sla-vencido { color: var(--claro-red); font-weight: bold; }
+        body.dark-mode .sla-vencido { color: #ff6b6b; }
+        .tabela-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border-light); }
+        th, td { padding: 12px 15px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+        th { background-color: var(--claro-red); color: white; font-weight: 600; text-transform: uppercase; font-size: 13px; white-space: nowrap; }
+        tr:last-child td { border-bottom: none; }
+        .acoes-container { display: flex; gap: 10px; justify-content: center; }
+        .mensagem-vazia { text-align: center; color: var(--text-muted); font-style: italic; padding: 30px; }
+
+        /* Paginação */
+        .paginacao-container { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px 0; border-top: 1px solid var(--border-light); }
+        .itens-por-pagina { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .itens-por-pagina select { width: auto; padding: 6px 10px; }
+        .botoes-paginacao { display: flex; gap: 8px; align-items: center; }
+        .btn-pagina { background-color: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .btn-pagina:hover:not(:disabled) { background-color: var(--border-light); }
+        .btn-pagina:disabled { opacity: 0.5; cursor: not-allowed; }
+        .info-paginacao { font-size: 14px; color: var(--text-muted); font-weight: 600; }
+        
+        /* Loading */
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; justify-content: center; align-items: center; color: white; font-size: 20px; font-weight: bold; }
+        /* Esconder conteúdo até logar */
+        #appContent { display: none; }
+    </style>
+</head>
+<body class="dark-mode"> 
+
+    <div id="loading">Conectando...</div>
+
+    <div id="telaLogin">
+        <div class="login-box">
+            <h2 style="justify-content: center;">Acesso Restrito</h2>
+            <p>Faça login com sua conta Google para acessar o sistema.</p>
+            <button id="btnLoginGoogle" class="btn-google">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+                Entrar com Google
+            </button>
+        </div>
+    </div>
+
+    <div id="appContent">
+        <button id="btnTema" class="btn-tema">☀️ Modo Claro</button>
+
+        <div class="user-header">
+            <div class="user-info">
+                <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+                <span id="userName">Usuário</span>
+            </div>
+            <button id="btnLogout" class="btn-logout">Sair</button>
+        </div>
+
+        <h1>Controle de Chamados <span style="font-size: 14px; opacity: 0.7;">(Online)</span></h1>
+
+        <div class="painel" id="painelFormulario" style="display: none;">
+            <h2 id="tituloFormulario">Registrar Novo Chamado</h2>
+            <form id="formChamado">
+                <div class="linha-formulario">
+                    <div class="campo">
+                        <label for="numero">Número do Chamado *</label>
+                        <input type="text" id="numero" required>
+                    </div>
+                    <div class="campo">
+                        <label for="analista">Analista *</label>
+                        <input type="text" id="analista" required>
+                    </div>
+                </div>
+                
+                <div class="linha-formulario">
+                    <div class="campo">
+                        <label for="categoria">Categoria *</label>
+                        <select id="categoria" required>
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="Gol Revolution">Gol Revolution</option>
+                            <option value="Portabilidade">Portabilidade</option>
+                            <option value="Suporte à Sistemas - OMS/CRM">Suporte à Sistemas - OMS/CRM</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="problema">Problema / Cenário *</label>
+                        <input type="text" id="problema" placeholder="Ex: Falha no login..." required>
+                    </div>
+                </div>
+
+                <div class="linha-formulario">
+                    <div class="campo">
+                        <label for="fila">Fila de Encaminhamento</label>
+                        <input type="text" id="fila" placeholder="Ex: N2, Suporte Técnico...">
+                    </div>
+                    <div class="campo">
+                        <label for="assuntoEmail">Assunto do E-mail</label>
+                        <input type="text" id="assuntoEmail" placeholder="Ex: Correção de erro">
+                    </div>
+                </div>
+
+                <div class="linha-formulario">
+                    <div class="campo">
+                        <label for="sla">SLA (Prazo Limite)</label>
+                        <input type="datetime-local" id="sla">
+                    </div>
+                    <div class="campo">
+                        <label for="dataQuestionamento">Data e Hora de Questionamento</label>
+                        <input type="datetime-local" id="dataQuestionamento">
+                    </div>
+                    <div class="campo">
+                        <label for="dataFechamento">Data de Encaminhamento / Fechamento</label>
+                        <input type="date" id="dataFechamento">
+                    </div>
+                </div>
+
+                <div class="grupo-botoes">
+                    <button type="button" class="btn-cancelar" onclick="fecharFormulario()">Cancelar</button>
+                    <button type="submit" id="btnSalvar" class="btn-salvar">Salvar Chamado</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="painel">
+            <h2>
+                Painel de Operações
+                <div class="seletor-visao">
+                    <button type="button" id="btnVisaoResumo" class="btn-visao ativo">📊 Resumo</button>
+                    <button type="button" id="btnVisaoTabela" class="btn-visao">📄 Tabela</button>
+                </div>
+            </h2>
+            
+            <div class="linha-formulario" style="justify-content: flex-end; margin-bottom: 0;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button type="button" class="btn-salvar" style="margin-top: 0; padding: 0 20px; height: 42px; border-radius: 6px; width: auto; font-size: 14px;" id="btnNovoChamado" onclick="abrirFormulario()">
+                        ➕ Novo Chamado
+                    </button>
+                    
+                    <button type="button" class="btn-acao-icone btn-limpar" onclick="limparFiltros()" title="Limpar Filtros">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                    </button>
+
+                    <button type="button" id="btnMaisFiltros" class="btn-acao-icone btn-filtro" title="Mostrar/Esconder Filtros">
+                        <svg id="iconeFiltroSvg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                    </button>
+                    <button type="button" id="btnGerenciarColunas" class="btn-acao-icone btn-colunas" title="Escolher Colunas da Tabela">
+                        <svg id="iconeColunasSvg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                    </button>
+                    <button type="button" class="btn-acao-icone btn-exportar" onclick="exportarCSV()" title="Exportar para Excel">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </button>
+                    <button type="button" class="btn-acao-icone btn-teams" onclick="copiarParaTeams()" title="Copiar para o Teams">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="painelColunas" class="painel-expansivel">
+                <label style="margin-bottom: 10px; color: var(--claro-red);">Selecione as colunas visíveis na tabela:</label>
+                <div class="grid-colunas">
+                    <label><input type="checkbox" class="chk-coluna" value="analista" checked> Analista</label>
+                    <label><input type="checkbox" class="chk-coluna" value="categoria" checked> Categoria</label>
+                    <label><input type="checkbox" class="chk-coluna" value="problema" checked> Cenário / Problema</label>
+                    <label><input type="checkbox" class="chk-coluna" value="fila" checked> Fila</label>
+                    <label><input type="checkbox" class="chk-coluna" value="assunto" checked> Assunto do E-mail</label>
+                    <label><input type="checkbox" class="chk-coluna" value="sla" checked> SLA</label>
+                    <label><input type="checkbox" class="chk-coluna" value="dtQuest" checked> Dt. Quest.</label>
+                    <label><input type="checkbox" class="chk-coluna" value="dtFecham" checked> Dt. Fecham.</label>
+                </div>
+            </div>
+
+            <div id="filtrosAvancados" class="painel-expansivel">
+                <div class="linha-formulario">
+                    <div class="campo">
+                        <label for="buscaCategoria">Categoria</label>
+                        <select id="buscaCategoria">
+                            <option value="">Todas</option>
+                            <option value="Gol Revolution">Gol Revolution</option>
+                            <option value="Portabilidade">Portabilidade</option>
+                            <option value="Suporte à Sistemas - OMS/CRM">Suporte à Sistemas - OMS/CRM</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="filtroStatus">Status</label>
+                        <select id="filtroStatus">
+                            <option value="todos">Todos</option>
+                            <option value="abertos">Em Aberto (Sem data definida)</option>
+                            <option value="fechados">Encaminhados / Fechados</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="filtroSLA">Status do SLA</label>
+                        <select id="filtroSLA">
+                            <option value="todos">Todos</option>
+                            <option value="vencidos">Vencidos (<= Agora)</option>
+                            <option value="noprazo">No Prazo (> Agora)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="linha-formulario">
+                    <div class="campo">
+                        <label for="buscaNumero">Número do Chamado</label>
+                        <input type="text" id="buscaNumero" placeholder="Ex: INC1234567">
+                    </div>
+                    <div class="campo">
+                        <label for="buscaAnalista">Analista</label>
+                        <input type="text" id="buscaAnalista" placeholder="Nome do analista">
+                    </div>
+                    <div class="campo">
+                        <label for="buscaData">Data de Fechamento</label>
+                        <input type="date" id="buscaData">
+                    </div>
+                </div>
+                <div class="linha-formulario">
+                    <div class="campo">
+                        <label for="buscaProblema">Problema / Cenário</label>
+                        <input type="text" id="buscaProblema" placeholder="Termos do cenário">
+                    </div>
+                    <div class="campo">
+                        <label for="buscaFila">Fila de Encaminhamento</label>
+                        <input type="text" id="buscaFila" placeholder="Nome da fila">
+                    </div>
+                    <div class="campo">
+                        <label for="buscaAssunto">Assunto do E-mail</label>
+                        <input type="text" id="buscaAssunto" placeholder="Termos do assunto">
+                    </div>
+                    <div class="campo">
+                        <label for="buscaDataQuestionamento">Data de Questionamento</label>
+                        <input type="date" id="buscaDataQuestionamento">
+                    </div>
+                </div>
+            </div>
+
+            <div id="areaResumo" style="margin-top: 20px;">
+                <table class="tabela-resumo">
+                    <thead>
+                        <tr>
+                            <th style="background-color: var(--claro-red); color: white;">Categoria do Chamado</th>
+                            <th>Em Aberto</th>
+                            <th>Encaminhados / Fechados</th>
+                            <th>Volume Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaResumoCorpo">
+                        </tbody>
+                </table>
+            </div>
+
+            <div id="areaTabela" style="display: none; margin-top: 20px;">
+                <div class="tabela-container">
+                    <table id="tabelaPrincipal">
+                        <thead>
+                            <tr id="cabecalhoTabela">
+                                </tr>
+                        </thead>
+                        <tbody id="tabelaCorpo">
+                            </tbody>
+                    </table>
+                </div>
+                
+                <div class="paginacao-container" id="controlePaginacao">
+                    <div class="itens-por-pagina">
+                        <label for="selectItensPagina">Exibir:</label>
+                        <select id="selectItensPagina">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                            <option value="todos">Todos</option>
+                        </select>
+                    </div>
+                    <div class="botoes-paginacao">
+                        <button type="button" class="btn-pagina" id="btnPaginaAnt">Anterior</button>
+                        <span class="info-paginacao" id="infoPaginacao">Página 1 de 1</span>
+                        <button type="button" class="btn-pagina" id="btnPaginaProx">Próxima</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3ZVyXVY2YrKAWGCPduipasPsQN-6xHGI",
+            authDomain: "sincronismo-cpc-x-sixbell.firebaseapp.com",
+            projectId: "sincronismo-cpc-x-sixbell",
+            storageBucket: "sincronismo-cpc-x-sixbell.firebasestorage.app",
+            messagingSenderId: "289059675889",
+            appId: "1:289059675889:web:5bd2e0c04f6d2717035350"
+        };
+
+        // Inicializa Firebase e Auth
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const chamadosCollection = collection(db, "chamados");
+        const provider = new GoogleAuthProvider();
+
+        // --- VARIÁVEIS GLOBAIS ---
+        let listaChamados = [];
+        let chamadosFiltradosAtuais = [];
+        let idChamadoEmEdicao = null;
+        let visaoAtual = 'resumo';
+        let paginaAtual = 1;
+        let itensPorPagina = 10;
+        let userEmail = '';
+
+        // --- ELEMENTOS DOM ---
+        const telaLogin = document.getElementById('telaLogin');
+        const appContent = document.getElementById('appContent');
+        const btnLoginGoogle = document.getElementById('btnLoginGoogle');
+        const btnLogout = document.getElementById('btnLogout');
+        const userName = document.getElementById('userName');
+        const userAvatar = document.getElementById('userAvatar');
+        const loading = document.getElementById('loading');
+
+        // --- AUTHENTICATION LOGIC ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Usuário logado
+                userEmail = user.email;
+                userName.textContent = user.displayName;
+                userAvatar.src = user.photoURL;
+                telaLogin.style.display = 'none';
+                appContent.style.display = 'block';
+                loading.style.display = 'flex'; // Mostra loading enquanto busca dados
+                
+                // Inicia o listener do Firestore APENAS se logado
+                iniciarFirestoreListener();
+            } else {
+                // Usuário deslogado
+                telaLogin.style.display = 'flex';
+                appContent.style.display = 'none';
+                loading.style.display = 'none';
+            }
+        });
+
+        btnLoginGoogle.addEventListener('click', () => {
+            signInWithPopup(auth, provider).catch((error) => {
+                alert("Erro no login: " + error.message);
+            });
+        });
+
+        btnLogout.addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        // --- FIRESTORE ---
+        let unsubscribe = null;
+
+        function iniciarFirestoreListener() {
+            if (unsubscribe) unsubscribe(); // Limpa listener anterior se houver
+
+            unsubscribe = onSnapshot(chamadosCollection, (snapshot) => {
+                listaChamados = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                loading.style.display = 'none';
+                processarVisualizacao(false);
+            }, (error) => {
+                console.error("Erro ao buscar dados:", error);
+                loading.style.display = 'none';
+                // Se o erro for de permissão, é porque o e-mail não está na lista
+                if (error.code === 'permission-denied') {
+                    alert("Seu e-mail não tem permissão para visualizar/editar estes dados.");
+                }
+            });
+        }
+
+        // --- RESTO DO CÓDIGO (Lógica de UI) ---
+        const btnTema = document.getElementById('btnTema');
+        const painelFormulario = document.getElementById('painelFormulario');
+        const formChamado = document.getElementById('formChamado');
+        const tituloFormulario = document.getElementById('tituloFormulario');
+        const btnSalvar = document.getElementById('btnSalvar');
+        
+        const btnVisaoResumo = document.getElementById('btnVisaoResumo');
+        const btnVisaoTabela = document.getElementById('btnVisaoTabela');
+        const areaResumo = document.getElementById('areaResumo');
+        const tabelaResumoCorpo = document.getElementById('tabelaResumoCorpo');
+        const areaTabela = document.getElementById('areaTabela');
+        const cabecalhoTabela = document.getElementById('cabecalhoTabela');
+        const tabelaCorpo = document.getElementById('tabelaCorpo');
+        
+        const selectItensPagina = document.getElementById('selectItensPagina');
+        const controlePaginacao = document.getElementById('controlePaginacao');
+        const btnPaginaAnt = document.getElementById('btnPaginaAnt');
+        const btnPaginaProx = document.getElementById('btnPaginaProx');
+        const infoPaginacao = document.getElementById('infoPaginacao');
+
+        const btnMaisFiltros = document.getElementById('btnMaisFiltros');
+        const iconeFiltroSvg = document.getElementById('iconeFiltroSvg');
+        const filtrosAvancados = document.getElementById('filtrosAvancados');
+        const btnGerenciarColunas = document.getElementById('btnGerenciarColunas');
+        const iconeColunasSvg = document.getElementById('iconeColunasSvg');
+        const painelColunas = document.getElementById('painelColunas');
+
+        const inputFiltros = {
+            categoria: document.getElementById('buscaCategoria'),
+            status: document.getElementById('filtroStatus'),
+            sla: document.getElementById('filtroSLA'),
+            data: document.getElementById('buscaData'),
+            numero: document.getElementById('buscaNumero'),
+            analista: document.getElementById('buscaAnalista'),
+            problema: document.getElementById('buscaProblema'),
+            fila: document.getElementById('buscaFila'),
+            assunto: document.getElementById('buscaAssunto'),
+            dataQuest: document.getElementById('buscaDataQuestionamento')
+        };
+
+        window.fecharFormulario = fecharFormulario;
+        window.abrirFormulario = abrirFormulario;
+        window.limparFiltros = limparFiltros;
+        window.exportarCSV = exportarCSV;
+        window.copiarParaTeams = copiarParaTeams;
+        window.alterarVisao = alterarVisao;
+        window.prepararEdicao = prepararEdicao;
+        window.removerChamado = removerChamado;
+
+        const temaSalvo = localStorage.getItem('tema_chamados');
+        if (temaSalvo === 'claro') {
+            document.body.classList.remove('dark-mode');
+            btnTema.textContent = '🌙 Modo Escuro';
+        } else {
+            document.body.classList.add('dark-mode');
+            btnTema.textContent = '☀️ Modo Claro';
+        }
+
+        btnTema.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('tema_chamados', 'escuro');
+                btnTema.textContent = '☀️ Modo Claro';
+            } else {
+                localStorage.setItem('tema_chamados', 'claro');
+                btnTema.textContent = '🌙 Modo Escuro';
+            }
+        });
+
+        const svgFunil = '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>';
+        const svgColunas = '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line>';
+
+        function alternarPainel(painelAtivo, btnAtivo, iconeAtivo, svgOriginal, painelInativo, btnInativo, iconeInativo, svgOriginalInativo) {
+            if (painelAtivo.style.display === 'none') {
+                painelAtivo.style.display = 'block';
+                btnAtivo.classList.add('ativo');
+                iconeAtivo.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+                painelInativo.style.display = 'none';
+                btnInativo.classList.remove('ativo');
+                iconeInativo.innerHTML = svgOriginalInativo;
+            } else {
+                painelAtivo.style.display = 'none';
+                btnAtivo.classList.remove('ativo');
+                iconeAtivo.innerHTML = svgOriginal;
+            }
+        }
+
+        btnMaisFiltros.addEventListener('click', () => {
+            alternarPainel(filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil, painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas);
+        });
+
+        btnGerenciarColunas.addEventListener('click', () => {
+            alternarPainel(painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas, filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil);
+        });
+
+        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || {
+            analista: true, categoria: true, problema: true, fila: true, 
+            assunto: true, sla: true, dtQuest: true, dtFecham: true
+        };
+
+        document.querySelectorAll('.chk-coluna').forEach(chk => {
+            chk.checked = colunasSalvas[chk.value];
+            chk.addEventListener('change', (e) => {
+                colunasSalvas[e.target.value] = e.target.checked;
+                localStorage.setItem('pref_colunas', JSON.stringify(colunasSalvas));
+                if (visaoAtual === 'tabela') atualizarTabelaHtml();
+            });
+        });
+
+        btnVisaoResumo.addEventListener('click', () => alterarVisao('resumo'));
+        btnVisaoTabela.addEventListener('click', () => alterarVisao('tabela'));
+
+        function alterarVisao(novaVisao) {
+            visaoAtual = novaVisao;
+            if (visaoAtual === 'resumo') {
+                btnVisaoResumo.classList.add('ativo');
+                btnVisaoTabela.classList.remove('ativo');
+                areaResumo.style.display = 'block';
+                areaTabela.style.display = 'none';
+                atualizarPainelResumo();
+            } else {
+                btnVisaoTabela.classList.add('ativo');
+                btnVisaoResumo.classList.remove('ativo');
+                areaResumo.style.display = 'none';
+                areaTabela.style.display = 'block';
+                atualizarTabelaHtml();
+            }
+        }
+
+        function abrirFormulario() {
+            idChamadoEmEdicao = null;
+            formChamado.reset();
+            tituloFormulario.textContent = 'Registrar Novo Chamado';
+            btnSalvar.textContent = 'Salvar Chamado';
+            painelFormulario.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function fecharFormulario() {
+            painelFormulario.style.display = 'none';
+            idChamadoEmEdicao = null;
+            formChamado.reset();
+        }
+
+        function preparingEdicao(id) { 
+            const chamado = listaChamados.find(c => c.id === id);
+            if (!chamado) return;
+            idChamadoEmEdicao = id;
+            document.getElementById('numero').value = chamado.numero || '';
+            document.getElementById('analista').value = chamado.analista || '';
+            document.getElementById('categoria').value = chamado.categoria || '';
+            document.getElementById('problema').value = chamado.problema || '';
+            document.getElementById('fila').value = chamado.fila || '';
+            document.getElementById('assuntoEmail').value = chamado.assuntoEmail || '';
+            document.getElementById('sla').value = chamado.sla || '';
+            document.getElementById('dataQuestionamento').value = chamado.dataQuestionamento || '';
+            document.getElementById('dataFechamento').value = chamado.dataFechamento || '';
+            tituloFormulario.textContent = 'Editar Chamado';
+            btnSalvar.textContent = 'Atualizar Chamado';
+            painelFormulario.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function prepararEdicao(id) { preparingEdicao(id); }
+
+        formChamado.addEventListener('submit', async function(evento) {
+            evento.preventDefault(); 
+            loading.style.display = 'flex';
+            const dadosFormulario = {
+                numero: document.getElementById('numero').value,
+                analista: document.getElementById('analista').value,
+                categoria: document.getElementById('categoria').value,
+                problema: document.getElementById('problema').value,
+                fila: document.getElementById('fila').value,
+                assuntoEmail: document.getElementById('assuntoEmail').value,
+                sla: document.getElementById('sla').value,
+                dataQuestionamento: document.getElementById('dataQuestionamento').value,
+                dataFechamento: document.getElementById('dataFechamento').value
+            };
+            try {
+                if (idChamadoEmEdicao) {
+                    const docRef = doc(db, "chamados", idChamadoEmEdicao);
+                    await updateDoc(docRef, dadosFormulario);
+                } else {
+                    await addDoc(chamadosCollection, { createdAt: new Date(), ...dadosFormulario });
+                }
+                fecharFormulario();
+            } catch (e) {
+                console.error("Erro ao salvar: ", e);
+                alert("Erro ao salvar no banco. Verifique se seu e-mail tem permissão.");
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        async function removingChamado(id) {
+            if(confirm("Confirma a exclusão permanente deste registro no sistema?")) {
+                loading.style.display = 'flex';
+                try {
+                    await deleteDoc(doc(db, "chamados", id));
+                    if (idChamadoEmEdicao === id) fecharFormulario();
+                } catch (e) {
+                    console.error("Erro ao excluir: ", e);
+                    alert("Erro ao excluir. Verifique permissões.");
+                } finally {
+                    loading.style.display = 'none';
+                }
+            }
+        }
+        function removerChamado(id) { removingChamado(id); }
+
+        function limparFiltros() {
+            Object.values(inputFiltros).forEach(input => {
+                if(input.tagName === 'SELECT') {
+                    if(input.id === 'filtroStatus' || input.id === 'filtroSLA') input.value = 'todos';
+                    else input.value = '';
+                } else {
+                    input.value = '';
+                }
+            });
+            processarVisualizacao(true);
+        }
+
+        function processarVisualizacao(resetarPagina = true) {
+            if (resetarPagina) paginaAtual = 1; 
+            const vCategoria = inputFiltros.categoria.value;
+            const vStatus = inputFiltros.status.value;
+            const vSLA = inputFiltros.sla.value;
+            const vData = inputFiltros.data.value;
+            const vNumero = inputFiltros.numero.value.trim().toLowerCase();
+            const vAnalista = inputFiltros.analista.value.trim().toLowerCase();
+            const vProblema = inputFiltros.problema.value.trim().toLowerCase();
+            const vFila = inputFiltros.fila.value.trim().toLowerCase();
+            const vAssunto = inputFiltros.assunto.value.trim().toLowerCase();
+            const vDataQuest = inputFiltros.dataQuest.value;
+            const agora = new Date();
+
+            chamadosFiltradosAtuais = listaChamados.filter(chamado => {
+                const num = (chamado.numero || '').toLowerCase();
+                const ana = (chamado.analista || '').toLowerCase();
+                const prob = (chamado.problema || '').toLowerCase();
+                const fila = (chamado.fila || '').toLowerCase();
+                const ass = (chamado.assuntoEmail || '').toLowerCase();
+                const atendeCategoria = vCategoria === '' || chamado.categoria === vCategoria;
+                
+                let atendeStatus = true;
+                if (vStatus === 'abertos') atendeStatus = !chamado.dataFechamento; 
+                else if (vStatus === 'fechados') atendeStatus = !!chamado.dataFechamento; 
+
+                let atendeSLA = true;
+                if (vSLA !== 'todos') {
+                    if (!chamado.sla) atendeSLA = false; 
+                    else {
+                        const slaDate = new Date(chamado.sla);
+                        if (vSLA === 'vencidos') atendeSLA = slaDate <= agora;
+                        else if (vSLA === 'noprazo') atendeSLA = slaDate > agora;
+                    }
+                }
+
+                const atendeData = vData === '' || chamado.dataFechamento === vData;
+                const dataQuestFormatada = (chamado.dataQuestionamento || '').split('T')[0];
+                const atendeDataQuest = vDataQuest === '' || dataQuestFormatada === vDataQuest;
+                const atendeNumero = vNumero === '' || num.includes(vNumero);
+                const atendeAnalista = vAnalista === '' || ana.includes(vAnalista);
+                const atendeProblema = vProblema === '' || prob.includes(vProblema);
+                const atendeFila = vFila === '' || fila.includes(vFila);
+                const atendeAssunto = vAssunto === '' || ass.includes(vAssunto);
+
+                return atendeCategoria && atendeStatus && atendeSLA && atendeData && atendeDataQuest &&
+                       atendeNumero && atendeAnalista && atendeProblema && 
+                       atendeFila && atendeAssunto;
+            });
+
+            if (visaoAtual === 'resumo') atualizarPainelResumo();
+            else atualizarTabelaHtml();
+        }
+
+        const iconeLapis = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-editar"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+        const iconeLixeira = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+
+        function formatarDataHoraSimples(dataISO) {
+            if (!dataISO) return '-';
+            if (dataISO.includes('T')) {
+                const [data, hora] = dataISO.split('T');
+                const partes = data.split('-');
+                return `${partes[2]}/${partes[1]}/${partes[0]} ${hora}`;
+            }
+            return dataISO; 
+        }
+
+        function formatarDataTela(dataISO) {
+            if (!dataISO) return '<span class="status-aberto">Em aberto</span>';
+            const partes = dataISO.split('-');
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+
+        function formatarSLA(dataISO, dataFechamento) {
+            if (!dataISO) return '-';
+            let dataFormatada = formatarDataHoraSimples(dataISO);
+            if (!dataFechamento) {
+                const agora = new Date();
+                const slaDate = new Date(dataISO);
+                if (slaDate <= agora) return `<span class="sla-vencido">${dataFormatada} (Vencido)</span>`;
+            }
+            return dataFormatada;
+        }
+
+        function formatarDataParaTeams(dataISO) {
+            if (!dataISO) return '-';
+            if (dataISO.includes('T')) {
+                const [data, hora] = dataISO.split('T');
+                const partes = data.split('-');
+                // FORMATO TEAMS: E-mail enviado em DD/MM às HH:MM
+                return `E-mail enviado em ${partes[2]}/${partes[1]} às ${hora}`;
+            } else {
+                const partes = dataISO.split('-');
+                return `E-mail enviado em ${partes[2]}/${partes[1]}`;
+            }
+        }
+
+        function formatarDataExportacao(dataISO) {
+            if (!dataISO) return 'Em aberto';
+            const partes = dataISO.split('-');
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+
+        function atualizarPainelResumo() {
+            tabelaResumoCorpo.innerHTML = '';
+            if (chamadosFiltradosAtuais.length === 0) {
+                tabelaResumoCorpo.innerHTML = '<tr><td colspan="4" class="mensagem-vazia">Nenhum registro encontrado.</td></tr>';
+                return;
+            }
+            const regras = [
+                { nome: 'Gol Revolution', temAberto: false },
+                { nome: 'Portabilidade', temAberto: false },
+                { nome: 'Suporte à Sistemas - OMS/CRM', temAberto: true }
+            ];
+            regras.forEach(regra => {
+                const filtrados = chamadosFiltradosAtuais.filter(c => c.categoria === regra.nome);
+                const abertos = filtrados.filter(c => !c.dataFechamento).length;
+                const concluidos = filtrados.filter(c => c.dataFechamento).length;
+                const total = filtrados.length;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><strong>${regra.nome}</strong></td><td>${regra.temAberto ? `<span class="status-aberto">${abertos}</span>` : '-'}</td><td><strong>${concluidos}</strong></td><td style="background-color: var(--bg-color);"><strong>${total}</strong></td>`;
+                tabelaResumoCorpo.appendChild(tr);
+            });
+        }
+
+        function atualizarTabelaHtml() {
+            let htmlCabecalho = `<th>Chamado</th>`;
+            if(colunasSalvas.analista) htmlCabecalho += `<th>Analista</th>`;
+            if(colunasSalvas.categoria) htmlCabecalho += `<th>Categoria</th>`;
+            if(colunasSalvas.problema) htmlCabecalho += `<th>Cenário / Problema</th>`;
+            if(colunasSalvas.fila) htmlCabecalho += `<th>Fila</th>`;
+            if(colunasSalvas.assunto) htmlCabecalho += `<th>Assunto do E-mail</th>`;
+            if(colunasSalvas.sla) htmlCabecalho += `<th>SLA</th>`;
+            if(colunasSalvas.dtQuest) htmlCabecalho += `<th>Dt. Quest.</th>`;
+            if(colunasSalvas.dtFecham) htmlCabecalho += `<th>Dt. Fecham.</th>`;
+            htmlCabecalho += `<th style="text-align: center;">Ações</th>`;
+            
+            cabecalhoTabela.innerHTML = htmlCabecalho;
+            tabelaCorpo.innerHTML = ''; 
+
+            if (chamadosFiltradosAtuais.length === 0) {
+                const totalColunas = document.querySelectorAll('#cabecalhoTabela th').length;
+                tabelaCorpo.innerHTML = `<tr><td colspan="${totalColunas}" class="mensagem-vazia">Nenhum registro retornado com os critérios fornecidos.</td></tr>`;
+                controlePaginacao.style.display = 'none';
+                return;
+            }
+
+            controlePaginacao.style.display = 'flex';
+            let chamadosParaExibir = chamadosFiltradosAtuais;
+            let totalPaginas = 1;
+
+            if (itensPorPagina !== 'todos') {
+                totalPaginas = Math.ceil(chamadosFiltradosAtuais.length / itensPorPagina);
+                if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+                if (paginaAtual < 1) paginaAtual = 1;
+                const inicio = (paginaAtual - 1) * itensPorPagina;
+                const fim = inicio + itensPorPagina;
+                chamadosParaExibir = chamadosFiltradosAtuais.slice(inicio, fim);
+            }
+
+            infoPaginacao.textContent = itensPorPagina === 'todos' ? 'Exibindo todos' : `Página ${paginaAtual} de ${totalPaginas}`;
+            btnPaginaAnt.disabled = paginaAtual === 1 || itensPorPagina === 'todos';
+            btnPaginaProx.disabled = paginaAtual === totalPaginas || itensPorPagina === 'todos';
+
+            chamadosParaExibir.forEach((chamado) => {
+                const tr = document.createElement('tr');
+                const linkChamado = `http://www.chamados.com/${chamado.numero}`; 
+
+                let htmlLinha = `<td><strong><a href="${linkChamado}" target="_blank" class="link-chamado">${chamado.numero}</a></strong></td>`;
+                if(colunasSalvas.analista) htmlLinha += `<td>${chamado.analista || '-'}</td>`;
+                if(colunasSalvas.categoria) htmlLinha += `<td>${chamado.categoria || '-'}</td>`;
+                if(colunasSalvas.problema) htmlLinha += `<td>${chamado.problema || '-'}</td>`;
+                if(colunasSalvas.fila) htmlLinha += `<td>${chamado.fila || '-'}</td>`;
+                if(colunasSalvas.assunto) htmlLinha += `<td>${chamado.assuntoEmail || '-'}</td>`;
+                if(colunasSalvas.sla) htmlLinha += `<td>${formatarSLA(chamado.sla, chamado.dataFechamento)}</td>`;
+                if(colunasSalvas.dtQuest) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataQuestionamento)}</td>`;
+                if(colunasSalvas.dtFecham) htmlLinha += `<td>${formatarDataTela(chamado.dataFechamento)}</td>`;
+                
+                htmlLinha += `<td><div class="acoes-container"><button class="btn-icone" onclick="prepararEdicao('${chamado.id}')" title="Editar Chamado">${iconeLapis}</button><button class="btn-icone" onclick="removerChamado('${chamado.id}')" title="Excluir Chamado">${iconeLixeira}</button></div></td>`;
+                tr.innerHTML = htmlLinha;
+                tabelaCorpo.appendChild(tr);
+            });
+        }
+
+        selectItensPagina.addEventListener('change', (e) => {
+            itensPorPagina = e.target.value === 'todos' ? 'todos' : parseInt(e.target.value);
+            paginaAtual = 1;
+            atualizarTabelaHtml();
+        });
+        btnPaginaAnt.addEventListener('click', () => { if (paginaAtual > 1) { paginaAtual--; atualizarTabelaHtml(); } });
+        btnPaginaProx.addEventListener('click', () => {
+            const totalPaginas = Math.ceil(chamadosFiltradosAtuais.length / itensPorPagina);
+            if (paginaAtual < totalPaginas) { paginaAtual++; atualizarTabelaHtml(); }
+        });
+
+        Object.values(inputFiltros).forEach(input => {
+            input.addEventListener('input', () => processarVisualizacao(true));
+            input.addEventListener('change', () => processarVisualizacao(true));
+        });
+
+        function copiarParaTeams() {
+            if (chamadosFiltradosAtuais.length === 0) {
+                alert("Sem dados para copiar.");
+                return;
+            }
+            let html = `<table style="border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Arial, sans-serif;"><thead><tr style="background-color: #f3f2f1; color: #323130; text-align: left;"><th style="border: 1px solid #edebe9; padding: 8px;">Chamado</th><th style="border: 1px solid #edebe9; padding: 8px;">Assunto do E-mail</th><th style="border: 1px solid #edebe9; padding: 8px;">SLA</th><th style="border: 1px solid #edebe9; padding: 8px;">Data do Questionamento</th></tr></thead><tbody>`;
+            chamadosFiltradosAtuais.forEach(c => {
+                html += `<tr><td style="border: 1px solid #edebe9; padding: 8px;">${c.numero || '-'}</td><td style="border: 1px solid #edebe9; padding: 8px;">${c.assuntoEmail || '-'}</td><td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataHoraSimples(c.sla)}</td><td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(c.dataQuestionamento)}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = html;
+            tempDiv.style.position = "absolute";
+            tempDiv.style.left = "-9999px";
+            document.body.appendChild(tempDiv);
+            const range = document.createRange();
+            range.selectNodeContents(tempDiv);
+            const selecao = window.getSelection();
+            selecao.removeAllRanges();
+            selecao.addRange(range);
+            try {
+                document.execCommand("copy");
+                alert("Tabela copiada para o Teams!");
+            } catch (err) { alert("Erro ao copiar."); }
+            document.body.removeChild(tempDiv);
+        }
+
+        function exportarCSV() {
+            if (chamadosFiltradosAtuais.length === 0) {
+                alert("Sem dados para exportar.");
+                return;
+            }
+            let csv = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Fecham.\n";
+            chamadosFiltradosAtuais.forEach(c => {
+                const sla = formatarDataHoraSimples(c.sla);
+                const dtq = formatarDataHoraSimples(c.dataQuestionamento);
+                const dtf = c.dataFechamento ? formatarDataTela(c.dataFechamento) : 'Em aberto';
+                const clean = (txt) => (txt || '').replace(/"/g, '""').replace(/(\r\n|\n|\r)/gm, " ");
+                csv += `"${clean(c.numero)}";"${clean(c.analista)}";"${clean(c.categoria)}";"${clean(c.problema)}";"${clean(c.fila)}";"${clean(c.assuntoEmail)}";"${sla}";"${dtq}";"${dtf}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Relatorio_Chamados_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
