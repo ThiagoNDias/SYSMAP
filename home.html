@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Chamados - Seguro</title>
+    <title>Controle de Chamados - Auditado</title>
     <style>
         /* --- VARIÁVEIS DE CORES --- */
         :root {
@@ -319,6 +319,9 @@
                     <label><input type="checkbox" class="chk-coluna" value="sla" checked> SLA</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtQuest" checked> Dt. Quest.</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtFecham" checked> Dt. Fecham.</label>
+                    <label><input type="checkbox" class="chk-coluna" value="dtCriacao"> Data Criação</label>
+                    <label><input type="checkbox" class="chk-coluna" value="dtAtualizacao"> Data Atualização</label>
+                    <label><input type="checkbox" class="chk-coluna" value="usrAtualizacao"> Atualizado Por</label>
                 </div>
             </div>
 
@@ -453,6 +456,7 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         const chamadosCollection = collection(db, "chamados");
+        const logsCollection = collection(db, "logs_chamados"); // Nova coleção de Logs
         const provider = new GoogleAuthProvider();
 
         let listaChamados = [];
@@ -463,6 +467,7 @@
         let itensPorPagina = 10;
         let userEmail = '';
 
+        // --- DOM Elements ---
         const telaLogin = document.getElementById('telaLogin');
         const appContent = document.getElementById('appContent');
         const btnLoginGoogle = document.getElementById('btnLoginGoogle');
@@ -471,6 +476,7 @@
         const userAvatar = document.getElementById('userAvatar');
         const loading = document.getElementById('loading');
 
+        // --- AUTH ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userEmail = user.email;
@@ -493,6 +499,7 @@
 
         btnLogout.addEventListener('click', () => { signOut(auth); });
 
+        // --- FIRESTORE LISTENER ---
         let unsubscribe = null;
         function iniciarFirestoreListener() {
             if (unsubscribe) unsubscribe();
@@ -507,6 +514,23 @@
             });
         }
 
+        // --- FUNÇÃO PARA GRAVAR LOGS ---
+        async function registrarLog(acao, id, dados, usuario) {
+            try {
+                await addDoc(logsCollection, {
+                    dataHora: new Date().toISOString(),
+                    acao: acao, // CRIACAO, ATUALIZACAO, EXCLUSAO
+                    chamadoId: id,
+                    usuario: usuario,
+                    dadosSnapshot: dados // Salva o estado dos dados no momento
+                });
+            } catch (e) {
+                console.error("Erro ao gravar log de auditoria:", e);
+                // Não alertamos o usuário para não interromper o fluxo principal
+            }
+        }
+
+        // --- UI LOGIC ---
         const btnTema = document.getElementById('btnTema');
         const painelFormulario = document.getElementById('painelFormulario');
         const formChamado = document.getElementById('formChamado');
@@ -578,7 +602,7 @@
         btnMaisFiltros.addEventListener('click', () => { alternarPainel(filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil, painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas); });
         btnGerenciarColunas.addEventListener('click', () => { alternarPainel(painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas, filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil); });
 
-        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: true, fila: true, assunto: true, sla: true, dtQuest: true, dtFecham: true };
+        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: true, fila: true, assunto: true, sla: true, dtQuest: true, dtFecham: true, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false };
         document.querySelectorAll('.chk-coluna').forEach(chk => {
             chk.checked = colunasSalvas[chk.value];
             chk.addEventListener('change', (e) => {
@@ -624,6 +648,7 @@
             evento.preventDefault(); 
             loading.style.display = 'flex';
             const numeroInput = document.getElementById('numero').value.trim();
+            const agora = new Date().toISOString();
 
             const dadosFormulario = {
                 numero: numeroInput,
@@ -635,13 +660,13 @@
                 sla: document.getElementById('sla').value,
                 dataQuestionamento: document.getElementById('dataQuestionamento').value,
                 dataFechamento: document.getElementById('dataFechamento').value,
-                criadoPor: idChamadoEmEdicao ? (listaChamados.find(c => c.id === idChamadoEmEdicao).criadoPor || userEmail) : userEmail
+                usuarioAtualizacao: userEmail,
+                dataAtualizacao: agora
             };
             
             try {
                 if (idChamadoEmEdicao) {
-                    // Update
-                    // Check duplicate on edit only if number changed
+                    // --- UPDATE ---
                     const original = listaChamados.find(c => c.id === idChamadoEmEdicao);
                     if (original.numero !== numeroInput) {
                         const q = query(chamadosCollection, where("numero", "==", numeroInput));
@@ -652,11 +677,14 @@
                             return;
                         }
                     }
-
                     const docRef = doc(db, "chamados", idChamadoEmEdicao);
                     await updateDoc(docRef, dadosFormulario);
+                    
+                    // GRAVA LOG DE ATUALIZAÇÃO
+                    await registrarLog('ATUALIZACAO', idChamadoEmEdicao, dadosFormulario, userEmail);
+
                 } else {
-                    // Create - Check Duplicate
+                    // --- CREATE ---
                     const q = query(chamadosCollection, where("numero", "==", numeroInput));
                     const querySnapshot = await getDocs(q);
                     if (!querySnapshot.empty) {
@@ -664,8 +692,15 @@
                         loading.style.display = 'none';
                         return;
                     }
+                    const docRef = await addDoc(chamadosCollection, { 
+                        createdAt: new Date(), 
+                        criadoPor: userEmail,
+                        dataCriacao: agora,
+                        ...dadosFormulario 
+                    });
 
-                    await addDoc(chamadosCollection, { createdAt: new Date(), ...dadosFormulario });
+                    // GRAVA LOG DE CRIAÇÃO
+                    await registrarLog('CRIACAO', docRef.id, dadosFormulario, userEmail);
                 }
                 fecharFormulario();
             } catch (e) {
@@ -680,7 +715,14 @@
             if(confirm("Confirma a exclusão permanente deste registro no sistema?")) {
                 loading.style.display = 'flex';
                 try {
+                    // Busca dados antes de apagar para salvar no log
+                    const chamadoDeletado = listaChamados.find(c => c.id === id);
+                    
                     await deleteDoc(doc(db, "chamados", id));
+                    
+                    // GRAVA LOG DE EXCLUSÃO
+                    await registrarLog('EXCLUSAO', id, { numero: chamadoDeletado.numero }, userEmail);
+
                     if (idChamadoEmEdicao === id) fecharFormulario();
                 } catch (e) {
                     console.error("Erro ao excluir: ", e);
@@ -836,6 +878,10 @@
             if(colunasSalvas.sla) htmlCabecalho += `<th>SLA</th>`;
             if(colunasSalvas.dtQuest) htmlCabecalho += `<th>Dt. Quest.</th>`;
             if(colunasSalvas.dtFecham) htmlCabecalho += `<th>Dt. Fecham.</th>`;
+            if(colunasSalvas.dtCriacao) htmlCabecalho += `<th>Data Criação</th>`;
+            if(colunasSalvas.dtAtualizacao) htmlCabecalho += `<th>Data Atualização</th>`;
+            if(colunasSalvas.usrAtualizacao) htmlCabecalho += `<th>Atualizado Por</th>`;
+
             htmlCabecalho += `<th style="text-align: center;">Ações</th>`;
             
             cabecalhoTabela.innerHTML = htmlCabecalho;
@@ -878,8 +924,10 @@
                 if(colunasSalvas.sla) htmlLinha += `<td>${formatarSLA(chamado.sla, chamado.dataFechamento)}</td>`;
                 if(colunasSalvas.dtQuest) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataQuestionamento)}</td>`;
                 if(colunasSalvas.dtFecham) htmlLinha += `<td>${formatarDataTela(chamado.dataFechamento)}</td>`;
+                if(colunasSalvas.dtCriacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataCriacao)}</td>`;
+                if(colunasSalvas.dtAtualizacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataAtualizacao)}</td>`;
+                if(colunasSalvas.usrAtualizacao) htmlLinha += `<td>${chamado.usuarioAtualizacao || '-'}</td>`;
                 
-                // LÓGICA DE PERMISSÃO DE BOTÕES
                 const ehDono = chamado.criadoPor === userEmail;
                 const ehAdmin = userEmail === ADMIN_EMAIL;
                 let botoesAcao = '';
@@ -912,6 +960,9 @@
             input.addEventListener('change', () => processarVisualizacao(true));
         });
 
+        // -------------------------------------------------------------
+        // COPY TO TEAMS (MANTÉM APENAS OS CAMPOS ORIGINAIS)
+        // -------------------------------------------------------------
         function copiarParaTeams() {
             if (chamadosFiltradosAtuais.length === 0) {
                 alert("Sem dados para copiar.");
@@ -939,18 +990,26 @@
             document.body.removeChild(tempDiv);
         }
 
+        // -------------------------------------------------------------
+        // EXPORT TO EXCEL (INCLUI AUDITORIA)
+        // -------------------------------------------------------------
         function exportarCSV() {
             if (chamadosFiltradosAtuais.length === 0) {
                 alert("Sem dados para exportar.");
                 return;
             }
-            let csv = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Fecham.\n";
+            let csv = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Fecham.;Data Criação;Data Atualização;Atualizado Por\n";
             chamadosFiltradosAtuais.forEach(c => {
                 const sla = formatarDataHoraSimples(c.sla);
                 const dtq = formatarDataHoraSimples(c.dataQuestionamento);
                 const dtf = c.dataFechamento ? formatarDataTela(c.dataFechamento) : 'Em aberto';
+                
+                const dtCri = formatarDataHoraSimples(c.dataCriacao);
+                const dtAtu = formatarDataHoraSimples(c.dataAtualizacao);
+                const usrAtu = c.usuarioAtualizacao || '';
+
                 const clean = (txt) => (txt || '').replace(/"/g, '""').replace(/(\r\n|\n|\r)/gm, " ");
-                csv += `"${clean(c.numero)}";"${clean(c.analista)}";"${clean(c.categoria)}";"${clean(c.problema)}";"${clean(c.fila)}";"${clean(c.assuntoEmail)}";"${sla}";"${dtq}";"${dtf}"\n`;
+                csv += `"${clean(c.numero)}";"${clean(c.analista)}";"${clean(c.categoria)}";"${clean(c.problema)}";"${clean(c.fila)}";"${clean(c.assuntoEmail)}";"${sla}";"${dtq}";"${dtf}";"${dtCri}";"${dtAtu}";"${usrAtu}"\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
