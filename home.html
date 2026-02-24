@@ -85,7 +85,7 @@
         
         /* Botões Flutuantes e de Tema */
         .btn-tema {
-            position: fixed; top: 20px; left: 20px; /* Mudou para esquerda */
+            position: fixed; top: 20px; left: 20px;
             background-color: var(--panel-bg); color: var(--text-color);
             border: 2px solid var(--border-color); padding: 10px 16px;
             border-radius: 30px; cursor: pointer; font-weight: bold;
@@ -117,7 +117,7 @@
         button { font-family: inherit; }
         button.btn-salvar { background-color: var(--claro-red); color: white; border: none; padding: 12px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 16px; flex: 1; transition: background-color 0.3s; }
         button.btn-salvar:hover { background-color: var(--claro-red-dark); }
-        button.btn-cancelar { background-color: transparent; color: var(--text-color); border: 2px solid var(--border-color); padding: 12px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 16px; flex: 1; display: none; transition: background-color 0.3s; }
+        button.btn-cancelar { background-color: transparent; color: var(--text-color); border: 2px solid var(--border-color); padding: 12px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 16px; flex: 1; transition: background-color 0.3s; }
         button.btn-cancelar:hover { background-color: var(--border-light); }
         
         /* Botões de Ícone */
@@ -165,6 +165,7 @@
         tr:last-child td { border-bottom: none; }
         .acoes-container { display: flex; gap: 10px; justify-content: center; }
         .mensagem-vazia { text-align: center; color: var(--text-muted); font-style: italic; padding: 30px; }
+        .sem-permissao { color: var(--text-muted); font-size: 12px; font-style: italic; }
 
         /* Paginação */
         .paginacao-container { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px 0; border-top: 1px solid var(--border-light); }
@@ -393,8 +394,7 @@
                             <th>Volume Total</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelaResumoCorpo">
-                        </tbody>
+                    <tbody id="tabelaResumoCorpo"></tbody>
                 </table>
             </div>
 
@@ -402,11 +402,9 @@
                 <div class="tabela-container">
                     <table id="tabelaPrincipal">
                         <thead>
-                            <tr id="cabecalhoTabela">
-                                </tr>
+                            <tr id="cabecalhoTabela"></tr>
                         </thead>
-                        <tbody id="tabelaCorpo">
-                            </tbody>
+                        <tbody id="tabelaCorpo"></tbody>
                     </table>
                 </div>
                 
@@ -432,6 +430,12 @@
     </div>
 
     <script type="module">
+        // -----------------------------------------------------------
+        // IMPORTANTE: COLOQUE SEU EMAIL DE ADMIN AQUI
+        // -----------------------------------------------------------
+        const ADMIN_EMAIL = "ThiagoFelipeND@gmail.com"; 
+        // -----------------------------------------------------------
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -445,14 +449,12 @@
             appId: "1:289059675889:web:5bd2e0c04f6d2717035350"
         };
 
-        // Inicializa Firebase e Auth
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         const chamadosCollection = collection(db, "chamados");
         const provider = new GoogleAuthProvider();
 
-        // --- VARIÁVEIS GLOBAIS ---
         let listaChamados = [];
         let chamadosFiltradosAtuais = [];
         let idChamadoEmEdicao = null;
@@ -461,7 +463,6 @@
         let itensPorPagina = 10;
         let userEmail = '';
 
-        // --- ELEMENTOS DOM ---
         const telaLogin = document.getElementById('telaLogin');
         const appContent = document.getElementById('appContent');
         const btnLoginGoogle = document.getElementById('btnLoginGoogle');
@@ -470,21 +471,16 @@
         const userAvatar = document.getElementById('userAvatar');
         const loading = document.getElementById('loading');
 
-        // --- AUTHENTICATION LOGIC ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Usuário logado
                 userEmail = user.email;
                 userName.textContent = user.displayName;
                 userAvatar.src = user.photoURL;
                 telaLogin.style.display = 'none';
                 appContent.style.display = 'block';
-                loading.style.display = 'flex'; // Mostra loading enquanto busca dados
-                
-                // Inicia o listener do Firestore APENAS se logado
+                loading.style.display = 'flex'; 
                 iniciarFirestoreListener();
             } else {
-                // Usuário deslogado
                 telaLogin.style.display = 'flex';
                 appContent.style.display = 'none';
                 loading.style.display = 'none';
@@ -492,45 +488,30 @@
         });
 
         btnLoginGoogle.addEventListener('click', () => {
-            signInWithPopup(auth, provider).catch((error) => {
-                alert("Erro no login: " + error.message);
-            });
+            signInWithPopup(auth, provider).catch((error) => alert("Erro no login: " + error.message));
         });
 
-        btnLogout.addEventListener('click', () => {
-            signOut(auth);
-        });
+        btnLogout.addEventListener('click', () => { signOut(auth); });
 
-        // --- FIRESTORE ---
         let unsubscribe = null;
-
         function iniciarFirestoreListener() {
-            if (unsubscribe) unsubscribe(); // Limpa listener anterior se houver
-
+            if (unsubscribe) unsubscribe();
             unsubscribe = onSnapshot(chamadosCollection, (snapshot) => {
-                listaChamados = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
+                listaChamados = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 loading.style.display = 'none';
                 processarVisualizacao(false);
             }, (error) => {
                 console.error("Erro ao buscar dados:", error);
                 loading.style.display = 'none';
-                // Se o erro for de permissão, é porque o e-mail não está na lista
-                if (error.code === 'permission-denied') {
-                    alert("Seu e-mail não tem permissão para visualizar/editar estes dados.");
-                }
+                if (error.code === 'permission-denied') alert("Sem permissão para ver os dados.");
             });
         }
 
-        // --- RESTO DO CÓDIGO (Lógica de UI) ---
         const btnTema = document.getElementById('btnTema');
         const painelFormulario = document.getElementById('painelFormulario');
         const formChamado = document.getElementById('formChamado');
         const tituloFormulario = document.getElementById('tituloFormulario');
         const btnSalvar = document.getElementById('btnSalvar');
-        
         const btnVisaoResumo = document.getElementById('btnVisaoResumo');
         const btnVisaoTabela = document.getElementById('btnVisaoTabela');
         const areaResumo = document.getElementById('areaResumo');
@@ -538,13 +519,11 @@
         const areaTabela = document.getElementById('areaTabela');
         const cabecalhoTabela = document.getElementById('cabecalhoTabela');
         const tabelaCorpo = document.getElementById('tabelaCorpo');
-        
         const selectItensPagina = document.getElementById('selectItensPagina');
         const controlePaginacao = document.getElementById('controlePaginacao');
         const btnPaginaAnt = document.getElementById('btnPaginaAnt');
         const btnPaginaProx = document.getElementById('btnPaginaProx');
         const infoPaginacao = document.getElementById('infoPaginacao');
-
         const btnMaisFiltros = document.getElementById('btnMaisFiltros');
         const iconeFiltroSvg = document.getElementById('iconeFiltroSvg');
         const filtrosAvancados = document.getElementById('filtrosAvancados');
@@ -575,23 +554,13 @@
         window.removerChamado = removerChamado;
 
         const temaSalvo = localStorage.getItem('tema_chamados');
-        if (temaSalvo === 'claro') {
-            document.body.classList.remove('dark-mode');
-            btnTema.textContent = '🌙 Modo Escuro';
-        } else {
-            document.body.classList.add('dark-mode');
-            btnTema.textContent = '☀️ Modo Claro';
-        }
+        if (temaSalvo === 'claro') { document.body.classList.remove('dark-mode'); btnTema.textContent = '🌙 Modo Escuro'; } 
+        else { document.body.classList.add('dark-mode'); btnTema.textContent = '☀️ Modo Claro'; }
 
         btnTema.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) {
-                localStorage.setItem('tema_chamados', 'escuro');
-                btnTema.textContent = '☀️ Modo Claro';
-            } else {
-                localStorage.setItem('tema_chamados', 'claro');
-                btnTema.textContent = '🌙 Modo Escuro';
-            }
+            if (document.body.classList.contains('dark-mode')) { localStorage.setItem('tema_chamados', 'escuro'); btnTema.textContent = '☀️ Modo Claro'; } 
+            else { localStorage.setItem('tema_chamados', 'claro'); btnTema.textContent = '🌙 Modo Escuro'; }
         });
 
         const svgFunil = '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>';
@@ -599,32 +568,17 @@
 
         function alternarPainel(painelAtivo, btnAtivo, iconeAtivo, svgOriginal, painelInativo, btnInativo, iconeInativo, svgOriginalInativo) {
             if (painelAtivo.style.display === 'none') {
-                painelAtivo.style.display = 'block';
-                btnAtivo.classList.add('ativo');
-                iconeAtivo.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
-                painelInativo.style.display = 'none';
-                btnInativo.classList.remove('ativo');
-                iconeInativo.innerHTML = svgOriginalInativo;
+                painelAtivo.style.display = 'block'; btnAtivo.classList.add('ativo'); iconeAtivo.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+                painelInativo.style.display = 'none'; btnInativo.classList.remove('ativo'); iconeInativo.innerHTML = svgOriginalInativo;
             } else {
-                painelAtivo.style.display = 'none';
-                btnAtivo.classList.remove('ativo');
-                iconeAtivo.innerHTML = svgOriginal;
+                painelAtivo.style.display = 'none'; btnAtivo.classList.remove('ativo'); iconeAtivo.innerHTML = svgOriginal;
             }
         }
 
-        btnMaisFiltros.addEventListener('click', () => {
-            alternarPainel(filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil, painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas);
-        });
+        btnMaisFiltros.addEventListener('click', () => { alternarPainel(filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil, painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas); });
+        btnGerenciarColunas.addEventListener('click', () => { alternarPainel(painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas, filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil); });
 
-        btnGerenciarColunas.addEventListener('click', () => {
-            alternarPainel(painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas, filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil);
-        });
-
-        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || {
-            analista: true, categoria: true, problema: true, fila: true, 
-            assunto: true, sla: true, dtQuest: true, dtFecham: true
-        };
-
+        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: true, fila: true, assunto: true, sla: true, dtQuest: true, dtFecham: true };
         document.querySelectorAll('.chk-coluna').forEach(chk => {
             chk.checked = colunasSalvas[chk.value];
             chk.addEventListener('change', (e) => {
@@ -639,35 +593,12 @@
 
         function alterarVisao(novaVisao) {
             visaoAtual = novaVisao;
-            if (visaoAtual === 'resumo') {
-                btnVisaoResumo.classList.add('ativo');
-                btnVisaoTabela.classList.remove('ativo');
-                areaResumo.style.display = 'block';
-                areaTabela.style.display = 'none';
-                atualizarPainelResumo();
-            } else {
-                btnVisaoTabela.classList.add('ativo');
-                btnVisaoResumo.classList.remove('ativo');
-                areaResumo.style.display = 'none';
-                areaTabela.style.display = 'block';
-                atualizarTabelaHtml();
-            }
+            if (visaoAtual === 'resumo') { btnVisaoResumo.classList.add('ativo'); btnVisaoTabela.classList.remove('ativo'); areaResumo.style.display = 'block'; areaTabela.style.display = 'none'; atualizarPainelResumo(); } 
+            else { btnVisaoTabela.classList.add('ativo'); btnVisaoResumo.classList.remove('ativo'); areaResumo.style.display = 'none'; areaTabela.style.display = 'block'; atualizarTabelaHtml(); }
         }
 
-        function abrirFormulario() {
-            idChamadoEmEdicao = null;
-            formChamado.reset();
-            tituloFormulario.textContent = 'Registrar Novo Chamado';
-            btnSalvar.textContent = 'Salvar Chamado';
-            painelFormulario.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function fecharFormulario() {
-            painelFormulario.style.display = 'none';
-            idChamadoEmEdicao = null;
-            formChamado.reset();
-        }
+        function abrirFormulario() { idChamadoEmEdicao = null; formChamado.reset(); tituloFormulario.textContent = 'Registrar Novo Chamado'; btnSalvar.textContent = 'Salvar Chamado'; painelFormulario.style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function fecharFormulario() { painelFormulario.style.display = 'none'; idChamadoEmEdicao = null; formChamado.reset(); }
 
         function preparingEdicao(id) { 
             const chamado = listaChamados.find(c => c.id === id);
@@ -701,7 +632,9 @@
                 assuntoEmail: document.getElementById('assuntoEmail').value,
                 sla: document.getElementById('sla').value,
                 dataQuestionamento: document.getElementById('dataQuestionamento').value,
-                dataFechamento: document.getElementById('dataFechamento').value
+                dataFechamento: document.getElementById('dataFechamento').value,
+                // SALVA QUEM CRIOU O CHAMADO (Se for novo)
+                criadoPor: idChamadoEmEdicao ? (listaChamados.find(c => c.id === idChamadoEmEdicao).criadoPor || userEmail) : userEmail
             };
             try {
                 if (idChamadoEmEdicao) {
@@ -713,7 +646,7 @@
                 fecharFormulario();
             } catch (e) {
                 console.error("Erro ao salvar: ", e);
-                alert("Erro ao salvar no banco. Verifique se seu e-mail tem permissão.");
+                alert("Erro ao salvar. Verifique permissões.");
             } finally {
                 loading.style.display = 'none';
             }
@@ -740,9 +673,7 @@
                 if(input.tagName === 'SELECT') {
                     if(input.id === 'filtroStatus' || input.id === 'filtroSLA') input.value = 'todos';
                     else input.value = '';
-                } else {
-                    input.value = '';
-                }
+                } else { input.value = ''; }
             });
             processarVisualizacao(true);
         }
@@ -836,7 +767,6 @@
             if (dataISO.includes('T')) {
                 const [data, hora] = dataISO.split('T');
                 const partes = data.split('-');
-                // FORMATO TEAMS: E-mail enviado em DD/MM às HH:MM
                 return `E-mail enviado em ${partes[2]}/${partes[1]} às ${hora}`;
             } else {
                 const partes = dataISO.split('-');
@@ -925,7 +855,18 @@
                 if(colunasSalvas.dtQuest) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataQuestionamento)}</td>`;
                 if(colunasSalvas.dtFecham) htmlLinha += `<td>${formatarDataTela(chamado.dataFechamento)}</td>`;
                 
-                htmlLinha += `<td><div class="acoes-container"><button class="btn-icone" onclick="prepararEdicao('${chamado.id}')" title="Editar Chamado">${iconeLapis}</button><button class="btn-icone" onclick="removerChamado('${chamado.id}')" title="Excluir Chamado">${iconeLixeira}</button></div></td>`;
+                // LÓGICA DE PERMISSÃO DE BOTÕES
+                const ehDono = chamado.criadoPor === userEmail;
+                const ehAdmin = userEmail === ADMIN_EMAIL;
+                let botoesAcao = '';
+
+                if (ehDono || ehAdmin) {
+                    botoesAcao = `<button class="btn-icone" onclick="prepararEdicao('${chamado.id}')" title="Editar Chamado">${iconeLapis}</button><button class="btn-icone" onclick="removerChamado('${chamado.id}')" title="Excluir Chamado">${iconeLixeira}</button>`;
+                } else {
+                    botoesAcao = '<span class="sem-permissao">Sem permissão</span>';
+                }
+
+                htmlLinha += `<td><div class="acoes-container">${botoesAcao}</div></td>`;
                 tr.innerHTML = htmlLinha;
                 tabelaCorpo.appendChild(tr);
             });
