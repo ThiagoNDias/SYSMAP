@@ -21,7 +21,7 @@
             --edit-color: #0056b3;
             --excel-color: #107c41;
             --teams-color: #464EB8;
-            --bug-color: #6c757d; /* Cinza para o bug report */
+            --bug-color: #6c757d;
         }
 
         body.dark-mode {
@@ -46,7 +46,7 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            padding-bottom: 80px; /* Espaço extra para não cobrir conteúdo com botões flutuantes */
+            padding-bottom: 80px;
             transition: background-color 0.3s, color 0.3s;
         }
 
@@ -86,41 +86,19 @@
 
         h1 { text-align: center; color: var(--claro-red); margin-bottom: 30px; margin-top: 10px; }
         
-        /* BOTÕES FLUTUANTES (Novo Estilo) */
+        /* BOTÕES FLUTUANTES */
         .btn-flutuante {
-            position: fixed;
-            bottom: 25px;
-            z-index: 1000;
-            background-color: var(--panel-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 10px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
+            position: fixed; bottom: 25px; z-index: 1000;
+            background-color: var(--panel-bg); color: var(--text-color);
+            border: 1px solid var(--border-color); padding: 10px 20px;
+            border-radius: 50px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 8px; font-size: 14px;
         }
-        .btn-flutuante:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-        }
-
-        #btnTema { left: 25px; } /* Canto inferior esquerdo */
-        
-        #btnReportBug { 
-            right: 25px; /* Canto inferior direito */
-            border-color: var(--bug-color);
-            color: var(--bug-color);
-        }
-        #btnReportBug:hover {
-            background-color: var(--bug-color);
-            color: white;
-        }
+        .btn-flutuante:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
+        #btnTema { left: 25px; }
+        #btnReportBug { right: 25px; border-color: var(--bug-color); color: var(--bug-color); }
+        #btnReportBug:hover { background-color: var(--bug-color); color: white; }
 
         h2 { color: var(--claro-red); border-bottom: 2px solid var(--border-light); padding-bottom: 10px; margin-top: 0; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
         
@@ -207,7 +185,6 @@
         
         /* Loading */
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; justify-content: center; align-items: center; color: white; font-size: 20px; font-weight: bold; }
-        /* Esconder conteúdo até logar */
         #appContent { display: none; }
     </style>
 </head>
@@ -466,9 +443,10 @@
 
     <script type="module">
         // -----------------------------------------------------------
-        // IMPORTANTE: COLOQUE SEU EMAIL DE ADMIN AQUI
+        // CONFIGURAÇÕES (EDITE AQUI)
         // -----------------------------------------------------------
         const ADMIN_EMAIL = "ThiagoFelipeND@gmail.com"; 
+        const BUG_REPORT_EMAIL = "thiago.nascimento@sysmap.com.br";
         // -----------------------------------------------------------
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -488,7 +466,7 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         const chamadosCollection = collection(db, "chamados");
-        const logsCollection = collection(db, "logs_chamados"); // Coleção de logs
+        const logsCollection = collection(db, "logs_chamados"); 
         const provider = new GoogleAuthProvider();
 
         let listaChamados = [];
@@ -546,25 +524,25 @@
             });
         }
 
-        // --- FUNÇÃO DE REPORT DE BUG (EMAIL) ---
+        // --- REPORT DE BUG ---
         window.reportarBug = function() {
             const subject = "Report de Bug - Controle de Chamados";
             const body = "Descreva o problema aqui:%0D%0A%0D%0A";
-            window.location.href = `mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`;
+            window.location.href = `mailto:${BUG_REPORT_EMAIL}?subject=${subject}&body=${body}`;
         };
 
-        // --- FUNÇÃO PARA GRAVAR LOGS ---
+        // --- LOGS ---
         async function registrarLog(acao, id, dados, usuario) {
             try {
                 await addDoc(logsCollection, {
                     dataHora: new Date().toISOString(),
-                    acao: acao, // CRIACAO, ATUALIZACAO, EXCLUSAO
+                    acao: acao,
                     chamadoId: id,
                     usuario: usuario,
-                    dadosSnapshot: dados // Salva o estado dos dados
+                    dadosSnapshot: dados 
                 });
             } catch (e) {
-                console.error("Erro ao gravar log de auditoria:", e);
+                console.error("Erro ao gravar log:", e);
             }
         }
 
@@ -616,13 +594,13 @@
         window.removerChamado = removerChamado;
 
         const temaSalvo = localStorage.getItem('tema_chamados');
-        if (temaSalvo === 'claro') { document.body.classList.remove('dark-mode'); btnTema.textContent = '🌙 Modo Escuro'; } 
-        else { document.body.classList.add('dark-mode'); btnTema.textContent = '☀️ Modo Claro'; }
+        if (temaSalvo === 'claro') { document.body.classList.remove('dark-mode'); btnTema.textContent = '🌙 Tema'; } 
+        else { document.body.classList.add('dark-mode'); btnTema.textContent = '☀️ Tema'; }
 
         btnTema.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) { localStorage.setItem('tema_chamados', 'escuro'); btnTema.textContent = '☀️ Modo Claro'; } 
-            else { localStorage.setItem('tema_chamados', 'claro'); btnTema.textContent = '🌙 Modo Escuro'; }
+            if (document.body.classList.contains('dark-mode')) { localStorage.setItem('tema_chamados', 'escuro'); btnTema.textContent = '☀️ Tema'; } 
+            else { localStorage.setItem('tema_chamados', 'claro'); btnTema.textContent = '🌙 Tema'; }
         });
 
         const svgFunil = '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>';
@@ -704,7 +682,6 @@
             
             try {
                 if (idChamadoEmEdicao) {
-                    // --- UPDATE ---
                     const original = listaChamados.find(c => c.id === idChamadoEmEdicao);
                     if (original.numero !== numeroInput) {
                         const q = query(chamadosCollection, where("numero", "==", numeroInput));
@@ -717,12 +694,8 @@
                     }
                     const docRef = doc(db, "chamados", idChamadoEmEdicao);
                     await updateDoc(docRef, dadosFormulario);
-                    
-                    // GRAVA LOG
                     await registrarLog('ATUALIZACAO', idChamadoEmEdicao, dadosFormulario, userEmail);
-
                 } else {
-                    // --- CREATE ---
                     const q = query(chamadosCollection, where("numero", "==", numeroInput));
                     const querySnapshot = await getDocs(q);
                     if (!querySnapshot.empty) {
@@ -736,8 +709,6 @@
                         dataCriacao: agora,
                         ...dadosFormulario 
                     });
-
-                    // GRAVA LOG
                     await registrarLog('CRIACAO', docRef.id, dadosFormulario, userEmail);
                 }
                 fecharFormulario();
@@ -754,12 +725,8 @@
                 loading.style.display = 'flex';
                 try {
                     const chamadoDeletado = listaChamados.find(c => c.id === id);
-                    
                     await deleteDoc(doc(db, "chamados", id));
-                    
-                    // GRAVA LOG
                     await registrarLog('EXCLUSAO', id, { numero: chamadoDeletado.numero }, userEmail);
-
                     if (idChamadoEmEdicao === id) fecharFormulario();
                 } catch (e) {
                     console.error("Erro ao excluir: ", e);
@@ -886,15 +853,24 @@
         function atualizarPainelResumo() {
             tabelaResumoCorpo.innerHTML = '';
             if (chamadosFiltradosAtuais.length === 0) {
-                tabelaResumoCorpo.innerHTML = '<tr><td colspan="4" class="mensagem-vazia">Nenhum registro encontrado.</td></tr>';
+                tabelaResumoCorpo.innerHTML = '<tr><td colspan="4" class="mensagem-vazia">Nenhum registro encontrado para os filtros atuais.</td></tr>';
                 return;
             }
-            const regras = [
+
+            const regrasOriginais = [
                 { nome: 'Gol Revolution', temAberto: false },
                 { nome: 'Portabilidade', temAberto: false },
                 { nome: 'Suporte à Sistemas - OMS/CRM', temAberto: true }
             ];
-            regras.forEach(regra => {
+
+            const categoriaSelecionada = inputFiltros.categoria.value;
+            let regrasParaExibir = regrasOriginais;
+
+            if (categoriaSelecionada && categoriaSelecionada !== "") {
+                regrasParaExibir = regrasOriginais.filter(r => r.nome === categoriaSelecionada);
+            }
+
+            regrasParaExibir.forEach(regra => {
                 const filtrados = chamadosFiltradosAtuais.filter(c => c.categoria === regra.nome);
                 const abertos = filtrados.filter(c => !c.dataFechamento).length;
                 const concluidos = filtrados.filter(c => c.dataFechamento).length;
@@ -997,26 +973,89 @@
             input.addEventListener('change', () => processarVisualizacao(true));
         });
 
+        // -------------------------------------------------------------
+        // COPY TO TEAMS (AGRUPADO POR E-MAIL)
+        // -------------------------------------------------------------
         function copiarParaTeams() {
             if (chamadosFiltradosAtuais.length === 0) {
                 alert("Sem dados para copiar.");
                 return;
             }
-            let html = `<table style="border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Arial, sans-serif;"><thead><tr style="background-color: #f3f2f1; color: #323130; text-align: left;"><th style="border: 1px solid #edebe9; padding: 8px;">Chamado</th><th style="border: 1px solid #edebe9; padding: 8px;">Assunto do E-mail</th><th style="border: 1px solid #edebe9; padding: 8px;">SLA</th><th style="border: 1px solid #edebe9; padding: 8px;">Data do Questionamento</th></tr></thead><tbody>`;
+
+            // Agrupamento
+            const grupos = {};
+            const semAssunto = [];
+
             chamadosFiltradosAtuais.forEach(c => {
-                html += `<tr><td style="border: 1px solid #edebe9; padding: 8px;">${c.numero || '-'}</td><td style="border: 1px solid #edebe9; padding: 8px;">${c.assuntoEmail || '-'}</td><td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataHoraSimples(c.sla)}</td><td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(c.dataQuestionamento)}</td></tr>`;
+                const assunto = c.assuntoEmail ? c.assuntoEmail.trim() : "";
+                
+                if (!assunto) {
+                    semAssunto.push(c);
+                    return;
+                }
+
+                const chave = assunto.toLowerCase(); 
+
+                if (!grupos[chave]) {
+                    grupos[chave] = {
+                        numeros: [],
+                        assuntoOriginal: c.assuntoEmail,
+                        sla: c.sla, 
+                        dataQuestionamento: c.dataQuestionamento 
+                    };
+                }
+                grupos[chave].numeros.push(c.numero);
             });
+
+            // HTML Table
+            let html = `<table style="border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Arial, sans-serif;">
+                        <thead>
+                            <tr style="background-color: #f3f2f1; color: #323130; text-align: left;">
+                                <th style="border: 1px solid #edebe9; padding: 8px;">Chamado</th>
+                                <th style="border: 1px solid #edebe9; padding: 8px;">Assunto do E-mail</th>
+                                <th style="border: 1px solid #edebe9; padding: 8px;">SLA</th>
+                                <th style="border: 1px solid #edebe9; padding: 8px;">Data do Questionamento</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            // Renderiza os agrupados
+            for (const key in grupos) {
+                const g = grupos[key];
+                const chamadosConcatenados = g.numeros.join(", "); 
+                
+                html += `<tr>
+                    <td style="border: 1px solid #edebe9; padding: 8px;">${chamadosConcatenados}</td>
+                    <td style="border: 1px solid #edebe9; padding: 8px;">${g.assuntoOriginal}</td>
+                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataHoraSimples(g.sla)}</td>
+                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(g.dataQuestionamento)}</td>
+                </tr>`;
+            }
+
+            // Renderiza os sem assunto
+            semAssunto.forEach(c => {
+                html += `<tr>
+                    <td style="border: 1px solid #edebe9; padding: 8px;">${c.numero || '-'}</td>
+                    <td style="border: 1px solid #edebe9; padding: 8px;">${c.assuntoEmail || '-'}</td>
+                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataHoraSimples(c.sla)}</td>
+                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(c.dataQuestionamento)}</td>
+                </tr>`;
+            });
+
             html += `</tbody></table>`;
+
             const tempDiv = document.createElement("div");
             tempDiv.innerHTML = html;
             tempDiv.style.position = "absolute";
             tempDiv.style.left = "-9999px";
             document.body.appendChild(tempDiv);
+            
             const range = document.createRange();
             range.selectNodeContents(tempDiv);
             const selecao = window.getSelection();
             selecao.removeAllRanges();
             selecao.addRange(range);
+            
             try {
                 document.execCommand("copy");
                 alert("Tabela copiada para o Teams!");
