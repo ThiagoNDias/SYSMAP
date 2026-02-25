@@ -446,8 +446,6 @@
         // CONFIGURAÇÕES
         // -----------------------------------------------------------
         const ADMIN_EMAIL = "ThiagoFelipeND@gmail.com"; 
-        
-        // CORREÇÃO: Garante o e-mail correto para reporte de bugs
         const BUG_REPORT_EMAIL = "thiago.nascimento@sysmap.com.br";
         // -----------------------------------------------------------
 
@@ -530,7 +528,6 @@
         window.reportarBug = function() {
             const subject = "Report de Bug - Controle de Chamados";
             const body = "Descreva o problema aqui:%0D%0A%0D%0A";
-            // Usa a constante definida no topo com o e-mail correto
             window.location.href = `mailto:${BUG_REPORT_EMAIL}?subject=${subject}&body=${body}`;
         };
 
@@ -977,7 +974,7 @@
         });
 
         // -------------------------------------------------------------
-        // FUNÇÃO DE CÓPIA PARA O TEAMS (CORRIGIDA)
+        // FUNÇÃO DE CÓPIA PARA O TEAMS (ATUALIZADA)
         // -------------------------------------------------------------
         function copiarParaTeams() {
             if (chamadosFiltradosAtuais.length === 0) {
@@ -1009,8 +1006,6 @@
                 }
             });
 
-            // Cria a tabela HTML para a área de transferência
-            // Estilos inline são usados para garantir que o Teams reconheça a formatação
             let html = `<table style="border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #d1d1d1;">
                         <thead style="background-color: #f3f2f1;">
                             <tr style="text-align: left;">
@@ -1022,10 +1017,12 @@
                         </thead>
                         <tbody>`;
 
-            // Adiciona as linhas agrupadas (vários números na mesma linha)
+            // Adiciona as linhas agrupadas (vários números na mesma linha, um abaixo do outro)
             for (const key in grupos) {
                 const g = grupos[key];
-                const chamadosConcatenados = g.numeros.join(", "); 
+                
+                // ALTERAÇÃO: Usa <br> para separar os chamados em vez de vírgula
+                const chamadosConcatenados = g.numeros.join("<br>"); 
                 
                 html += `<tr>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${chamadosConcatenados}</td>
@@ -1047,7 +1044,6 @@
 
             html += `</tbody></table>`;
 
-            // Método seguro para copiar HTML rico (Tabela) para o clipboard
             const tempDiv = document.createElement("div");
             tempDiv.innerHTML = html;
             tempDiv.style.position = "absolute";
@@ -1062,7 +1058,7 @@
             
             try {
                 document.execCommand("copy");
-                alert("Tabela copiada para o Teams! Os chamados de mesmo assunto estão na mesma linha.");
+                alert("Tabela copiada para o Teams! Os chamados estão um abaixo do outro.");
             } catch (err) { alert("Erro ao copiar."); }
             document.body.removeChild(tempDiv);
         }
