@@ -394,6 +394,26 @@
                         <input type="date" id="buscaDataQuestionamento">
                     </div>
                 </div>
+                
+                <div class="linha-formulario">
+                    <div class="campo">
+                        <label for="filtroDataCriacao">Data de Criação (Período)</label>
+                        <select id="filtroDataCriacao">
+                            <option value="">Todas</option>
+                            <option value="hoje">Hoje</option>
+                            <option value="ontem">Ontem</option>
+                            <option value="ultimos3">Últimos 3 dias</option>
+                            <option value="ultimos7">Últimos 7 dias</option>
+                            <option value="estemes">Este mês</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="filtroCriadoPor">Usuário de Criação</label>
+                        <select id="filtroCriadoPor">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <div id="areaResumo" style="margin-top: 20px;">
@@ -447,6 +467,13 @@
         // -----------------------------------------------------------
         const ADMIN_EMAIL = "ThiagoFelipeND@gmail.com"; 
         const BUG_REPORT_EMAIL = "thiago.nascimento@sysmap.com.br";
+        
+        // Lista de e-mails que podem ver dados de auditoria (Datas e Quem mexeu)
+        const SUPER_USERS = [
+            "thiagofelipend@gmail.com",
+            "valentiminaiara@gmail.com",
+            "gomescarol0705@gmail.com"
+        ];
         // -----------------------------------------------------------
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -486,6 +513,11 @@
         const userAvatar = document.getElementById('userAvatar');
         const loading = document.getElementById('loading');
 
+        // FUNÇÃO AUXILIAR PARA VERIFICAR PERMISSÃO DE AUDITORIA
+        function ehSuperUsuario() {
+            return SUPER_USERS.includes(userEmail.toLowerCase());
+        }
+
         // --- AUTH ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -516,12 +548,36 @@
             unsubscribe = onSnapshot(chamadosCollection, (snapshot) => {
                 listaChamados = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 loading.style.display = 'none';
+                
+                // Atualiza a lista de usuários do filtro
+                atualizarListaUsuariosFiltro();
+                
                 processarVisualizacao(false);
             }, (error) => {
                 console.error("Erro ao buscar dados:", error);
                 loading.style.display = 'none';
                 if (error.code === 'permission-denied') alert("Sem permissão para ver os dados.");
             });
+        }
+
+        // PREENCHE A LISTA DE USUÁRIOS NO FILTRO DINAMICAMENTE
+        function atualizarListaUsuariosFiltro() {
+            const selectCriadoPor = document.getElementById('filtroCriadoPor');
+            const valorAtual = selectCriadoPor.value; // Guarda o que estava selecionado
+
+            // Pega todos os emails de quem criou chamados e remove duplicados
+            const usuariosUnicos = [...new Set(listaChamados.map(c => c.criadoPor).filter(Boolean))].sort();
+
+            let optionsHtml = '<option value="">Todos</option>';
+            usuariosUnicos.forEach(user => {
+                optionsHtml += `<option value="${user}">${user}</option>`;
+            });
+            selectCriadoPor.innerHTML = optionsHtml;
+
+            // Devolve a seleção anterior, se o usuário ainda existir na lista
+            if (usuariosUnicos.includes(valorAtual)) {
+                selectCriadoPor.value = valorAtual;
+            }
         }
 
         // --- REPORT DE BUG ---
@@ -571,6 +627,7 @@
         const iconeColunasSvg = document.getElementById('iconeColunasSvg');
         const painelColunas = document.getElementById('painelColunas');
 
+        // NOVOS FILTROS ADICIONADOS AQUI
         const inputFiltros = {
             categoria: document.getElementById('buscaCategoria'),
             status: document.getElementById('filtroStatus'),
@@ -581,7 +638,9 @@
             problema: document.getElementById('buscaProblema'),
             fila: document.getElementById('buscaFila'),
             assunto: document.getElementById('buscaAssunto'),
-            dataQuest: document.getElementById('buscaDataQuestionamento')
+            dataQuest: document.getElementById('buscaDataQuestionamento'),
+            dataCriacaoRange: document.getElementById('filtroDataCriacao'),
+            criadoPor: document.getElementById('filtroCriadoPor')
         };
 
         window.fecharFormulario = fecharFormulario;
@@ -619,6 +678,22 @@
         btnGerenciarColunas.addEventListener('click', () => { alternarPainel(painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas, filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil); });
 
         const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: true, fila: true, assunto: true, sla: true, dtQuest: true, dtFecham: true, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false };
+        
+        // OCULTA OPÇÕES DE AUDITORIA SE NÃO FOR SUPER USUÁRIO
+        function atualizarVisibilidadeOpcoesColunas() {
+            const containerAudit = document.querySelectorAll('.chk-coluna[value="dtCriacao"], .chk-coluna[value="dtAtualizacao"], .chk-coluna[value="usrAtualizacao"]');
+            
+            containerAudit.forEach(chk => {
+                const label = chk.parentElement; 
+                if (ehSuperUsuario()) {
+                    label.style.display = 'flex';
+                } else {
+                    label.style.display = 'none';
+                    chk.checked = false;
+                }
+            });
+        }
+
         document.querySelectorAll('.chk-coluna').forEach(chk => {
             chk.checked = colunasSalvas[chk.value];
             chk.addEventListener('change', (e) => {
@@ -748,6 +823,35 @@
             processarVisualizacao(true);
         }
 
+        // FUNÇÃO DE VERIFICAÇÃO DO RANGE DE DATA DE CRIAÇÃO
+        function dataEstaNoRange(dataIso, range) {
+            if (!range || range === '') return true; // Se não tem filtro selecionado, passa
+            if (!dataIso) return false; // Se tem filtro mas o chamado não tem data, bloqueia
+
+            const dataChamado = new Date(dataIso);
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0); // Zera as horas para comparar apenas os dias
+
+            if (range === 'hoje') {
+                return dataChamado >= hoje;
+            } else if (range === 'ontem') {
+                const ontem = new Date(hoje);
+                ontem.setDate(ontem.getDate() - 1);
+                return dataChamado >= ontem && dataChamado < hoje;
+            } else if (range === 'ultimos3') {
+                const tresDiasAtras = new Date(hoje);
+                tresDiasAtras.setDate(tresDiasAtras.getDate() - 2); // Hoje, Ontem e Anteontem
+                return dataChamado >= tresDiasAtras;
+            } else if (range === 'ultimos7') {
+                const seteDiasAtras = new Date(hoje);
+                seteDiasAtras.setDate(seteDiasAtras.getDate() - 6);
+                return dataChamado >= seteDiasAtras;
+            } else if (range === 'estemes') {
+                return dataChamado.getMonth() === hoje.getMonth() && dataChamado.getFullYear() === hoje.getFullYear();
+            }
+            return true;
+        }
+
         function processarVisualizacao(resetarPagina = true) {
             if (resetarPagina) paginaAtual = 1; 
             const vCategoria = inputFiltros.categoria.value;
@@ -760,6 +864,11 @@
             const vFila = inputFiltros.fila.value.trim().toLowerCase();
             const vAssunto = inputFiltros.assunto.value.trim().toLowerCase();
             const vDataQuest = inputFiltros.dataQuest.value;
+            
+            // Novos filtros
+            const vDataCriacaoRange = inputFiltros.dataCriacaoRange.value;
+            const vCriadoPor = inputFiltros.criadoPor.value;
+            
             const agora = new Date();
 
             chamadosFiltradosAtuais = listaChamados.filter(chamado => {
@@ -793,9 +902,13 @@
                 const atendeFila = vFila === '' || fila.includes(vFila);
                 const atendeAssunto = vAssunto === '' || ass.includes(vAssunto);
 
+                // Aplica regras dos novos filtros
+                const atendeDataCriacaoRange = dataEstaNoRange(chamado.dataCriacao, vDataCriacaoRange);
+                const atendeCriadoPor = vCriadoPor === '' || chamado.criadoPor === vCriadoPor;
+
                 return atendeCategoria && atendeStatus && atendeSLA && atendeData && atendeDataQuest &&
                        atendeNumero && atendeAnalista && atendeProblema && 
-                       atendeFila && atendeAssunto;
+                       atendeFila && atendeAssunto && atendeDataCriacaoRange && atendeCriadoPor;
             });
 
             if (visaoAtual === 'resumo') atualizarPainelResumo();
@@ -882,6 +995,8 @@
         }
 
         function atualizarTabelaHtml() {
+            const isAdmin = ehSuperUsuario();
+
             let htmlCabecalho = `<th>Chamado</th>`;
             if(colunasSalvas.analista) htmlCabecalho += `<th>Analista</th>`;
             if(colunasSalvas.categoria) htmlCabecalho += `<th>Categoria</th>`;
@@ -891,9 +1006,10 @@
             if(colunasSalvas.sla) htmlCabecalho += `<th>SLA</th>`;
             if(colunasSalvas.dtQuest) htmlCabecalho += `<th>Dt. Quest.</th>`;
             if(colunasSalvas.dtFecham) htmlCabecalho += `<th>Dt. Fecham.</th>`;
-            if(colunasSalvas.dtCriacao) htmlCabecalho += `<th>Data Criação</th>`;
-            if(colunasSalvas.dtAtualizacao) htmlCabecalho += `<th>Data Atualização</th>`;
-            if(colunasSalvas.usrAtualizacao) htmlCabecalho += `<th>Atualizado Por</th>`;
+            
+            if(isAdmin && colunasSalvas.dtCriacao) htmlCabecalho += `<th>Data Criação</th>`;
+            if(isAdmin && colunasSalvas.dtAtualizacao) htmlCabecalho += `<th>Data Atualização</th>`;
+            if(isAdmin && colunasSalvas.usrAtualizacao) htmlCabecalho += `<th>Atualizado Por</th>`;
 
             htmlCabecalho += `<th style="text-align: center;">Ações</th>`;
             
@@ -937,15 +1053,15 @@
                 if(colunasSalvas.sla) htmlLinha += `<td>${formatarSLA(chamado.sla, chamado.dataFechamento)}</td>`;
                 if(colunasSalvas.dtQuest) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataQuestionamento)}</td>`;
                 if(colunasSalvas.dtFecham) htmlLinha += `<td>${formatarDataTela(chamado.dataFechamento)}</td>`;
-                if(colunasSalvas.dtCriacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataCriacao)}</td>`;
-                if(colunasSalvas.dtAtualizacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataAtualizacao)}</td>`;
-                if(colunasSalvas.usrAtualizacao) htmlLinha += `<td>${chamado.usuarioAtualizacao || '-'}</td>`;
+                
+                if(isAdmin && colunasSalvas.dtCriacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataCriacao)}</td>`;
+                if(isAdmin && colunasSalvas.dtAtualizacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataAtualizacao)}</td>`;
+                if(isAdmin && colunasSalvas.usrAtualizacao) htmlLinha += `<td>${chamado.usuarioAtualizacao || '-'}</td>`;
                 
                 const ehDono = chamado.criadoPor === userEmail;
-                const ehAdmin = userEmail === ADMIN_EMAIL;
                 let botoesAcao = '';
 
-                if (ehDono || ehAdmin) {
+                if (ehDono || isAdmin) {
                     botoesAcao = `<button class="btn-icone" onclick="prepararEdicao('${chamado.id}')" title="Editar Chamado">${iconeLapis}</button><button class="btn-icone" onclick="removerChamado('${chamado.id}')" title="Excluir Chamado">${iconeLixeira}</button>`;
                 } else {
                     botoesAcao = '<span class="sem-permissao">Sem permissão</span>';
@@ -955,6 +1071,8 @@
                 tr.innerHTML = htmlLinha;
                 tabelaCorpo.appendChild(tr);
             });
+            
+            atualizarVisibilidadeOpcoesColunas();
         }
 
         selectItensPagina.addEventListener('change', (e) => {
@@ -974,7 +1092,7 @@
         });
 
         // -------------------------------------------------------------
-        // FUNÇÃO DE CÓPIA PARA O TEAMS (ATUALIZADA)
+        // FUNÇÃO DE CÓPIA PARA O TEAMS
         // -------------------------------------------------------------
         function copiarParaTeams() {
             if (chamadosFiltradosAtuais.length === 0) {
@@ -982,7 +1100,6 @@
                 return;
             }
 
-            // Agrupa os chamados que têm o mesmo Assunto de E-mail
             const grupos = {};
             const semAssunto = [];
 
@@ -1017,11 +1134,8 @@
                         </thead>
                         <tbody>`;
 
-            // Adiciona as linhas agrupadas (vários números na mesma linha, um abaixo do outro)
             for (const key in grupos) {
                 const g = grupos[key];
-                
-                // ALTERAÇÃO: Usa <br> para separar os chamados em vez de vírgula
                 const chamadosConcatenados = g.numeros.join("<br>"); 
                 
                 html += `<tr>
@@ -1032,7 +1146,6 @@
                 </tr>`;
             }
 
-            // Adiciona as linhas sem assunto (individuais)
             semAssunto.forEach(c => {
                 html += `<tr>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${c.numero || '-'}</td>
@@ -1068,18 +1181,32 @@
                 alert("Sem dados para exportar.");
                 return;
             }
-            let csv = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Fecham.;Data Criação;Data Atualização;Atualizado Por\n";
+            
+            const isAdmin = ehSuperUsuario();
+            
+            let cabecalhoCSV = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Fecham.";
+            if(isAdmin) cabecalhoCSV += ";Data Criação;Data Atualização;Atualizado Por";
+            cabecalhoCSV += "\n";
+            
+            let csv = cabecalhoCSV;
+
             chamadosFiltradosAtuais.forEach(c => {
                 const sla = formatarDataHoraSimples(c.sla);
                 const dtq = formatarDataHoraSimples(c.dataQuestionamento);
                 const dtf = c.dataFechamento ? formatarDataTela(c.dataFechamento) : 'Em aberto';
                 
-                const dtCri = formatarDataHoraSimples(c.dataCriacao);
-                const dtAtu = formatarDataHoraSimples(c.dataAtualizacao);
-                const usrAtu = c.usuarioAtualizacao || '';
-
                 const clean = (txt) => (txt || '').replace(/"/g, '""').replace(/(\r\n|\n|\r)/gm, " ");
-                csv += `"${clean(c.numero)}";"${clean(c.analista)}";"${clean(c.categoria)}";"${clean(c.problema)}";"${clean(c.fila)}";"${clean(c.assuntoEmail)}";"${sla}";"${dtq}";"${dtf}";"${dtCri}";"${dtAtu}";"${usrAtu}"\n`;
+                
+                let linhaCSV = `"${clean(c.numero)}";"${clean(c.analista)}";"${clean(c.categoria)}";"${clean(c.problema)}";"${clean(c.fila)}";"${clean(c.assuntoEmail)}";"${sla}";"${dtq}";"${dtf}"`;
+                
+                if (isAdmin) {
+                    const dtCri = formatarDataHoraSimples(c.dataCriacao);
+                    const dtAtu = formatarDataHoraSimples(c.dataAtualizacao);
+                    const usrAtu = c.usuarioAtualizacao || '';
+                    linhaCSV += `;"${dtCri}";"${dtAtu}";"${usrAtu}"`;
+                }
+                
+                csv += linhaCSV + "\n";
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
