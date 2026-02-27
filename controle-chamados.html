@@ -1042,7 +1042,7 @@
 
             chamadosParaExibir.forEach((chamado) => {
                 const tr = document.createElement('tr');
-                const linkChamado = `http://www.chamados.com/${chamado.numero}`; 
+                const linkChamado = `https://clarobr.atlassian.net/browse/${chamado.numero}`; 
 
                 let htmlLinha = `<td><strong><a href="${linkChamado}" target="_blank" class="link-chamado">${chamado.numero}</a></strong></td>`;
                 if(colunasSalvas.analista) htmlLinha += `<td>${chamado.analista || '-'}</td>`;
