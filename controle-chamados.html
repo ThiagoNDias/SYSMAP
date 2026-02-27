@@ -287,8 +287,8 @@
             <h2>
                 Painel de Operações
                 <div class="seletor-visao">
-                    <button type="button" id="btnVisaoResumo" class="btn-visao ativo">📊 Resumo</button>
-                    <button type="button" id="btnVisaoTabela" class="btn-visao">📄 Tabela</button>
+                    <button type="button" id="btnVisaoResumo" class="btn-visao">📊 Resumo</button>
+                    <button type="button" id="btnVisaoTabela" class="btn-visao ativo">📄 Tabela</button>
                 </div>
             </h2>
             
@@ -373,7 +373,15 @@
                     </div>
                     <div class="campo">
                         <label for="buscaData">Data de Fechamento</label>
-                        <input type="date" id="buscaData">
+                        <select id="buscaData">
+                            <option value="">Todas</option>
+                            <option value="aberto">Em aberto (data de fechamento não preenchida)</option>
+                            <option value="hoje">Hoje</option>
+                            <option value="ontem">Ontem</option>
+                            <option value="ultimos3">Últimos 3 dias</option>
+                            <option value="ultimos7">Últimos 7 dias</option>
+                            <option value="estemes">Este mês</option>
+                        </select>
                     </div>
                 </div>
                 <div class="linha-formulario">
@@ -416,7 +424,7 @@
                 </div>
             </div>
 
-            <div id="areaResumo" style="margin-top: 20px;">
+            <div id="areaResumo" style="display: none; margin-top: 20px;">
                 <table class="tabela-resumo">
                     <thead>
                         <tr>
@@ -430,7 +438,7 @@
                 </table>
             </div>
 
-            <div id="areaTabela" style="display: none; margin-top: 20px;">
+            <div id="areaTabela" style="margin-top: 20px;">
                 <div class="tabela-container">
                     <table id="tabelaPrincipal">
                         <thead>
@@ -499,7 +507,10 @@
         let listaChamados = [];
         let chamadosFiltradosAtuais = [];
         let idChamadoEmEdicao = null;
-        let visaoAtual = 'resumo';
+        
+        // VARIÁVEL ALTERADA AQUI: Define Tabela como visão padrão
+        let visaoAtual = 'tabela'; 
+        
         let paginaAtual = 1;
         let itensPorPagina = 10;
         let userEmail = '';
@@ -627,7 +638,6 @@
         const iconeColunasSvg = document.getElementById('iconeColunasSvg');
         const painelColunas = document.getElementById('painelColunas');
 
-        // NOVOS FILTROS ADICIONADOS AQUI
         const inputFiltros = {
             categoria: document.getElementById('buscaCategoria'),
             status: document.getElementById('filtroStatus'),
@@ -823,12 +833,20 @@
             processarVisualizacao(true);
         }
 
-        // FUNÇÃO DE VERIFICAÇÃO DO RANGE DE DATA DE CRIAÇÃO
+        // FUNÇÃO DE VERIFICAÇÃO DO RANGE DE DATAS
         function dataEstaNoRange(dataIso, range) {
             if (!range || range === '') return true; // Se não tem filtro selecionado, passa
             if (!dataIso) return false; // Se tem filtro mas o chamado não tem data, bloqueia
 
-            const dataChamado = new Date(dataIso);
+            let dataChamado;
+            // Corrige o fuso horário para datas que vêm do formato YYYY-MM-DD
+            if (dataIso.length === 10) {
+                const [ano, mes, dia] = dataIso.split('-');
+                dataChamado = new Date(ano, mes - 1, dia);
+            } else {
+                dataChamado = new Date(dataIso);
+            }
+
             const hoje = new Date();
             hoje.setHours(0, 0, 0, 0); // Zera as horas para comparar apenas os dias
 
@@ -857,15 +875,13 @@
             const vCategoria = inputFiltros.categoria.value;
             const vStatus = inputFiltros.status.value;
             const vSLA = inputFiltros.sla.value;
-            const vData = inputFiltros.data.value;
+            const vData = inputFiltros.data.value; // Esse é o novo filtro de Data de Fechamento
             const vNumero = inputFiltros.numero.value.trim().toLowerCase();
             const vAnalista = inputFiltros.analista.value.trim().toLowerCase();
             const vProblema = inputFiltros.problema.value.trim().toLowerCase();
             const vFila = inputFiltros.fila.value.trim().toLowerCase();
             const vAssunto = inputFiltros.assunto.value.trim().toLowerCase();
             const vDataQuest = inputFiltros.dataQuest.value;
-            
-            // Novos filtros
             const vDataCriacaoRange = inputFiltros.dataCriacaoRange.value;
             const vCriadoPor = inputFiltros.criadoPor.value;
             
@@ -877,6 +893,7 @@
                 const prob = (chamado.problema || '').toLowerCase();
                 const fila = (chamado.fila || '').toLowerCase();
                 const ass = (chamado.assuntoEmail || '').toLowerCase();
+                
                 const atendeCategoria = vCategoria === '' || chamado.categoria === vCategoria;
                 
                 let atendeStatus = true;
@@ -893,7 +910,14 @@
                     }
                 }
 
-                const atendeData = vData === '' || chamado.dataFechamento === vData;
+                // LÓGICA ATUALIZADA DO FILTRO DE DATA DE FECHAMENTO
+                let atendeData = true;
+                if (vData === 'aberto') {
+                    atendeData = !chamado.dataFechamento || chamado.dataFechamento.trim() === '';
+                } else {
+                    atendeData = dataEstaNoRange(chamado.dataFechamento, vData);
+                }
+
                 const dataQuestFormatada = (chamado.dataQuestionamento || '').split('T')[0];
                 const atendeDataQuest = vDataQuest === '' || dataQuestFormatada === vDataQuest;
                 const atendeNumero = vNumero === '' || num.includes(vNumero);
@@ -902,7 +926,6 @@
                 const atendeFila = vFila === '' || fila.includes(vFila);
                 const atendeAssunto = vAssunto === '' || ass.includes(vAssunto);
 
-                // Aplica regras dos novos filtros
                 const atendeDataCriacaoRange = dataEstaNoRange(chamado.dataCriacao, vDataCriacaoRange);
                 const atendeCriadoPor = vCriadoPor === '' || chamado.criadoPor === vCriadoPor;
 
