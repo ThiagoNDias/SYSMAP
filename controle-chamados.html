@@ -113,10 +113,30 @@
 
         /* Formulários */
         .linha-formulario { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-        .campo { flex: 1; min-width: 200px; }
+        .campo { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
         label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--text-muted); }
         input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; background-color: var(--input-bg); color: var(--text-color); transition: border-color 0.3s, background-color 0.3s, color 0.3s; font-family: inherit; }
         input:focus, select:focus { outline: none; border-color: var(--claro-red); }
+
+        /* Estilo para Range de Datas Específicas */
+        .container-custom-date {
+            display: none; 
+            margin-top: 8px; 
+            align-items: center; 
+            gap: 8px;
+            background-color: var(--border-light);
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .container-custom-date input {
+            padding: 6px 8px;
+            font-size: 13px;
+        }
+        .container-custom-date span {
+            font-size: 12px; 
+            color: var(--text-muted); 
+            font-weight: bold;
+        }
 
         /* Botoes de Ação Principais */
         .grupo-botoes { display: flex; gap: 15px; margin-top: 10px; }
@@ -371,19 +391,27 @@
                         <label for="buscaAnalista">Analista</label>
                         <input type="text" id="buscaAnalista" placeholder="Nome do analista">
                     </div>
+                    
                     <div class="campo">
                         <label for="buscaData">Data de Fechamento</label>
                         <select id="buscaData">
                             <option value="">Todas</option>
-                            <option value="aberto">Em aberto (data de fechamento não preenchida)</option>
+                            <option value="aberto">Em aberto (data não preenchida)</option>
                             <option value="hoje">Hoje</option>
                             <option value="ontem">Ontem</option>
                             <option value="ultimos3">Últimos 3 dias</option>
                             <option value="ultimos7">Últimos 7 dias</option>
                             <option value="estemes">Este mês</option>
+                            <option value="personalizado">Período Específico</option>
                         </select>
+                        <div id="containerCustomFechamento" class="container-custom-date">
+                            <input type="date" id="customInicioFechamento" title="Data Inicial">
+                            <span>até</span>
+                            <input type="date" id="customFimFechamento" title="Data Final">
+                        </div>
                     </div>
                 </div>
+
                 <div class="linha-formulario">
                     <div class="campo">
                         <label for="buscaProblema">Problema / Cenário</label>
@@ -397,15 +425,29 @@
                         <label for="buscaAssunto">Assunto do E-mail</label>
                         <input type="text" id="buscaAssunto" placeholder="Termos do assunto">
                     </div>
+                    
                     <div class="campo">
                         <label for="buscaDataQuestionamento">Data de Questionamento</label>
-                        <input type="date" id="buscaDataQuestionamento">
+                        <select id="buscaDataQuestionamento">
+                            <option value="">Todas</option>
+                            <option value="hoje">Hoje</option>
+                            <option value="ontem">Ontem</option>
+                            <option value="ultimos3">Últimos 3 dias</option>
+                            <option value="ultimos7">Últimos 7 dias</option>
+                            <option value="estemes">Este mês</option>
+                            <option value="personalizado">Período Específico</option>
+                        </select>
+                        <div id="containerCustomQuestionamento" class="container-custom-date">
+                            <input type="date" id="customInicioQuestionamento" title="Data Inicial">
+                            <span>até</span>
+                            <input type="date" id="customFimQuestionamento" title="Data Final">
+                        </div>
                     </div>
                 </div>
                 
                 <div class="linha-formulario">
                     <div class="campo">
-                        <label for="filtroDataCriacao">Data de Criação (Período)</label>
+                        <label for="filtroDataCriacao">Data de Criação do Chamado</label>
                         <select id="filtroDataCriacao">
                             <option value="">Todas</option>
                             <option value="hoje">Hoje</option>
@@ -413,7 +455,13 @@
                             <option value="ultimos3">Últimos 3 dias</option>
                             <option value="ultimos7">Últimos 7 dias</option>
                             <option value="estemes">Este mês</option>
+                            <option value="personalizado">Período Específico</option>
                         </select>
+                        <div id="containerCustomCriacao" class="container-custom-date">
+                            <input type="date" id="customInicioCriacao" title="Data Inicial">
+                            <span>até</span>
+                            <input type="date" id="customFimCriacao" title="Data Final">
+                        </div>
                     </div>
                     <div class="campo">
                         <label for="filtroCriadoPor">Usuário de Criação</label>
@@ -507,10 +555,7 @@
         let listaChamados = [];
         let chamadosFiltradosAtuais = [];
         let idChamadoEmEdicao = null;
-        
-        // VARIÁVEL ALTERADA AQUI: Define Tabela como visão padrão
         let visaoAtual = 'tabela'; 
-        
         let paginaAtual = 1;
         let itensPorPagina = 10;
         let userEmail = '';
@@ -524,7 +569,6 @@
         const userAvatar = document.getElementById('userAvatar');
         const loading = document.getElementById('loading');
 
-        // FUNÇÃO AUXILIAR PARA VERIFICAR PERMISSÃO DE AUDITORIA
         function ehSuperUsuario() {
             return SUPER_USERS.includes(userEmail.toLowerCase());
         }
@@ -559,10 +603,7 @@
             unsubscribe = onSnapshot(chamadosCollection, (snapshot) => {
                 listaChamados = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 loading.style.display = 'none';
-                
-                // Atualiza a lista de usuários do filtro
                 atualizarListaUsuariosFiltro();
-                
                 processarVisualizacao(false);
             }, (error) => {
                 console.error("Erro ao buscar dados:", error);
@@ -571,12 +612,10 @@
             });
         }
 
-        // PREENCHE A LISTA DE USUÁRIOS NO FILTRO DINAMICAMENTE
         function atualizarListaUsuariosFiltro() {
             const selectCriadoPor = document.getElementById('filtroCriadoPor');
-            const valorAtual = selectCriadoPor.value; // Guarda o que estava selecionado
+            const valorAtual = selectCriadoPor.value; 
 
-            // Pega todos os emails de quem criou chamados e remove duplicados
             const usuariosUnicos = [...new Set(listaChamados.map(c => c.criadoPor).filter(Boolean))].sort();
 
             let optionsHtml = '<option value="">Todos</option>';
@@ -585,20 +624,17 @@
             });
             selectCriadoPor.innerHTML = optionsHtml;
 
-            // Devolve a seleção anterior, se o usuário ainda existir na lista
             if (usuariosUnicos.includes(valorAtual)) {
                 selectCriadoPor.value = valorAtual;
             }
         }
 
-        // --- REPORT DE BUG ---
         window.reportarBug = function() {
             const subject = "Report de Bug - Controle de Chamados";
             const body = "Descreva o problema aqui:%0D%0A%0D%0A";
             window.location.href = `mailto:${BUG_REPORT_EMAIL}?subject=${subject}&body=${body}`;
         };
 
-        // --- LOGS ---
         async function registrarLog(acao, id, dados, usuario) {
             try {
                 await addDoc(logsCollection, {
@@ -642,14 +678,14 @@
             categoria: document.getElementById('buscaCategoria'),
             status: document.getElementById('filtroStatus'),
             sla: document.getElementById('filtroSLA'),
-            data: document.getElementById('buscaData'),
+            data: document.getElementById('buscaData'), // Fechamento
             numero: document.getElementById('buscaNumero'),
             analista: document.getElementById('buscaAnalista'),
             problema: document.getElementById('buscaProblema'),
             fila: document.getElementById('buscaFila'),
             assunto: document.getElementById('buscaAssunto'),
-            dataQuest: document.getElementById('buscaDataQuestionamento'),
-            dataCriacaoRange: document.getElementById('filtroDataCriacao'),
+            dataQuest: document.getElementById('buscaDataQuestionamento'), // Questionamento
+            dataCriacaoRange: document.getElementById('filtroDataCriacao'), // Criação
             criadoPor: document.getElementById('filtroCriadoPor')
         };
 
@@ -689,18 +725,12 @@
 
         const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: true, fila: true, assunto: true, sla: true, dtQuest: true, dtFecham: true, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false };
         
-        // OCULTA OPÇÕES DE AUDITORIA SE NÃO FOR SUPER USUÁRIO
         function atualizarVisibilidadeOpcoesColunas() {
             const containerAudit = document.querySelectorAll('.chk-coluna[value="dtCriacao"], .chk-coluna[value="dtAtualizacao"], .chk-coluna[value="usrAtualizacao"]');
-            
             containerAudit.forEach(chk => {
                 const label = chk.parentElement; 
-                if (ehSuperUsuario()) {
-                    label.style.display = 'flex';
-                } else {
-                    label.style.display = 'none';
-                    chk.checked = false;
-                }
+                if (ehSuperUsuario()) { label.style.display = 'flex'; } 
+                else { label.style.display = 'none'; chk.checked = false; }
             });
         }
 
@@ -725,7 +755,7 @@
         function abrirFormulario() { idChamadoEmEdicao = null; formChamado.reset(); tituloFormulario.textContent = 'Registrar Novo Chamado'; btnSalvar.textContent = 'Salvar Chamado'; painelFormulario.style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function fecharFormulario() { painelFormulario.style.display = 'none'; idChamadoEmEdicao = null; formChamado.reset(); }
 
-        function preparingEdicao(id) { 
+        function prepararEdicao(id) { 
             const chamado = listaChamados.find(c => c.id === id);
             if (!chamado) return;
             idChamadoEmEdicao = id;
@@ -743,7 +773,6 @@
             painelFormulario.style.display = 'block';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        function prepararEdicao(id) { preparingEdicao(id); }
 
         formChamado.addEventListener('submit', async function(evento) {
             evento.preventDefault(); 
@@ -805,7 +834,7 @@
             }
         });
 
-        async function removingChamado(id) {
+        async function removerChamado(id) {
             if(confirm("Confirma a exclusão permanente deste registro no sistema?")) {
                 loading.style.display = 'flex';
                 try {
@@ -821,7 +850,23 @@
                 }
             }
         }
-        function removerChamado(id) { removingChamado(id); }
+
+        // --- LÓGICA PARA EXIBIR/OCULTAR INPUTS DE DATA PERSONALIZADA ---
+        function alternarInputsPersonalizados(selectId, containerId) {
+            const select = document.getElementById(selectId);
+            const container = document.getElementById(containerId);
+            if (select.value === 'personalizado') {
+                container.style.display = 'flex';
+            } else {
+                container.style.display = 'none';
+            }
+            processarVisualizacao(true);
+        }
+
+        document.getElementById('buscaData').addEventListener('change', () => alternarInputsPersonalizados('buscaData', 'containerCustomFechamento'));
+        document.getElementById('buscaDataQuestionamento').addEventListener('change', () => alternarInputsPersonalizados('buscaDataQuestionamento', 'containerCustomQuestionamento'));
+        document.getElementById('filtroDataCriacao').addEventListener('change', () => alternarInputsPersonalizados('filtroDataCriacao', 'containerCustomCriacao'));
+
 
         function limparFiltros() {
             Object.values(inputFiltros).forEach(input => {
@@ -830,16 +875,28 @@
                     else input.value = '';
                 } else { input.value = ''; }
             });
+            
+            // Oculta e limpa os campos de data personalizada
+            document.getElementById('containerCustomFechamento').style.display = 'none';
+            document.getElementById('containerCustomQuestionamento').style.display = 'none';
+            document.getElementById('containerCustomCriacao').style.display = 'none';
+            
+            ['customInicioFechamento', 'customFimFechamento', 
+             'customInicioQuestionamento', 'customFimQuestionamento', 
+             'customInicioCriacao', 'customFimCriacao'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+
             processarVisualizacao(true);
         }
 
-        // FUNÇÃO DE VERIFICAÇÃO DO RANGE DE DATAS
-        function dataEstaNoRange(dataIso, range) {
-            if (!range || range === '') return true; // Se não tem filtro selecionado, passa
-            if (!dataIso) return false; // Se tem filtro mas o chamado não tem data, bloqueia
+        // --- FUNÇÃO CENTRAL DE COMPARAÇÃO DE DATAS ---
+        function dataEstaNoRange(dataIso, range, idInicioCustom, idFimCustom) {
+            if (!range || range === '') return true; 
+            if (range === 'aberto') return !dataIso || dataIso.trim() === '';
+            if (!dataIso) return false;
 
             let dataChamado;
-            // Corrige o fuso horário para datas que vêm do formato YYYY-MM-DD
             if (dataIso.length === 10) {
                 const [ano, mes, dia] = dataIso.split('-');
                 dataChamado = new Date(ano, mes - 1, dia);
@@ -848,24 +905,48 @@
             }
 
             const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0); // Zera as horas para comparar apenas os dias
+            hoje.setHours(0, 0, 0, 0); 
+            dataChamado.setHours(0, 0, 0, 0); // Zera as horas para comparar apenas os dias exatos
 
             if (range === 'hoje') {
-                return dataChamado >= hoje;
+                return dataChamado.getTime() === hoje.getTime();
             } else if (range === 'ontem') {
                 const ontem = new Date(hoje);
                 ontem.setDate(ontem.getDate() - 1);
-                return dataChamado >= ontem && dataChamado < hoje;
+                return dataChamado.getTime() === ontem.getTime();
             } else if (range === 'ultimos3') {
                 const tresDiasAtras = new Date(hoje);
-                tresDiasAtras.setDate(tresDiasAtras.getDate() - 2); // Hoje, Ontem e Anteontem
-                return dataChamado >= tresDiasAtras;
+                tresDiasAtras.setDate(tresDiasAtras.getDate() - 2); 
+                return dataChamado >= tresDiasAtras && dataChamado <= hoje;
             } else if (range === 'ultimos7') {
                 const seteDiasAtras = new Date(hoje);
                 seteDiasAtras.setDate(seteDiasAtras.getDate() - 6);
-                return dataChamado >= seteDiasAtras;
+                return dataChamado >= seteDiasAtras && dataChamado <= hoje;
             } else if (range === 'estemes') {
                 return dataChamado.getMonth() === hoje.getMonth() && dataChamado.getFullYear() === hoje.getFullYear();
+            } else if (range === 'personalizado') {
+                const valInicio = document.getElementById(idInicioCustom).value;
+                const valFim = document.getElementById(idFimCustom).value;
+                
+                if (!valInicio && !valFim) return true; // Se os dois estiverem vazios, não filtra
+                
+                let okInicio = true;
+                let okFim = true;
+                
+                if (valInicio) {
+                    const [anoI, mesI, diaI] = valInicio.split('-');
+                    const dtInicio = new Date(anoI, mesI - 1, diaI);
+                    dtInicio.setHours(0,0,0,0);
+                    okInicio = dataChamado >= dtInicio;
+                }
+                if (valFim) {
+                    const [anoF, mesF, diaF] = valFim.split('-');
+                    const dtFim = new Date(anoF, mesF - 1, diaF);
+                    dtFim.setHours(0,0,0,0);
+                    okFim = dataChamado <= dtFim;
+                }
+                
+                return okInicio && okFim;
             }
             return true;
         }
@@ -875,14 +956,14 @@
             const vCategoria = inputFiltros.categoria.value;
             const vStatus = inputFiltros.status.value;
             const vSLA = inputFiltros.sla.value;
-            const vData = inputFiltros.data.value; // Esse é o novo filtro de Data de Fechamento
+            const vData = inputFiltros.data.value; // Fechamento
             const vNumero = inputFiltros.numero.value.trim().toLowerCase();
             const vAnalista = inputFiltros.analista.value.trim().toLowerCase();
             const vProblema = inputFiltros.problema.value.trim().toLowerCase();
             const vFila = inputFiltros.fila.value.trim().toLowerCase();
             const vAssunto = inputFiltros.assunto.value.trim().toLowerCase();
-            const vDataQuest = inputFiltros.dataQuest.value;
-            const vDataCriacaoRange = inputFiltros.dataCriacaoRange.value;
+            const vDataQuest = inputFiltros.dataQuest.value; // Questionamento
+            const vDataCriacaoRange = inputFiltros.dataCriacaoRange.value; // Criação
             const vCriadoPor = inputFiltros.criadoPor.value;
             
             const agora = new Date();
@@ -910,26 +991,23 @@
                     }
                 }
 
-                // LÓGICA ATUALIZADA DO FILTRO DE DATA DE FECHAMENTO
-                let atendeData = true;
-                if (vData === 'aberto') {
-                    atendeData = !chamado.dataFechamento || chamado.dataFechamento.trim() === '';
-                } else {
-                    atendeData = dataEstaNoRange(chamado.dataFechamento, vData);
-                }
+                // Uso da nova lógica padronizada para os 3 filtros de data
+                const atendeDataFechamento = dataEstaNoRange(chamado.dataFechamento, vData, 'customInicioFechamento', 'customFimFechamento');
+                
+                // Pega apenas a data pura (YYYY-MM-DD) para questionamento
+                const dataQuestPura = chamado.dataQuestionamento ? chamado.dataQuestionamento.split('T')[0] : null;
+                const atendeDataQuest = dataEstaNoRange(dataQuestPura, vDataQuest, 'customInicioQuestionamento', 'customFimQuestionamento');
+                
+                const atendeDataCriacaoRange = dataEstaNoRange(chamado.dataCriacao, vDataCriacaoRange, 'customInicioCriacao', 'customFimCriacao');
 
-                const dataQuestFormatada = (chamado.dataQuestionamento || '').split('T')[0];
-                const atendeDataQuest = vDataQuest === '' || dataQuestFormatada === vDataQuest;
                 const atendeNumero = vNumero === '' || num.includes(vNumero);
                 const atendeAnalista = vAnalista === '' || ana.includes(vAnalista);
                 const atendeProblema = vProblema === '' || prob.includes(vProblema);
                 const atendeFila = vFila === '' || fila.includes(vFila);
                 const atendeAssunto = vAssunto === '' || ass.includes(vAssunto);
-
-                const atendeDataCriacaoRange = dataEstaNoRange(chamado.dataCriacao, vDataCriacaoRange);
                 const atendeCriadoPor = vCriadoPor === '' || chamado.criadoPor === vCriadoPor;
 
-                return atendeCategoria && atendeStatus && atendeSLA && atendeData && atendeDataQuest &&
+                return atendeCategoria && atendeStatus && atendeSLA && atendeDataFechamento && atendeDataQuest &&
                        atendeNumero && atendeAnalista && atendeProblema && 
                        atendeFila && atendeAssunto && atendeDataCriacaoRange && atendeCriadoPor;
             });
@@ -1109,9 +1187,17 @@
             if (paginaAtual < totalPaginas) { paginaAtual++; atualizarTabelaHtml(); }
         });
 
+        // Listener para os selects principais
         Object.values(inputFiltros).forEach(input => {
             input.addEventListener('input', () => processarVisualizacao(true));
             input.addEventListener('change', () => processarVisualizacao(true));
+        });
+
+        // Adiciona listeners para os campos de data personalizados novos
+        ['customInicioFechamento', 'customFimFechamento', 
+         'customInicioQuestionamento', 'customFimQuestionamento', 
+         'customInicioCriacao', 'customFimCriacao'].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => processarVisualizacao(true));
         });
 
         // -------------------------------------------------------------
