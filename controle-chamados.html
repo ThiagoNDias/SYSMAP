@@ -348,6 +348,7 @@
                     <label><input type="checkbox" class="chk-coluna" value="sla" checked> SLA</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtQuest" checked> Dt. Quest.</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtFecham" checked> Dt. Fecham.</label>
+                    
                     <label><input type="checkbox" class="chk-coluna" value="dtCriacao"> Data Criação</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtAtualizacao"> Data Atualização</label>
                     <label><input type="checkbox" class="chk-coluna" value="usrAtualizacao"> Atualizado Por</label>
@@ -391,7 +392,6 @@
                         <label for="buscaAnalista">Analista</label>
                         <input type="text" id="buscaAnalista" placeholder="Nome do analista">
                     </div>
-                    
                     <div class="campo">
                         <label for="buscaData">Data de Fechamento</label>
                         <select id="buscaData">
@@ -425,7 +425,6 @@
                         <label for="buscaAssunto">Assunto do E-mail</label>
                         <input type="text" id="buscaAssunto" placeholder="Termos do assunto">
                     </div>
-                    
                     <div class="campo">
                         <label for="buscaDataQuestionamento">Data de Questionamento</label>
                         <select id="buscaDataQuestionamento">
@@ -524,7 +523,7 @@
         const ADMIN_EMAIL = "ThiagoFelipeND@gmail.com"; 
         const BUG_REPORT_EMAIL = "thiago.nascimento@sysmap.com.br";
         
-        // Lista de e-mails que podem ver dados de auditoria (Datas e Quem mexeu)
+        // Lista de e-mails que podem editar/excluir chamados (SUPER_USERS)
         const SUPER_USERS = [
             "thiagofelipend@gmail.com",
             "valentiminaiara@gmail.com",
@@ -571,6 +570,12 @@
 
         function ehSuperUsuario() {
             return SUPER_USERS.includes(userEmail.toLowerCase());
+        }
+
+        // --- NOVA FUNÇÃO DE SEGURANÇA PARA A AUDITORIA ---
+        // Retorna true APENAS se o email for igual ao ADMIN_EMAIL
+        function soThiagoPodeVer() {
+            return userEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
         }
 
         // --- AUTH ---
@@ -729,8 +734,14 @@
             const containerAudit = document.querySelectorAll('.chk-coluna[value="dtCriacao"], .chk-coluna[value="dtAtualizacao"], .chk-coluna[value="usrAtualizacao"]');
             containerAudit.forEach(chk => {
                 const label = chk.parentElement; 
-                if (ehSuperUsuario()) { label.style.display = 'flex'; } 
-                else { label.style.display = 'none'; chk.checked = false; }
+                // AQUI FOI ALTERADO: Agora só você (Thiago) consegue ver esses checkboxes de auditoria
+                if (soThiagoPodeVer()) { 
+                    label.style.display = 'flex'; 
+                } 
+                else { 
+                    label.style.display = 'none'; 
+                    chk.checked = false; 
+                }
             });
         }
 
@@ -906,7 +917,7 @@
 
             const hoje = new Date();
             hoje.setHours(0, 0, 0, 0); 
-            dataChamado.setHours(0, 0, 0, 0); // Zera as horas para comparar apenas os dias exatos
+            dataChamado.setHours(0, 0, 0, 0);
 
             if (range === 'hoje') {
                 return dataChamado.getTime() === hoje.getTime();
@@ -928,7 +939,7 @@
                 const valInicio = document.getElementById(idInicioCustom).value;
                 const valFim = document.getElementById(idFimCustom).value;
                 
-                if (!valInicio && !valFim) return true; // Se os dois estiverem vazios, não filtra
+                if (!valInicio && !valFim) return true;
                 
                 let okInicio = true;
                 let okFim = true;
@@ -991,13 +1002,9 @@
                     }
                 }
 
-                // Uso da nova lógica padronizada para os 3 filtros de data
                 const atendeDataFechamento = dataEstaNoRange(chamado.dataFechamento, vData, 'customInicioFechamento', 'customFimFechamento');
-                
-                // Pega apenas a data pura (YYYY-MM-DD) para questionamento
                 const dataQuestPura = chamado.dataQuestionamento ? chamado.dataQuestionamento.split('T')[0] : null;
                 const atendeDataQuest = dataEstaNoRange(dataQuestPura, vDataQuest, 'customInicioQuestionamento', 'customFimQuestionamento');
-                
                 const atendeDataCriacaoRange = dataEstaNoRange(chamado.dataCriacao, vDataCriacaoRange, 'customInicioCriacao', 'customFimCriacao');
 
                 const atendeNumero = vNumero === '' || num.includes(vNumero);
@@ -1096,7 +1103,8 @@
         }
 
         function atualizarTabelaHtml() {
-            const isAdmin = ehSuperUsuario();
+            const ehDonoOuAdmin = ehSuperUsuario(); // Pra editar/excluir
+            const podeVerColunasOcultas = soThiagoPodeVer(); // Pra ver dados de auditoria
 
             let htmlCabecalho = `<th>Chamado</th>`;
             if(colunasSalvas.analista) htmlCabecalho += `<th>Analista</th>`;
@@ -1108,9 +1116,10 @@
             if(colunasSalvas.dtQuest) htmlCabecalho += `<th>Dt. Quest.</th>`;
             if(colunasSalvas.dtFecham) htmlCabecalho += `<th>Dt. Fecham.</th>`;
             
-            if(isAdmin && colunasSalvas.dtCriacao) htmlCabecalho += `<th>Data Criação</th>`;
-            if(isAdmin && colunasSalvas.dtAtualizacao) htmlCabecalho += `<th>Data Atualização</th>`;
-            if(isAdmin && colunasSalvas.usrAtualizacao) htmlCabecalho += `<th>Atualizado Por</th>`;
+            // AQUI FOI ALTERADO
+            if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlCabecalho += `<th>Data Criação</th>`;
+            if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlCabecalho += `<th>Data Atualização</th>`;
+            if(podeVerColunasOcultas && colunasSalvas.usrAtualizacao) htmlCabecalho += `<th>Atualizado Por</th>`;
 
             htmlCabecalho += `<th style="text-align: center;">Ações</th>`;
             
@@ -1155,14 +1164,15 @@
                 if(colunasSalvas.dtQuest) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataQuestionamento)}</td>`;
                 if(colunasSalvas.dtFecham) htmlLinha += `<td>${formatarDataTela(chamado.dataFechamento)}</td>`;
                 
-                if(isAdmin && colunasSalvas.dtCriacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataCriacao)}</td>`;
-                if(isAdmin && colunasSalvas.dtAtualizacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataAtualizacao)}</td>`;
-                if(isAdmin && colunasSalvas.usrAtualizacao) htmlLinha += `<td>${chamado.usuarioAtualizacao || '-'}</td>`;
+                // AQUI FOI ALTERADO
+                if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataCriacao)}</td>`;
+                if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataAtualizacao)}</td>`;
+                if(podeVerColunasOcultas && colunasSalvas.usrAtualizacao) htmlLinha += `<td>${chamado.usuarioAtualizacao || '-'}</td>`;
                 
                 const ehDono = chamado.criadoPor === userEmail;
                 let botoesAcao = '';
 
-                if (ehDono || isAdmin) {
+                if (ehDono || ehDonoOuAdmin) {
                     botoesAcao = `<button class="btn-icone" onclick="prepararEdicao('${chamado.id}')" title="Editar Chamado">${iconeLapis}</button><button class="btn-icone" onclick="removerChamado('${chamado.id}')" title="Excluir Chamado">${iconeLixeira}</button>`;
                 } else {
                     botoesAcao = '<span class="sem-permissao">Sem permissão</span>';
@@ -1291,10 +1301,10 @@
                 return;
             }
             
-            const isAdmin = ehSuperUsuario();
+            const podeVerColunasOcultas = soThiagoPodeVer();
             
             let cabecalhoCSV = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Fecham.";
-            if(isAdmin) cabecalhoCSV += ";Data Criação;Data Atualização;Atualizado Por";
+            if(podeVerColunasOcultas) cabecalhoCSV += ";Data Criação;Data Atualização;Atualizado Por";
             cabecalhoCSV += "\n";
             
             let csv = cabecalhoCSV;
@@ -1308,7 +1318,7 @@
                 
                 let linhaCSV = `"${clean(c.numero)}";"${clean(c.analista)}";"${clean(c.categoria)}";"${clean(c.problema)}";"${clean(c.fila)}";"${clean(c.assuntoEmail)}";"${sla}";"${dtq}";"${dtf}"`;
                 
-                if (isAdmin) {
+                if (podeVerColunasOcultas) {
                     const dtCri = formatarDataHoraSimples(c.dataCriacao);
                     const dtAtu = formatarDataHoraSimples(c.dataAtualizacao);
                     const usrAtu = c.usuarioAtualizacao || '';
