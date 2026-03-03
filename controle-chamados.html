@@ -3,24 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Chamados - Auditado</title>
+    <title>Controle de Chamados</title>
     <style>
-        /* --- VARIÁVEIS DE CORES --- */
+        /* Variáveis de Cores */
         :root {
-            --bg-color: #F4F4F4;
-            --panel-bg: #ffffff;
-            --text-color: #333333;
-            --text-muted: #555555;
-            --border-color: #cccccc;
-            --border-light: #eeeeee;
-            --input-bg: #ffffff;
-            
-            --claro-red: #DA291C;
-            --claro-red-dark: #B81F15;
+            --bg-color: #f4f4f4;
+            --panel-bg: #fff;
+            --text-color: #333;
+            --text-muted: #555;
+            --border-color: #ccc;
+            --border-light: #eee;
+            --input-bg: #fff;
+            --claro-red: #da291c;
+            --claro-red-dark: #b81f15;
             --danger-color: #dc3545;
             --edit-color: #0056b3;
             --excel-color: #107c41;
-            --teams-color: #464EB8;
+            --teams-color: #464eb8;
             --bug-color: #6c757d;
         }
 
@@ -28,13 +27,13 @@
             --bg-color: #121212;
             --panel-bg: #1e1e1e;
             --text-color: #f4f4f4;
-            --text-muted: #aaaaaa;
-            --border-color: #444444;
-            --border-light: #333333;
+            --text-muted: #aaa;
+            --border-color: #444;
+            --border-light: #333;
             --input-bg: #2c2c2c;
             --edit-color: #4da3ff;
             --excel-color: #21a555;
-            --teams-color: #7B83EB;
+            --teams-color: #7b83eb;
             --bug-color: #adb5bd;
         }
 
@@ -50,161 +49,566 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* TELA DE LOGIN */
+        /* Tela de Login */
         #telaLogin {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color); z-index: 3000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
+
         .login-box {
-            background: var(--panel-bg); padding: 40px; border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center;
+            background: var(--panel-bg);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center;
             border-top: 5px solid var(--claro-red);
         }
+
         .btn-google {
-            background-color: #4285F4; color: white; border: none; padding: 12px 24px;
-            border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold;
-            display: flex; align-items: center; gap: 10px; margin-top: 20px;
+            background-color: #4285f4;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
         }
-        .btn-google:hover { background-color: #357ae8; }
 
-        /* CABEÇALHO DO USUÁRIO */
+        .btn-google:hover {
+            background-color: #357ae8;
+        }
+
+        /* Cabeçalho do Usuário */
         .user-header {
-            display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
         }
+
         .user-info {
-            display: flex; align-items: center; gap: 10px; font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
         }
+
         .user-avatar {
-            width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--claro-red);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--claro-red);
         }
+
         .btn-logout {
-            background: transparent; border: 1px solid var(--border-color); color: var(--text-color);
-            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
         }
-        .btn-logout:hover { background: var(--border-light); }
 
-        h1 { text-align: center; color: var(--claro-red); margin-bottom: 30px; margin-top: 10px; }
-        
-        /* BOTÕES FLUTUANTES */
+        .btn-logout:hover {
+            background: var(--border-light);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--claro-red);
+            margin-bottom: 30px;
+            margin-top: 10px;
+        }
+
+        /* Botões Flutuantes */
         .btn-flutuante {
-            position: fixed; bottom: 25px; z-index: 1000;
-            background-color: var(--panel-bg); color: var(--text-color);
-            border: 1px solid var(--border-color); padding: 10px 20px;
-            border-radius: 50px; cursor: pointer; font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.3s ease;
-            display: flex; align-items: center; gap: 8px; font-size: 14px;
+            position: fixed;
+            bottom: 25px;
+            z-index: 1000;
+            background-color: var(--panel-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
         }
-        .btn-flutuante:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
-        #btnTema { left: 25px; }
-        #btnReportBug { right: 25px; border-color: var(--bug-color); color: var(--bug-color); }
-        #btnReportBug:hover { background-color: var(--bug-color); color: white; }
 
-        h2 { color: var(--claro-red); border-bottom: 2px solid var(--border-light); padding-bottom: 10px; margin-top: 0; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
-        
+        .btn-flutuante:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        #btnTema { left: 25px; }
+        #btnReportBug {
+            right: 25px;
+            border-color: var(--bug-color);
+            color: var(--bug-color);
+        }
+
+        #btnReportBug:hover {
+            background-color: var(--bug-color);
+            color: #fff;
+        }
+
+        h2 {
+            color: var(--claro-red);
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 10px;
+            margin-top: 0;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         /* Seletor de Visão */
-        .seletor-visao { display: flex; gap: 5px; background-color: var(--border-light); padding: 4px; border-radius: 6px; }
-        .btn-visao { background-color: transparent; color: var(--text-muted); border: none; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; transition: all 0.2s; }
-        .btn-visao:hover { color: var(--text-color); }
-        .btn-visao.ativo { background-color: var(--panel-bg); color: var(--claro-red); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .seletor-visao {
+            display: flex;
+            gap: 5px;
+            background-color: var(--border-light);
+            padding: 4px;
+            border-radius: 6px;
+        }
+
+        .btn-visao {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .btn-visao:hover {
+            color: var(--text-color);
+        }
+
+        .btn-visao.ativo {
+            background-color: var(--panel-bg);
+            color: var(--claro-red);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
 
         /* Painéis */
-        .painel { background: var(--panel-bg); padding: 25px; border-radius: 8px; border-top: 4px solid var(--claro-red); box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 25px; transition: background-color 0.3s; }
+        .painel {
+            background: var(--panel-bg);
+            padding: 25px;
+            border-radius: 8px;
+            border-top: 4px solid var(--claro-red);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            transition: background-color 0.3s;
+        }
 
         /* Formulários */
-        .linha-formulario { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-        .campo { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--text-muted); }
-        input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; background-color: var(--input-bg); color: var(--text-color); transition: border-color 0.3s, background-color 0.3s, color 0.3s; font-family: inherit; }
-        input:focus, select:focus { outline: none; border-color: var(--claro-red); }
+        .linha-formulario {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
 
-        /* Estilo para Range de Datas Específicas */
+        .campo {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--claro-red);
+        }
+
+        /* Datas Específicas */
         .container-custom-date {
-            display: none; 
-            margin-top: 8px; 
-            align-items: center; 
+            display: none;
+            margin-top: 8px;
+            align-items: center;
             gap: 8px;
             background-color: var(--border-light);
             padding: 8px;
             border-radius: 4px;
         }
+
         .container-custom-date input {
             padding: 6px 8px;
             font-size: 13px;
         }
+
         .container-custom-date span {
-            font-size: 12px; 
-            color: var(--text-muted); 
+            font-size: 12px;
+            color: var(--text-muted);
             font-weight: bold;
         }
 
-        /* Botoes de Ação Principais */
-        .grupo-botoes { display: flex; gap: 15px; margin-top: 10px; }
+        /* Botões Principais */
+        .grupo-botoes {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
         button { font-family: inherit; }
-        button.btn-salvar { background-color: var(--claro-red); color: white; border: none; padding: 12px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 16px; flex: 1; transition: background-color 0.3s; }
-        button.btn-salvar:hover { background-color: var(--claro-red-dark); }
-        button.btn-cancelar { background-color: transparent; color: var(--text-color); border: 2px solid var(--border-color); padding: 12px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 16px; flex: 1; transition: background-color 0.3s; }
-        button.btn-cancelar:hover { background-color: var(--border-light); }
-        
+
+        button.btn-salvar {
+            background-color: var(--claro-red);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            flex: 1;
+            transition: background-color 0.3s;
+        }
+
+        button.btn-salvar:hover {
+            background-color: var(--claro-red-dark);
+        }
+
+        button.btn-cancelar {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            padding: 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            flex: 1;
+            transition: background-color 0.3s;
+        }
+
+        button.btn-cancelar:hover {
+            background-color: var(--border-light);
+        }
+
         /* Botões de Ícone */
-        .btn-acao-icone { background-color: transparent; padding: 0; border-radius: 6px; cursor: pointer; transition: all 0.3s; height: 42px; width: 42px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .btn-filtro { color: var(--text-color); border: 1px solid var(--border-color); }
-        .btn-filtro:hover, .btn-filtro.ativo { background-color: var(--border-light); border-color: var(--text-color); }
-        .btn-limpar { color: var(--text-muted); border: 1px solid var(--border-color); }
-        .btn-limpar:hover { background-color: var(--border-light); color: var(--text-color); }
-        .btn-colunas { color: var(--edit-color); border: 1px solid var(--edit-color); }
-        .btn-colunas:hover, .btn-colunas.ativo { background-color: var(--edit-color); color: white; }
-        .btn-exportar { color: var(--excel-color); border: 1px solid var(--excel-color); }
-        .btn-exportar:hover { background-color: var(--excel-color); color: white; }
-        .btn-teams { color: var(--teams-color); border: 1px solid var(--teams-color); }
-        .btn-teams:hover { background-color: var(--teams-color); color: white; }
+        .btn-acao-icone {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            height: 42px;
+            width: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
 
-        /* Estrutura de Filtros e Colunas */
-        .painel-expansivel { background-color: var(--bg-color); padding: 15px; border-radius: 6px; border: 1px solid var(--border-light); margin-bottom: 20px; display: none; }
-        .grid-colunas { display: flex; flex-wrap: wrap; gap: 15px; }
-        .grid-colunas label { display: flex; align-items: center; gap: 5px; margin-bottom: 0; cursor: pointer; font-weight: normal; }
+        .btn-filtro {
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
 
-        /* Tabela Matriz de Resumo */
-        .tabela-resumo { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .tabela-resumo th { background-color: var(--border-light); color: var(--text-color); border: 1px solid var(--border-color); text-align: center; }
-        .tabela-resumo td { border: 1px solid var(--border-color); text-align: center; }
-        .tabela-resumo td:first-child { text-align: left; }
-        body.dark-mode .tabela-resumo th { background-color: #2c2c2c; }
+        .btn-filtro:hover, .btn-filtro.ativo {
+            background-color: var(--border-light);
+            border-color: var(--text-color);
+        }
 
-        /* Tabela Principal */
-        .btn-icone { background: transparent; border: none; cursor: pointer; padding: 6px; border-radius: 4px; transition: transform 0.2s, background-color 0.2s; display: inline-flex; align-items: center; justify-content: center; }
-        .btn-icone:hover { transform: scale(1.1); background-color: var(--border-light); }
+        .btn-limpar {
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-limpar:hover {
+            background-color: var(--border-light);
+            color: var(--text-color);
+        }
+
+        .btn-colunas {
+            color: var(--edit-color);
+            border: 1px solid var(--edit-color);
+        }
+
+        .btn-colunas:hover, .btn-colunas.ativo {
+            background-color: var(--edit-color);
+            color: #fff;
+        }
+
+        .btn-exportar {
+            color: var(--excel-color);
+            border: 1px solid var(--excel-color);
+        }
+
+        .btn-exportar:hover {
+            background-color: var(--excel-color);
+            color: #fff;
+        }
+
+        .btn-teams {
+            color: var(--teams-color);
+            border: 1px solid var(--teams-color);
+        }
+
+        .btn-teams:hover {
+            background-color: var(--teams-color);
+            color: #fff;
+        }
+
+        /* Filtros e Colunas */
+        .painel-expansivel {
+            background-color: var(--bg-color);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-light);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .grid-colunas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .grid-colunas label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        /* Tabelas */
+        .tabela-resumo {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .tabela-resumo th {
+            background-color: var(--border-light);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .tabela-resumo td {
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .tabela-resumo td:first-child {
+            text-align: left;
+        }
+
+        body.dark-mode .tabela-resumo th {
+            background-color: #2c2c2c;
+        }
+
+        .btn-icone {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            transition: transform 0.2s, background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icone:hover {
+            transform: scale(1.1);
+            background-color: var(--border-light);
+        }
+
         .icone-editar { color: var(--edit-color); }
         .icone-excluir { color: var(--danger-color); }
-        .link-chamado { color: var(--claro-red); text-decoration: none; font-size: 15px; transition: color 0.3s; }
-        .link-chamado:hover { color: var(--claro-red-dark); text-decoration: underline; }
+
+        .link-chamado {
+            color: var(--claro-red);
+            text-decoration: none;
+            font-size: 15px;
+            transition: color 0.3s;
+        }
+
+        .link-chamado:hover {
+            color: var(--claro-red-dark);
+            text-decoration: underline;
+        }
+
         body.dark-mode .link-chamado { color: #ff6b6b; }
         body.dark-mode .link-chamado:hover { color: #ff8787; }
+
         .status-aberto { color: var(--claro-red); font-weight: bold; }
         body.dark-mode .status-aberto { color: #ff6b6b; }
+
         .sla-vencido { color: var(--claro-red); font-weight: bold; }
         body.dark-mode .sla-vencido { color: #ff6b6b; }
+
         .tabela-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border-light); }
-        th, td { padding: 12px 15px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
-        th { background-color: var(--claro-red); color: white; font-weight: 600; text-transform: uppercase; font-size: 13px; white-space: nowrap; }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: var(--claro-red);
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
         tr:last-child td { border-bottom: none; }
-        .acoes-container { display: flex; gap: 10px; justify-content: center; }
-        .mensagem-vazia { text-align: center; color: var(--text-muted); font-style: italic; padding: 30px; }
-        .sem-permissao { color: var(--text-muted); font-size: 12px; font-style: italic; }
+
+        .acoes-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .mensagem-vazia {
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 30px;
+        }
+
+        .sem-permissao {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-style: italic;
+        }
 
         /* Paginação */
-        .paginacao-container { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px 0; border-top: 1px solid var(--border-light); }
-        .itens-por-pagina { display: flex; align-items: center; gap: 10px; font-size: 14px; }
-        .itens-por-pagina select { width: auto; padding: 6px 10px; }
-        .botoes-paginacao { display: flex; gap: 8px; align-items: center; }
-        .btn-pagina { background-color: var(--panel-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
-        .btn-pagina:hover:not(:disabled) { background-color: var(--border-light); }
-        .btn-pagina:disabled { opacity: 0.5; cursor: not-allowed; }
-        .info-paginacao { font-size: 14px; color: var(--text-muted); font-weight: 600; }
-        
+        .paginacao-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding: 10px 0;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .itens-por-pagina {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .itens-por-pagina select {
+            width: auto;
+            padding: 6px 10px;
+        }
+
+        .botoes-paginacao {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-pagina {
+            background-color: var(--panel-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-pagina:hover:not(:disabled) {
+            background-color: var(--border-light);
+        }
+
+        .btn-pagina:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info-paginacao {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
         /* Loading */
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; justify-content: center; align-items: center; color: white; font-size: 20px; font-weight: bold; }
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
         #appContent { display: none; }
     </style>
 </head>
@@ -349,9 +753,9 @@
                     <label><input type="checkbox" class="chk-coluna" value="dtQuest" checked> Dt. Quest.</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtFecham" checked> Dt. Fecham.</label>
                     
-                    <label><input type="checkbox" class="chk-coluna" value="dtCriacao"> Data Criação</label>
-                    <label><input type="checkbox" class="chk-coluna" value="dtAtualizacao"> Data Atualização</label>
-                    <label><input type="checkbox" class="chk-coluna" value="usrAtualizacao"> Atualizado Por</label>
+                    <label id="lbl-dtCriacao"><input type="checkbox" class="chk-coluna" value="dtCriacao"> Data Criação</label>
+                    <label id="lbl-dtAtualizacao"><input type="checkbox" class="chk-coluna" value="dtAtualizacao"> Data Atualização</label>
+                    <label id="lbl-usrAtualizacao"><input type="checkbox" class="chk-coluna" value="usrAtualizacao"> Atualizado Por</label>
                 </div>
             </div>
 
@@ -462,9 +866,15 @@
                             <input type="date" id="customFimCriacao" title="Data Final">
                         </div>
                     </div>
-                    <div class="campo">
+                    <div class="campo" id="campoFiltroCriadoPor">
                         <label for="filtroCriadoPor">Usuário de Criação</label>
                         <select id="filtroCriadoPor">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="filtroAnalistaLista">Analista (Lista)</label>
+                        <select id="filtroAnalistaLista">
                             <option value="">Todos</option>
                         </select>
                     </div>
@@ -559,7 +969,7 @@
         let itensPorPagina = 10;
         let userEmail = '';
 
-        // --- DOM Elements ---
+        // --- Elementos DOM ---
         const telaLogin = document.getElementById('telaLogin');
         const appContent = document.getElementById('appContent');
         const btnLoginGoogle = document.getElementById('btnLoginGoogle');
@@ -567,18 +977,23 @@
         const userName = document.getElementById('userName');
         const userAvatar = document.getElementById('userAvatar');
         const loading = document.getElementById('loading');
+        
+        // Elementos de visibilidade restrita
+        const campoFiltroCriadoPor = document.getElementById('campoFiltroCriadoPor');
+        const lblDtCriacao = document.getElementById('lbl-dtCriacao');
+        const lblDtAtualizacao = document.getElementById('lbl-dtAtualizacao');
+        const lblUsrAtualizacao = document.getElementById('lbl-usrAtualizacao');
 
         function ehSuperUsuario() {
             return SUPER_USERS.includes(userEmail.toLowerCase());
         }
 
-        // --- NOVA FUNÇÃO DE SEGURANÇA PARA A AUDITORIA ---
         // Retorna true APENAS se o email for igual ao ADMIN_EMAIL
         function soThiagoPodeVer() {
             return userEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
         }
 
-        // --- AUTH ---
+        // --- Autenticação ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userEmail = user.email;
@@ -587,6 +1002,10 @@
                 telaLogin.style.display = 'none';
                 appContent.style.display = 'block';
                 loading.style.display = 'flex'; 
+                
+                // Aplicar regras de visibilidade baseadas no usuário
+                aplicarRegrasVisibilidade();
+                
                 iniciarFirestoreListener();
             } else {
                 telaLogin.style.display = 'flex';
@@ -601,6 +1020,36 @@
 
         btnLogout.addEventListener('click', () => { signOut(auth); });
 
+        function aplicarRegrasVisibilidade() {
+            const isAdmin = soThiagoPodeVer();
+            
+            // Oculta/Mostra o filtro "Usuário de Criação"
+            if (isAdmin) {
+                campoFiltroCriadoPor.style.display = 'flex';
+            } else {
+                campoFiltroCriadoPor.style.display = 'none';
+                // Garante que o filtro seja limpo se não for admin
+                document.getElementById('filtroCriadoPor').value = '';
+            }
+
+            // Oculta/Mostra as opções de colunas de auditoria
+            if (isAdmin) {
+                lblDtCriacao.style.display = 'flex';
+                lblDtAtualizacao.style.display = 'flex';
+                lblUsrAtualizacao.style.display = 'flex';
+            } else {
+                lblDtCriacao.style.display = 'none';
+                lblDtAtualizacao.style.display = 'none';
+                lblUsrAtualizacao.style.display = 'none';
+                
+                // Desmarca os checkboxes
+                document.querySelector('.chk-coluna[value="dtCriacao"]').checked = false;
+                document.querySelector('.chk-coluna[value="dtAtualizacao"]').checked = false;
+                document.querySelector('.chk-coluna[value="usrAtualizacao"]').checked = false;
+            }
+        }
+
+
         // --- FIRESTORE LISTENER ---
         let unsubscribe = null;
         function iniciarFirestoreListener() {
@@ -608,7 +1057,8 @@
             unsubscribe = onSnapshot(chamadosCollection, (snapshot) => {
                 listaChamados = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 loading.style.display = 'none';
-                atualizarListaUsuariosFiltro();
+                
+                atualizarListasFiltros();
                 processarVisualizacao(false);
             }, (error) => {
                 console.error("Erro ao buscar dados:", error);
@@ -617,22 +1067,39 @@
             });
         }
 
-        function atualizarListaUsuariosFiltro() {
+        function atualizarListasFiltros() {
+            // Atualiza lista de Usuários Criadores (apenas admin vê, mas mantemos a lógica)
             const selectCriadoPor = document.getElementById('filtroCriadoPor');
-            const valorAtual = selectCriadoPor.value; 
+            const valorAtualCriadoPor = selectCriadoPor.value; 
 
             const usuariosUnicos = [...new Set(listaChamados.map(c => c.criadoPor).filter(Boolean))].sort();
-
-            let optionsHtml = '<option value="">Todos</option>';
+            let optionsHtmlCriadoPor = '<option value="">Todos</option>';
             usuariosUnicos.forEach(user => {
-                optionsHtml += `<option value="${user}">${user}</option>`;
+                optionsHtmlCriadoPor += `<option value="${user}">${user}</option>`;
             });
-            selectCriadoPor.innerHTML = optionsHtml;
+            selectCriadoPor.innerHTML = optionsHtmlCriadoPor;
 
-            if (usuariosUnicos.includes(valorAtual)) {
-                selectCriadoPor.value = valorAtual;
+            if (usuariosUnicos.includes(valorAtualCriadoPor)) {
+                selectCriadoPor.value = valorAtualCriadoPor;
+            }
+
+            // Atualiza lista de Analistas
+            const selectAnalistaLista = document.getElementById('filtroAnalistaLista');
+            const valorAtualAnalistaLista = selectAnalistaLista.value;
+
+            // Pega os analistas, filtra nulos, e remove espaços extras
+            const analistasUnicos = [...new Set(listaChamados.map(c => c.analista ? c.analista.trim() : null).filter(Boolean))].sort();
+            let optionsHtmlAnalista = '<option value="">Todos</option>';
+            analistasUnicos.forEach(analista => {
+                optionsHtmlAnalista += `<option value="${analista}">${analista}</option>`;
+            });
+            selectAnalistaLista.innerHTML = optionsHtmlAnalista;
+
+            if (analistasUnicos.includes(valorAtualAnalistaLista)) {
+                selectAnalistaLista.value = valorAtualAnalistaLista;
             }
         }
+
 
         window.reportarBug = function() {
             const subject = "Report de Bug - Controle de Chamados";
@@ -654,7 +1121,7 @@
             }
         }
 
-        // --- UI LOGIC ---
+        // --- Lógica de UI ---
         const btnTema = document.getElementById('btnTema');
         const painelFormulario = document.getElementById('painelFormulario');
         const formChamado = document.getElementById('formChamado');
@@ -691,7 +1158,8 @@
             assunto: document.getElementById('buscaAssunto'),
             dataQuest: document.getElementById('buscaDataQuestionamento'), // Questionamento
             dataCriacaoRange: document.getElementById('filtroDataCriacao'), // Criação
-            criadoPor: document.getElementById('filtroCriadoPor')
+            criadoPor: document.getElementById('filtroCriadoPor'),
+            analistaLista: document.getElementById('filtroAnalistaLista') // Novo filtro de lista
         };
 
         window.fecharFormulario = fecharFormulario;
@@ -730,21 +1198,6 @@
 
         const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: true, fila: true, assunto: true, sla: true, dtQuest: true, dtFecham: true, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false };
         
-        function atualizarVisibilidadeOpcoesColunas() {
-            const containerAudit = document.querySelectorAll('.chk-coluna[value="dtCriacao"], .chk-coluna[value="dtAtualizacao"], .chk-coluna[value="usrAtualizacao"]');
-            containerAudit.forEach(chk => {
-                const label = chk.parentElement; 
-                // AQUI FOI ALTERADO: Agora só você (Thiago) consegue ver esses checkboxes de auditoria
-                if (soThiagoPodeVer()) { 
-                    label.style.display = 'flex'; 
-                } 
-                else { 
-                    label.style.display = 'none'; 
-                    chk.checked = false; 
-                }
-            });
-        }
-
         document.querySelectorAll('.chk-coluna').forEach(chk => {
             chk.checked = colunasSalvas[chk.value];
             chk.addEventListener('change', (e) => {
@@ -862,7 +1315,7 @@
             }
         }
 
-        // --- LÓGICA PARA EXIBIR/OCULTAR INPUTS DE DATA PERSONALIZADA ---
+        // --- Datas Personalizadas ---
         function alternarInputsPersonalizados(selectId, containerId) {
             const select = document.getElementById(selectId);
             const container = document.getElementById(containerId);
@@ -887,7 +1340,7 @@
                 } else { input.value = ''; }
             });
             
-            // Oculta e limpa os campos de data personalizada
+            // Oculta e limpa datas
             document.getElementById('containerCustomFechamento').style.display = 'none';
             document.getElementById('containerCustomQuestionamento').style.display = 'none';
             document.getElementById('containerCustomCriacao').style.display = 'none';
@@ -901,7 +1354,7 @@
             processarVisualizacao(true);
         }
 
-        // --- FUNÇÃO CENTRAL DE COMPARAÇÃO DE DATAS ---
+        // --- COMPARAÇÃO DE DATAS ---
         function dataEstaNoRange(dataIso, range, idInicioCustom, idFimCustom) {
             if (!range || range === '') return true; 
             if (range === 'aberto') return !dataIso || dataIso.trim() === '';
@@ -969,19 +1422,20 @@
             const vSLA = inputFiltros.sla.value;
             const vData = inputFiltros.data.value; // Fechamento
             const vNumero = inputFiltros.numero.value.trim().toLowerCase();
-            const vAnalista = inputFiltros.analista.value.trim().toLowerCase();
+            const vAnalista = inputFiltros.analista.value.trim().toLowerCase(); // Input de texto
             const vProblema = inputFiltros.problema.value.trim().toLowerCase();
             const vFila = inputFiltros.fila.value.trim().toLowerCase();
             const vAssunto = inputFiltros.assunto.value.trim().toLowerCase();
             const vDataQuest = inputFiltros.dataQuest.value; // Questionamento
             const vDataCriacaoRange = inputFiltros.dataCriacaoRange.value; // Criação
             const vCriadoPor = inputFiltros.criadoPor.value;
-            
+            const vAnalistaLista = inputFiltros.analistaLista.value; // Select de analista
+
             const agora = new Date();
 
             chamadosFiltradosAtuais = listaChamados.filter(chamado => {
                 const num = (chamado.numero || '').toLowerCase();
-                const ana = (chamado.analista || '').toLowerCase();
+                const anaTexto = (chamado.analista || '').toLowerCase();
                 const prob = (chamado.problema || '').toLowerCase();
                 const fila = (chamado.fila || '').toLowerCase();
                 const ass = (chamado.assuntoEmail || '').toLowerCase();
@@ -1008,14 +1462,15 @@
                 const atendeDataCriacaoRange = dataEstaNoRange(chamado.dataCriacao, vDataCriacaoRange, 'customInicioCriacao', 'customFimCriacao');
 
                 const atendeNumero = vNumero === '' || num.includes(vNumero);
-                const atendeAnalista = vAnalista === '' || ana.includes(vAnalista);
+                const atendeAnalistaTexto = vAnalista === '' || anaTexto.includes(vAnalista);
+                const atendeAnalistaLista = vAnalistaLista === '' || (chamado.analista && chamado.analista.trim() === vAnalistaLista);
                 const atendeProblema = vProblema === '' || prob.includes(vProblema);
                 const atendeFila = vFila === '' || fila.includes(vFila);
                 const atendeAssunto = vAssunto === '' || ass.includes(vAssunto);
-                const atendeCriadoPor = vCriadoPor === '' || chamado.criadoPor === vCriadoPor;
+                const atendeCriadoPor = !soThiagoPodeVer() || vCriadoPor === '' || chamado.criadoPor === vCriadoPor; // Só filtra se for admin e tiver valor
 
                 return atendeCategoria && atendeStatus && atendeSLA && atendeDataFechamento && atendeDataQuest &&
-                       atendeNumero && atendeAnalista && atendeProblema && 
+                       atendeNumero && atendeAnalistaTexto && atendeAnalistaLista && atendeProblema && 
                        atendeFila && atendeAssunto && atendeDataCriacaoRange && atendeCriadoPor;
             });
 
@@ -1103,8 +1558,8 @@
         }
 
         function atualizarTabelaHtml() {
-            const ehDonoOuAdmin = ehSuperUsuario(); // Pra editar/excluir
-            const podeVerColunasOcultas = soThiagoPodeVer(); // Pra ver dados de auditoria
+            const ehDonoOuAdmin = ehSuperUsuario(); 
+            const podeVerColunasOcultas = soThiagoPodeVer(); 
 
             let htmlCabecalho = `<th>Chamado</th>`;
             if(colunasSalvas.analista) htmlCabecalho += `<th>Analista</th>`;
@@ -1116,7 +1571,6 @@
             if(colunasSalvas.dtQuest) htmlCabecalho += `<th>Dt. Quest.</th>`;
             if(colunasSalvas.dtFecham) htmlCabecalho += `<th>Dt. Fecham.</th>`;
             
-            // AQUI FOI ALTERADO
             if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlCabecalho += `<th>Data Criação</th>`;
             if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlCabecalho += `<th>Data Atualização</th>`;
             if(podeVerColunasOcultas && colunasSalvas.usrAtualizacao) htmlCabecalho += `<th>Atualizado Por</th>`;
@@ -1164,7 +1618,6 @@
                 if(colunasSalvas.dtQuest) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataQuestionamento)}</td>`;
                 if(colunasSalvas.dtFecham) htmlLinha += `<td>${formatarDataTela(chamado.dataFechamento)}</td>`;
                 
-                // AQUI FOI ALTERADO
                 if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataCriacao)}</td>`;
                 if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataAtualizacao)}</td>`;
                 if(podeVerColunasOcultas && colunasSalvas.usrAtualizacao) htmlLinha += `<td>${chamado.usuarioAtualizacao || '-'}</td>`;
@@ -1182,8 +1635,6 @@
                 tr.innerHTML = htmlLinha;
                 tabelaCorpo.appendChild(tr);
             });
-            
-            atualizarVisibilidadeOpcoesColunas();
         }
 
         selectItensPagina.addEventListener('change', (e) => {
@@ -1197,22 +1648,20 @@
             if (paginaAtual < totalPaginas) { paginaAtual++; atualizarTabelaHtml(); }
         });
 
-        // Listener para os selects principais
+        // Listeners selects principais
         Object.values(inputFiltros).forEach(input => {
             input.addEventListener('input', () => processarVisualizacao(true));
             input.addEventListener('change', () => processarVisualizacao(true));
         });
 
-        // Adiciona listeners para os campos de data personalizados novos
+        // Listeners campos de data personalizados
         ['customInicioFechamento', 'customFimFechamento', 
          'customInicioQuestionamento', 'customFimQuestionamento', 
          'customInicioCriacao', 'customFimCriacao'].forEach(id => {
             document.getElementById(id).addEventListener('change', () => processarVisualizacao(true));
         });
 
-        // -------------------------------------------------------------
-        // FUNÇÃO DE CÓPIA PARA O TEAMS
-        // -------------------------------------------------------------
+        // --- TEAMS ---
         function copiarParaTeams() {
             if (chamadosFiltradosAtuais.length === 0) {
                 alert("Sem dados para copiar.");
@@ -1295,6 +1744,7 @@
             document.body.removeChild(tempDiv);
         }
 
+        // --- CSV ---
         function exportarCSV() {
             if (chamadosFiltradosAtuais.length === 0) {
                 alert("Sem dados para exportar.");
