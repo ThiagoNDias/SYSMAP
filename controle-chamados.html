@@ -92,13 +92,60 @@
             background-color: #357ae8;
         }
 
-        /* Cabeçalho do Usuário */
-        .user-header {
+        /* NAVBAR PRINCIPAL */
+        .navbar {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel-bg);
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            border-top: 4px solid var(--claro-red);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .navbar-brand h1 {
+            margin: 0;
+            font-size: 22px;
+            color: var(--claro-red);
+            text-align: left;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            border-left: 2px solid var(--border-light);
+            padding-left: 15px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: var(--claro-red);
+            text-decoration: underline;
+        }
+
+        .user-info-container {
+            display: flex;
             align-items: center;
             gap: 15px;
-            margin-bottom: 20px;
         }
 
         .user-info {
@@ -127,13 +174,6 @@
 
         .btn-logout:hover {
             background: var(--border-light);
-        }
-
-        h1 {
-            text-align: center;
-            color: var(--claro-red);
-            margin-bottom: 30px;
-            margin-top: 10px;
         }
 
         /* Botões Flutuantes */
@@ -182,6 +222,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        /* Cabeçalho do Painel (Abas) */
+        .cabecalho-painel {
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
         }
 
         /* Seletor de Visão */
@@ -624,7 +672,7 @@
 
     <div id="telaLogin">
         <div class="login-box">
-            <h2 style="justify-content: center;">Acesso Restrito</h2>
+            <h2 style="justify-content: center; border: none;">Acesso Restrito</h2>
             <p>Faça login com sua conta Google para acessar o sistema.</p>
             <button id="btnLoginGoogle" class="btn-google">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
@@ -634,15 +682,25 @@
     </div>
 
     <div id="appContent">
-        <div class="user-header">
-            <div class="user-info">
-                <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
-                <span id="userName">Usuário</span>
+        
+        <div class="navbar">
+            <div class="navbar-brand">
+                <h1>Controle de Chamados</h1>
+                <div class="nav-links">
+                    <a href="https://clarobr.atlassian.net/jira/dashboards/27247" target="_blank">Dash Analistas</a>
+                    <a href="http://10.29.148.9/script/list/" target="_blank">HOT DML</a>
+                    <a href="https://clarobr.atlassian.net/jira/for-you" target="_blank">Jira Analista</a>
+                    <a href="https://portal.sysmap.com.br/" target="_blank">SSG</a>
+                </div>
             </div>
-            <button id="btnLogout" class="btn-logout">Sair</button>
+            <div class="user-info-container">
+                <div class="user-info">
+                    <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+                    <span id="userName">Usuário</span>
+                </div>
+                <button id="btnLogout" class="btn-logout">Sair</button>
+            </div>
         </div>
-
-        <h1>Controle de Chamados <span style="font-size: 14px; opacity: 0.7;">(Online)</span></h1>
 
         <div class="painel" id="painelFormulario" style="display: none;">
             <h2 id="tituloFormulario">Registrar Novo Chamado</h2>
@@ -708,13 +766,12 @@
         </div>
 
         <div class="painel">
-            <h2>
-                Painel de Operações
+            <div class="cabecalho-painel">
                 <div class="seletor-visao">
                     <button type="button" id="btnVisaoResumo" class="btn-visao">📊 Resumo</button>
                     <button type="button" id="btnVisaoTabela" class="btn-visao ativo">📄 Tabela</button>
                 </div>
-            </h2>
+            </div>
             
             <div class="linha-formulario" style="justify-content: flex-end; margin-bottom: 0;">
                 <div style="display: flex; gap: 10px; align-items: center;">
@@ -1045,7 +1102,6 @@
             }
         }
 
-
         // --- FIRESTORE LISTENER ---
         let unsubscribe = null;
         function iniciarFirestoreListener() {
@@ -1095,7 +1151,6 @@
                 selectAnalista.value = valorAtualAnalista;
             }
         }
-
 
         window.reportarBug = function() {
             const subject = "Report de Bug - Controle de Chamados";
@@ -1326,7 +1381,6 @@
         document.getElementById('buscaDataQuestionamento').addEventListener('change', () => alternarInputsPersonalizados('buscaDataQuestionamento', 'containerCustomQuestionamento'));
         document.getElementById('filtroDataCriacao').addEventListener('change', () => alternarInputsPersonalizados('filtroDataCriacao', 'containerCustomCriacao'));
 
-
         function limparFiltros() {
             Object.values(inputFiltros).forEach(input => {
                 if(input.tagName === 'SELECT') {
@@ -1459,7 +1513,7 @@
                 const atendeProblema = vProblema === '' || prob.includes(vProblema);
                 const atendeFila = vFila === '' || fila.includes(vFila);
                 const atendeAssunto = vAssunto === '' || ass.includes(vAssunto);
-                const atendeCriadoPor = !soThiagoPodeVer() || vCriadoPor === '' || chamado.criadoPor === vCriadoPor; // Só filtra se for admin e tiver valor
+                const atendeCriadoPor = !soThiagoPodeVer() || vCriadoPor === '' || chamado.criadoPor === vCriadoPor;
 
                 return atendeCategoria && atendeStatus && atendeSLA && atendeDataFechamento && atendeDataQuest &&
                        atendeNumero && atendeAnalista && atendeProblema && 
