@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/x-icon" href="controle-chamados.ico">
     <link rel="icon" type="image/x-icon" href="controle-chamados.ico">
     <title>Controle de Chamados</title>
     <style>
@@ -114,6 +113,20 @@
             align-items: center;
             gap: 20px;
             flex-wrap: wrap;
+        }
+
+        /* Container para alinhar Imagem + Texto do Título */
+        .titulo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Espaçamento entre imagem e texto */
+        }
+
+        /* Estilo da Imagem do Título */
+        .logo-titulo {
+            height: 32px; /* Tamanho proporcional ao h1 do navbar */
+            width: auto;
+            border-radius: 4px; /* Cantos arredondados suaves na imagem */
         }
 
         .navbar-brand h1 {
@@ -687,7 +700,10 @@
         
         <div class="navbar">
             <div class="navbar-brand">
-                <h1>Controle de Chamados</h1>
+                <div class="titulo-container">
+                    <img src="controle-chamado.png" alt="Logo" class="logo-titulo">
+                    <h1>Controle de Chamados</h1>
+                </div>
                 <div class="nav-links">
                     <a href="https://hjr2411.github.io/SPS_CH/index.html" target="_blank">SPS • Chamados</a>
                     <a href="https://clarobr.atlassian.net/jira/dashboards/27247" target="_blank">Dash Analistas</a>
