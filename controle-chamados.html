@@ -793,8 +793,10 @@
                         <input type="text" id="buscaNumero" placeholder="Ex: INC1234567">
                     </div>
                     <div class="campo">
-                        <label for="buscaAnalista">Analista</label>
-                        <input type="text" id="buscaAnalista" placeholder="Nome do analista">
+                        <label for="filtroAnalista">Analista</label>
+                        <select id="filtroAnalista">
+                            <option value="">Todos</option>
+                        </select>
                     </div>
                     <div class="campo">
                         <label for="buscaData">Data de Fechamento</label>
@@ -869,12 +871,6 @@
                     <div class="campo" id="campoFiltroCriadoPor">
                         <label for="filtroCriadoPor">Usuário de Criação</label>
                         <select id="filtroCriadoPor">
-                            <option value="">Todos</option>
-                        </select>
-                    </div>
-                    <div class="campo">
-                        <label for="filtroAnalistaLista">Analista (Lista)</label>
-                        <select id="filtroAnalistaLista">
                             <option value="">Todos</option>
                         </select>
                     </div>
@@ -1084,8 +1080,8 @@
             }
 
             // Atualiza lista de Analistas
-            const selectAnalistaLista = document.getElementById('filtroAnalistaLista');
-            const valorAtualAnalistaLista = selectAnalistaLista.value;
+            const selectAnalista = document.getElementById('filtroAnalista');
+            const valorAtualAnalista = selectAnalista.value;
 
             // Pega os analistas, filtra nulos, e remove espaços extras
             const analistasUnicos = [...new Set(listaChamados.map(c => c.analista ? c.analista.trim() : null).filter(Boolean))].sort();
@@ -1093,10 +1089,10 @@
             analistasUnicos.forEach(analista => {
                 optionsHtmlAnalista += `<option value="${analista}">${analista}</option>`;
             });
-            selectAnalistaLista.innerHTML = optionsHtmlAnalista;
+            selectAnalista.innerHTML = optionsHtmlAnalista;
 
-            if (analistasUnicos.includes(valorAtualAnalistaLista)) {
-                selectAnalistaLista.value = valorAtualAnalistaLista;
+            if (analistasUnicos.includes(valorAtualAnalista)) {
+                selectAnalista.value = valorAtualAnalista;
             }
         }
 
@@ -1152,14 +1148,13 @@
             sla: document.getElementById('filtroSLA'),
             data: document.getElementById('buscaData'), // Fechamento
             numero: document.getElementById('buscaNumero'),
-            analista: document.getElementById('buscaAnalista'),
+            analista: document.getElementById('filtroAnalista'), // Filtro de lista
             problema: document.getElementById('buscaProblema'),
             fila: document.getElementById('buscaFila'),
             assunto: document.getElementById('buscaAssunto'),
             dataQuest: document.getElementById('buscaDataQuestionamento'), // Questionamento
             dataCriacaoRange: document.getElementById('filtroDataCriacao'), // Criação
-            criadoPor: document.getElementById('filtroCriadoPor'),
-            analistaLista: document.getElementById('filtroAnalistaLista') // Novo filtro de lista
+            criadoPor: document.getElementById('filtroCriadoPor')
         };
 
         window.fecharFormulario = fecharFormulario;
@@ -1422,20 +1417,18 @@
             const vSLA = inputFiltros.sla.value;
             const vData = inputFiltros.data.value; // Fechamento
             const vNumero = inputFiltros.numero.value.trim().toLowerCase();
-            const vAnalista = inputFiltros.analista.value.trim().toLowerCase(); // Input de texto
+            const vAnalista = inputFiltros.analista.value; // Select de analista
             const vProblema = inputFiltros.problema.value.trim().toLowerCase();
             const vFila = inputFiltros.fila.value.trim().toLowerCase();
             const vAssunto = inputFiltros.assunto.value.trim().toLowerCase();
             const vDataQuest = inputFiltros.dataQuest.value; // Questionamento
             const vDataCriacaoRange = inputFiltros.dataCriacaoRange.value; // Criação
             const vCriadoPor = inputFiltros.criadoPor.value;
-            const vAnalistaLista = inputFiltros.analistaLista.value; // Select de analista
 
             const agora = new Date();
 
             chamadosFiltradosAtuais = listaChamados.filter(chamado => {
                 const num = (chamado.numero || '').toLowerCase();
-                const anaTexto = (chamado.analista || '').toLowerCase();
                 const prob = (chamado.problema || '').toLowerCase();
                 const fila = (chamado.fila || '').toLowerCase();
                 const ass = (chamado.assuntoEmail || '').toLowerCase();
@@ -1462,15 +1455,14 @@
                 const atendeDataCriacaoRange = dataEstaNoRange(chamado.dataCriacao, vDataCriacaoRange, 'customInicioCriacao', 'customFimCriacao');
 
                 const atendeNumero = vNumero === '' || num.includes(vNumero);
-                const atendeAnalistaTexto = vAnalista === '' || anaTexto.includes(vAnalista);
-                const atendeAnalistaLista = vAnalistaLista === '' || (chamado.analista && chamado.analista.trim() === vAnalistaLista);
+                const atendeAnalista = vAnalista === '' || (chamado.analista && chamado.analista.trim() === vAnalista);
                 const atendeProblema = vProblema === '' || prob.includes(vProblema);
                 const atendeFila = vFila === '' || fila.includes(vFila);
                 const atendeAssunto = vAssunto === '' || ass.includes(vAssunto);
                 const atendeCriadoPor = !soThiagoPodeVer() || vCriadoPor === '' || chamado.criadoPor === vCriadoPor; // Só filtra se for admin e tiver valor
 
                 return atendeCategoria && atendeStatus && atendeSLA && atendeDataFechamento && atendeDataQuest &&
-                       atendeNumero && atendeAnalistaTexto && atendeAnalistaLista && atendeProblema && 
+                       atendeNumero && atendeAnalista && atendeProblema && 
                        atendeFila && atendeAssunto && atendeDataCriacaoRange && atendeCriadoPor;
             });
 
