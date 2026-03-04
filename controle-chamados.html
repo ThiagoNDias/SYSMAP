@@ -119,14 +119,14 @@
         .titulo-container {
             display: flex;
             align-items: center;
-            gap: 10px; /* Espaçamento entre imagem e texto */
+            gap: 10px;
         }
 
         /* Estilo da Imagem do Título */
         .logo-titulo {
-            height: 32px; /* Tamanho proporcional ao h1 do navbar */
+            height: 32px;
             width: auto;
-            border-radius: 4px; /* Cantos arredondados suaves na imagem */
+            border-radius: 4px;
         }
 
         .navbar-brand h1 {
@@ -673,6 +673,25 @@
         }
 
         #appContent { display: none; }
+        
+        .contador-painel {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            background: var(--border-light);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--claro-red);
+        }
+        
+        .contador-item {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .contador-item:hover {
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body class="dark-mode"> 
@@ -792,7 +811,16 @@
                 </div>
             </div>
             
-            <div class="linha-formulario" style="justify-content: flex-end; margin-bottom: 0;">
+            <div class="linha-formulario" style="justify-content: space-between; margin-bottom: 0; align-items: center;">
+                <div class="contador-painel" id="contadoresSLA">
+                    <div class="contador-item" onclick="filtrarSLA('hoje')" title="Filtrar chamados em aberto que vencem hoje">
+                        <strong>SLA para hoje:</strong> <span id="countSlaHoje" class="status-aberto" style="font-size: 16px;">0</span>
+                    </div>
+                    <div class="contador-item" onclick="filtrarSLA('vencido')" title="Filtrar chamados em aberto com SLA vencido">
+                        <strong>SLA Vencido:</strong> <span id="countSlaVencido" class="sla-vencido" style="font-size: 16px; color: var(--danger-color);">0</span>
+                    </div>
+                </div>
+
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button type="button" class="btn-salvar" style="margin-top: 0; padding: 0 20px; height: 42px; border-radius: 6px; width: auto; font-size: 14px;" id="btnNovoChamado" onclick="abrirFormulario()">
                         ➕ Novo Chamado
@@ -859,6 +887,7 @@
                         <select id="filtroSLA">
                             <option value="todos">Todos</option>
                             <option value="vencidos">Vencidos (<= Agora)</option>
+                            <option value="hoje">Para Hoje</option>
                             <option value="noprazo">No Prazo (> Agora)</option>
                         </select>
                     </div>
@@ -1130,12 +1159,38 @@
                 loading.style.display = 'none';
                 
                 atualizarListasFiltros();
+                atualizarContadoresSLA();
                 processarVisualizacao(false);
             }, (error) => {
                 console.error("Erro ao buscar dados:", error);
                 loading.style.display = 'none';
                 if (error.code === 'permission-denied') alert("Sem permissão para ver os dados.");
             });
+        }
+
+        function atualizarContadoresSLA() {
+            const agora = new Date();
+            const hojeInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+            const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59, 999);
+
+            let qtdHoje = 0;
+            let qtdVencido = 0;
+
+            listaChamados.forEach(c => {
+                // Apenas chamados em aberto e que possuam SLA definido
+                if (!c.dataFechamento && c.sla) {
+                    const slaDate = new Date(c.sla);
+                    if (slaDate >= hojeInicio && slaDate <= hojeFim) {
+                        qtdHoje++;
+                    }
+                    if (slaDate <= agora) {
+                        qtdVencido++;
+                    }
+                }
+            });
+
+            document.getElementById('countSlaHoje').textContent = qtdHoje;
+            document.getElementById('countSlaVencido').textContent = qtdVencido;
         }
 
         function atualizarListasFiltros() {
@@ -1283,6 +1338,28 @@
             visaoAtual = novaVisao;
             if (visaoAtual === 'resumo') { btnVisaoResumo.classList.add('ativo'); btnVisaoTabela.classList.remove('ativo'); areaResumo.style.display = 'block'; areaTabela.style.display = 'none'; atualizarPainelResumo(); } 
             else { btnVisaoTabela.classList.add('ativo'); btnVisaoResumo.classList.remove('ativo'); areaResumo.style.display = 'none'; areaTabela.style.display = 'block'; atualizarTabelaHtml(); }
+        }
+
+        window.filtrarSLA = function(tipo) {
+            limparFiltros();
+            document.getElementById('filtroStatus').value = 'abertos';
+            
+            if (tipo === 'hoje') {
+                document.getElementById('filtroSLA').value = 'hoje';
+            } else if (tipo === 'vencido') {
+                document.getElementById('filtroSLA').value = 'vencidos';
+            }
+            
+            processarVisualizacao(true);
+            alterarVisao('tabela');
+            
+            // Exibir a caixa de filtros para mostrar claramente que o filtro foi aplicado
+            if (filtrosAvancados.style.display !== 'block') {
+                btnMaisFiltros.click();
+            }
+            
+            // Descer a tela até a tabela
+            document.getElementById('areaTabela').scrollIntoView({ behavior: 'smooth' });
         }
 
         function abrirFormulario() { idChamadoEmEdicao = null; formChamado.reset(); tituloFormulario.textContent = 'Registrar Novo Chamado'; btnSalvar.textContent = 'Salvar Chamado'; painelFormulario.style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -1517,8 +1594,15 @@
                     if (!chamado.sla) atendeSLA = false; 
                     else {
                         const slaDate = new Date(chamado.sla);
-                        if (vSLA === 'vencidos') atendeSLA = slaDate <= agora;
-                        else if (vSLA === 'noprazo') atendeSLA = slaDate > agora;
+                        if (vSLA === 'vencidos') {
+                            atendeSLA = slaDate <= agora;
+                        } else if (vSLA === 'noprazo') {
+                            atendeSLA = slaDate > agora;
+                        } else if (vSLA === 'hoje') {
+                            const hojeInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+                            const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59, 999);
+                            atendeSLA = slaDate >= hojeInicio && slaDate <= hojeFim;
+                        }
                     }
                 }
 
@@ -1747,19 +1831,20 @@
                     if (!grupos[chave]) {
                         grupos[chave] = {
                             numeros: [],
+                            slas: [], // Agora guardamos um array com os SLAs
                             assuntoOriginal: assunto,
-                            sla: c.sla, 
                             dataQuestionamento: c.dataQuestionamento 
                         };
                     }
                     grupos[chave].numeros.push(c.numero);
+                    grupos[chave].slas.push(formatarDataHoraSimples(c.sla)); // Preenchendo o array de SLAs do grupo
                 }
             });
 
             let html = `<table style="border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #d1d1d1;">
                         <thead style="background-color: #f3f2f1;">
                             <tr style="text-align: left;">
-                                <th style="border: 1px solid #edebe9; padding: 8px;">Chamados</th>
+                                <th style="border: 1px solid #edebe9; padding: 8px;">Chamado</th>
                                 <th style="border: 1px solid #edebe9; padding: 8px;">Assunto do E-mail</th>
                                 <th style="border: 1px solid #edebe9; padding: 8px;">SLA</th>
                                 <th style="border: 1px solid #edebe9; padding: 8px;">Data do Questionamento</th>
@@ -1770,11 +1855,12 @@
             for (const key in grupos) {
                 const g = grupos[key];
                 const chamadosConcatenados = g.numeros.join("<br>"); 
+                const slasConcatenados = g.slas.join("<br>"); // Concatena os SLAs igual aos chamados
                 
                 html += `<tr>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${chamadosConcatenados}</td>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${g.assuntoOriginal}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataHoraSimples(g.sla)}</td>
+                    <td style="border: 1px solid #edebe9; padding: 8px;">${slasConcatenados}</td>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(g.dataQuestionamento)}</td>
                 </tr>`;
             }
