@@ -1850,89 +1850,109 @@
         });
 
         // --- TEAMS ---
-        function copiarParaTeams() {
-            if (chamadosFiltradosAtuais.length === 0) {
-                alert("Sem dados para copiar.");
-                return;
-            }
-
-            const grupos = {};
-            const semAssunto = [];
-
-            chamadosFiltradosAtuais.forEach(c => {
-                const assunto = c.assuntoEmail ? c.assuntoEmail.trim() : "";
-                
-                if (!assunto) {
-                    semAssunto.push(c);
-                } else {
-                    const chave = assunto.toLowerCase(); 
-
-                    if (!grupos[chave]) {
-                        grupos[chave] = {
-                            numeros: [],
-                            slas: [], 
-                            assuntoOriginal: assunto,
-                            dataQuestionamento: c.dataQuestionamento 
-                        };
-                    }
-                    grupos[chave].numeros.push(c.numero);
-                    grupos[chave].slas.push(formatarDataHoraSimples(c.sla)); 
+        function copiarParaTeams() {// --- TEAMS ---
+            function copiarParaTeams() {
+                if (chamadosFiltradosAtuais.length === 0) {
+                    alert("Sem dados para copiar.");
+                    return;
                 }
-            });
-
-            let html = `<table style="border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #d1d1d1;">
-                        <thead style="background-color: #f3f2f1;">
-                            <tr style="text-align: left;">
-                                <th style="border: 1px solid #edebe9; padding: 8px;">Chamado</th>
-                                <th style="border: 1px solid #edebe9; padding: 8px;">Assunto do E-mail</th>
-                                <th style="border: 1px solid #edebe9; padding: 8px;">SLA</th>
-                                <th style="border: 1px solid #edebe9; padding: 8px;">Data do Questionamento</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-
-            for (const key in grupos) {
-                const g = grupos[key];
-                const chamadosConcatenados = g.numeros.join("<br>"); 
-                const slasConcatenados = g.slas.join("<br>"); 
                 
-                html += `<tr>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${chamadosConcatenados}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${g.assuntoOriginal}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${slasConcatenados}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(g.dataQuestionamento)}</td>
-                </tr>`;
-            }
-
-            semAssunto.forEach(c => {
-                html += `<tr>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${c.numero || '-'}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${c.assuntoEmail || '-'}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataHoraSimples(c.sla)}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(c.dataQuestionamento)}</td>
-                </tr>`;
-            });
-
-            html += `</tbody></table>`;
-
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = html;
-            tempDiv.style.position = "absolute";
-            tempDiv.style.left = "-9999px";
-            document.body.appendChild(tempDiv);
-            
-            const range = document.createRange();
-            range.selectNodeContents(tempDiv);
-            const selecao = window.getSelection();
-            selecao.removeAllRanges();
-            selecao.addRange(range);
-            
-            try {
-                document.execCommand("copy");
-                alert("Tabela copiada para envio via Teams");
-            } catch (err) { alert("Erro ao copiar."); }
-            document.body.removeChild(tempDiv);
+                const grupos = {};
+                const semAssunto = [];
+                
+                // 1. Agrupa os chamados
+                chamadosFiltradosAtuais.forEach(c => {
+                    const assunto = c.assuntoEmail ? c.assuntoEmail.trim() : "";
+                    
+                    if (!assunto) {
+                        semAssunto.push(c);
+                    } else {
+                        const chave = assunto.toLowerCase();
+                        
+                        if (!grupos[chave]) {
+                            grupos[chave] = {
+                                numeros: [],
+                                slas: [],
+                                assuntoOriginal: assunto,
+                                dataQuestionamento: c.dataQuestionamento
+                            };
+                        }
+                        
+                        grupos[chave].numeros.push(c.numero);
+            grupos[chave].slas.push(formatarDataHoraSimples(c.sla)); 
         }
+    });
+
+    // 2. Transforma os grupos em uma lista (array) para podermos ordenar
+    let listaGrupos = Object.values(grupos);
+
+    // 3. Função auxiliar para comparar as datas (Crescente: mais antigo primeiro)
+    const compararDatas = (a, b) => {
+        const dataA = a.dataQuestionamento ? new Date(a.dataQuestionamento).getTime() : 0;
+        const dataB = b.dataQuestionamento ? new Date(b.dataQuestionamento).getTime() : 0;
+        return dataA - dataB; 
+    };
+
+    // 4. Aplica a ordenação nos grupos e nos chamados sem assunto
+    listaGrupos.sort(compararDatas);
+    semAssunto.sort(compararDatas);
+
+    // 5. Monta o HTML da tabela
+    let html = `<table style="border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #d1d1d1;">
+                <thead style="background-color: #f3f2f1;">
+                    <tr style="text-align: left;">
+                        <th style="border: 1px solid #edebe9; padding: 8px;">Chamado</th>
+                        <th style="border: 1px solid #edebe9; padding: 8px;">Assunto do E-mail</th>
+                        <th style="border: 1px solid #edebe9; padding: 8px;">SLA</th>
+                        <th style="border: 1px solid #edebe9; padding: 8px;">Data do Questionamento</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    // 6. Preenche a tabela com os grupos já ordenados
+    listaGrupos.forEach(g => {
+        const chamadosConcatenados = g.numeros.join("<br>"); 
+        const slasConcatenados = g.slas.join("<br>"); 
+        
+        html += `<tr>
+            <td style="border: 1px solid #edebe9; padding: 8px;">${chamadosConcatenados}</td>
+            <td style="border: 1px solid #edebe9; padding: 8px;">${g.assuntoOriginal}</td>
+            <td style="border: 1px solid #edebe9; padding: 8px;">${slasConcatenados}</td>
+            <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(g.dataQuestionamento)}</td>
+        </tr>`;
+    });
+
+    // 7. Preenche a tabela com os chamados sem assunto já ordenados
+    semAssunto.forEach(c => {
+        html += `<tr>
+            <td style="border: 1px solid #edebe9; padding: 8px;">${c.numero || '-'}</td>
+            <td style="border: 1px solid #edebe9; padding: 8px;">${c.assuntoEmail || '-'}</td>
+            <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataHoraSimples(c.sla)}</td>
+            <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(c.dataQuestionamento)}</td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+
+    // 8. Copia para a área de transferência
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = html;
+    tempDiv.style.position = "absolute";
+    tempDiv.style.left = "-9999px";
+    document.body.appendChild(tempDiv);
+    
+    const range = document.createRange();
+    range.selectNodeContents(tempDiv);
+    const selecao = window.getSelection();
+    selecao.removeAllRanges();
+    selecao.addRange(range);
+    
+    try {
+        document.execCommand("copy");
+        alert("Tabela copiada para envio via Teams");
+    } catch (err) { alert("Erro ao copiar."); }
+    document.body.removeChild(tempDiv);
+}
 
         // --- CSV ---
         function exportarCSV() {
