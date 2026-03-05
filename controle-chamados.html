@@ -115,14 +115,12 @@
             flex-wrap: wrap;
         }
 
-        /* Container para alinhar Imagem + Texto do Título */
         .titulo-container {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        /* Estilo da Imagem do Título */
         .logo-titulo {
             height: 32px;
             width: auto;
@@ -239,7 +237,6 @@
             align-items: center;
         }
 
-        /* Cabeçalho do Painel (Abas) */
         .cabecalho-painel {
             border-bottom: 2px solid var(--border-light);
             padding-bottom: 10px;
@@ -247,7 +244,6 @@
             display: flex;
         }
 
-        /* Seletor de Visão */
         .seletor-visao {
             display: flex;
             gap: 5px;
@@ -278,7 +274,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* Painéis */
         .painel {
             background: var(--panel-bg);
             padding: 25px;
@@ -289,7 +284,6 @@
             transition: background-color 0.3s;
         }
 
-        /* Formulários */
         .linha-formulario {
             display: flex;
             gap: 20px;
@@ -329,7 +323,6 @@
             border-color: var(--claro-red);
         }
 
-        /* Datas Específicas */
         .container-custom-date {
             display: none;
             margin-top: 8px;
@@ -351,7 +344,6 @@
             font-weight: bold;
         }
 
-        /* Botões Principais */
         .grupo-botoes {
             display: flex;
             gap: 15px;
@@ -394,7 +386,6 @@
             background-color: var(--border-light);
         }
 
-        /* Botões de Ícone */
         .btn-acao-icone {
             background-color: transparent;
             padding: 0;
@@ -417,16 +408,6 @@
         .btn-filtro:hover, .btn-filtro.ativo {
             background-color: var(--border-light);
             border-color: var(--text-color);
-        }
-
-        .btn-limpar {
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-limpar:hover {
-            background-color: var(--border-light);
-            color: var(--text-color);
         }
 
         .btn-colunas {
@@ -459,7 +440,6 @@
             color: #fff;
         }
 
-        /* Filtros e Colunas */
         .painel-expansivel {
             background-color: var(--bg-color);
             padding: 15px;
@@ -484,7 +464,6 @@
             font-weight: normal;
         }
 
-        /* Tabelas */
         .tabela-resumo {
             width: 100%;
             border-collapse: collapse;
@@ -601,7 +580,6 @@
             font-style: italic;
         }
 
-        /* Paginação */
         .paginacao-container {
             display: flex;
             justify-content: space-between;
@@ -655,7 +633,6 @@
             font-weight: 600;
         }
 
-        /* Loading */
         #loading {
             position: fixed;
             top: 0;
@@ -676,21 +653,34 @@
         
         .contador-painel {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             font-size: 14px;
             background: var(--border-light);
-            padding: 8px 15px;
+            padding: 6px 15px;
             border-radius: 6px;
             border-left: 4px solid var(--claro-red);
         }
         
         .contador-item {
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid transparent;
         }
         
         .contador-item:hover {
             transform: scale(1.05);
+        }
+
+        /* Destaque quando o filtro rápido está ativo */
+        .contador-item.ativo {
+            background-color: rgba(218, 41, 28, 0.1);
+            border-color: var(--claro-red);
+        }
+        body.dark-mode .contador-item.ativo {
+            background-color: rgba(255, 107, 107, 0.15);
+            border-color: #ff6b6b;
         }
     </style>
 </head>
@@ -762,7 +752,6 @@
                             <option value="Gol Revolution">Gol Revolution</option>
                             <option value="Portabilidade">Portabilidade</option>
                             <option value="Suporte à Sistemas - OMS/CRM">Suporte à Sistemas - OMS/CRM</option>
-                            <option value="Suporte à Sistemas - OMS/CRM">Outros</option>
                         </select>
                     </div>
                     <div class="campo">
@@ -827,10 +816,6 @@
                         ➕ Novo Chamado
                     </button>
                     
-                    <button type="button" class="btn-acao-icone btn-limpar" onclick="limparFiltros()" title="Limpar Filtros">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-                    </button>
-
                     <button type="button" id="btnMaisFiltros" class="btn-acao-icone btn-filtro" title="Mostrar/Esconder Filtros">
                         <svg id="iconeFiltroSvg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                     </button>
@@ -865,6 +850,11 @@
             </div>
 
             <div id="filtrosAvancados" class="painel-expansivel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-light); padding-bottom: 10px;">
+                    <span style="font-weight: bold; color: var(--claro-red);">Filtros Avançados</span>
+                    <button type="button" class="btn-cancelar" style="padding: 6px 12px; font-size: 13px; flex: none; width: auto;" onclick="limparFiltros()">Limpar Filtros</button>
+                </div>
+                
                 <div class="linha-formulario">
                     <div class="campo">
                         <label for="buscaCategoria">Categoria</label>
@@ -1070,6 +1060,10 @@
         let paginaAtual = 1;
         let itensPorPagina = 10;
         let userEmail = '';
+        
+        // Variáveis para a memória dos filtros
+        let estadoFiltroSalvo = null;
+        let filtroRapidoAtivo = null;
 
         // --- Elementos DOM ---
         const telaLogin = document.getElementById('telaLogin');
@@ -1090,7 +1084,6 @@
             return SUPER_USERS.includes(userEmail.toLowerCase());
         }
 
-        // Retorna true APENAS se o email for igual ao ADMIN_EMAIL
         function soThiagoPodeVer() {
             return userEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
         }
@@ -1105,9 +1098,7 @@
                 appContent.style.display = 'block';
                 loading.style.display = 'flex'; 
                 
-                // Aplicar regras de visibilidade baseadas no usuário
                 aplicarRegrasVisibilidade();
-                
                 iniciarFirestoreListener();
             } else {
                 telaLogin.style.display = 'flex';
@@ -1125,16 +1116,13 @@
         function aplicarRegrasVisibilidade() {
             const isAdmin = soThiagoPodeVer();
             
-            // Oculta/Mostra o filtro "Usuário de Criação"
             if (isAdmin) {
                 campoFiltroCriadoPor.style.display = 'flex';
             } else {
                 campoFiltroCriadoPor.style.display = 'none';
-                // Garante que o filtro seja limpo se não for admin
                 document.getElementById('filtroCriadoPor').value = '';
             }
 
-            // Oculta/Mostra as opções de colunas de auditoria
             if (isAdmin) {
                 lblDtCriacao.style.display = 'flex';
                 lblDtAtualizacao.style.display = 'flex';
@@ -1144,7 +1132,6 @@
                 lblDtAtualizacao.style.display = 'none';
                 lblUsrAtualizacao.style.display = 'none';
                 
-                // Desmarca os checkboxes
                 document.querySelector('.chk-coluna[value="dtCriacao"]').checked = false;
                 document.querySelector('.chk-coluna[value="dtAtualizacao"]').checked = false;
                 document.querySelector('.chk-coluna[value="usrAtualizacao"]').checked = false;
@@ -1178,7 +1165,6 @@
             let qtdVencido = 0;
 
             listaChamados.forEach(c => {
-                // Apenas chamados em aberto e que possuam SLA definido
                 if (!c.dataFechamento && c.sla) {
                     const slaDate = new Date(c.sla);
                     if (slaDate >= hojeInicio && slaDate <= hojeFim) {
@@ -1195,7 +1181,6 @@
         }
 
         function atualizarListasFiltros() {
-            // Atualiza lista de Usuários Criadores (apenas admin vê, mas mantemos a lógica)
             const selectCriadoPor = document.getElementById('filtroCriadoPor');
             const valorAtualCriadoPor = selectCriadoPor.value; 
 
@@ -1210,11 +1195,9 @@
                 selectCriadoPor.value = valorAtualCriadoPor;
             }
 
-            // Atualiza lista de Analistas
             const selectAnalista = document.getElementById('filtroAnalista');
             const valorAtualAnalista = selectAnalista.value;
 
-            // Pega os analistas, filtra nulos, e remove espaços extras
             const analistasUnicos = [...new Set(listaChamados.map(c => c.analista ? c.analista.trim() : null).filter(Boolean))].sort();
             let optionsHtmlAnalista = '<option value="">Todos</option>';
             analistasUnicos.forEach(analista => {
@@ -1341,25 +1324,76 @@
             else { btnVisaoTabela.classList.add('ativo'); btnVisaoResumo.classList.remove('ativo'); areaResumo.style.display = 'none'; areaTabela.style.display = 'block'; atualizarTabelaHtml(); }
         }
 
-        window.filtrarSLA = function(tipo) {
-            limparFiltros();
-            document.getElementById('filtroStatus').value = 'abertos';
+        // --- SISTEMA DE MEMÓRIA PARA OS FILTROS RÁPIDOS ---
+        function salvarEstadoFiltro() {
+            estadoFiltroSalvo = {};
+            Object.keys(inputFiltros).forEach(key => {
+                estadoFiltroSalvo[key] = inputFiltros[key].value;
+            });
+            ['customInicioFechamento', 'customFimFechamento', 'customInicioQuestionamento', 'customFimQuestionamento', 'customInicioCriacao', 'customFimCriacao'].forEach(id => {
+                estadoFiltroSalvo[id] = document.getElementById(id).value;
+            });
+        }
+
+        function restaurarEstadoFiltro() {
+            if (!estadoFiltroSalvo) return;
+            Object.keys(inputFiltros).forEach(key => {
+                inputFiltros[key].value = estadoFiltroSalvo[key] || '';
+            });
+            ['customInicioFechamento', 'customFimFechamento', 'customInicioQuestionamento', 'customFimQuestionamento', 'customInicioCriacao', 'customFimCriacao'].forEach(id => {
+                document.getElementById(id).value = estadoFiltroSalvo[id] || '';
+            });
             
-            if (tipo === 'hoje') {
-                document.getElementById('filtroSLA').value = 'hoje';
-            } else if (tipo === 'vencido') {
-                document.getElementById('filtroSLA').value = 'vencidos';
+            alternarInputsPersonalizados('buscaData', 'containerCustomFechamento');
+            alternarInputsPersonalizados('buscaDataQuestionamento', 'containerCustomQuestionamento');
+            alternarInputsPersonalizados('filtroDataCriacao', 'containerCustomCriacao');
+        }
+
+        window.filtrarSLA = function(tipo) {
+            const itemHoje = document.getElementById('countSlaHoje').parentElement;
+            const itemVencido = document.getElementById('countSlaVencido').parentElement;
+
+            if (filtroRapidoAtivo === tipo) {
+                // CLICOU DE NOVO: Desativa o filtro rápido e restaura a memória
+                restaurarEstadoFiltro();
+                filtroRapidoAtivo = null;
+                itemHoje.classList.remove('ativo');
+                itemVencido.classList.remove('ativo');
+            } else {
+                // CLICOU PARA ATIVAR: Salva a memória antes de aplicar
+                if (!filtroRapidoAtivo) {
+                    salvarEstadoFiltro();
+                }
+                
+                filtroRapidoAtivo = tipo;
+                
+                // Limpa silenciosamente os campos apenas para a execução do filtro rápido
+                Object.values(inputFiltros).forEach(input => {
+                    if(input.tagName === 'SELECT') {
+                        if(input.id === 'filtroStatus' || input.id === 'filtroSLA') input.value = 'todos';
+                        else input.value = '';
+                    } else { input.value = ''; }
+                });
+                ['customInicioFechamento', 'customFimFechamento', 'customInicioQuestionamento', 'customFimQuestionamento', 'customInicioCriacao', 'customFimCriacao'].forEach(id => {
+                    document.getElementById(id).value = '';
+                });
+
+                // Aplica o filtro rápido escolhido
+                document.getElementById('filtroStatus').value = 'abertos';
+                if (tipo === 'hoje') {
+                    document.getElementById('filtroSLA').value = 'hoje';
+                    itemHoje.classList.add('ativo');
+                    itemVencido.classList.remove('ativo');
+                } else if (tipo === 'vencido') {
+                    document.getElementById('filtroSLA').value = 'vencidos';
+                    itemVencido.classList.add('ativo');
+                    itemHoje.classList.remove('ativo');
+                }
             }
             
+            // Não expande mais o painel automaticamente, apenas atualiza a tabela
             processarVisualizacao(true);
             alterarVisao('tabela');
-            
-            // Exibir a caixa de filtros para mostrar claramente que o filtro foi aplicado
-            if (filtrosAvancados.style.display !== 'block') {
-                btnMaisFiltros.click();
-            }
-            
-            // Descer a tela até a tabela
             document.getElementById('areaTabela').scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -1479,6 +1513,11 @@
         document.getElementById('filtroDataCriacao').addEventListener('change', () => alternarInputsPersonalizados('filtroDataCriacao', 'containerCustomCriacao'));
 
         function limparFiltros() {
+            // Remove as marcações visuais dos botões de SLA
+            filtroRapidoAtivo = null;
+            document.getElementById('countSlaHoje').parentElement.classList.remove('ativo');
+            document.getElementById('countSlaVencido').parentElement.classList.remove('ativo');
+
             Object.values(inputFiltros).forEach(input => {
                 if(input.tagName === 'SELECT') {
                     if(input.id === 'filtroStatus' || input.id === 'filtroSLA') input.value = 'todos';
@@ -1486,7 +1525,6 @@
                 } else { input.value = ''; }
             });
             
-            // Oculta e limpa datas
             document.getElementById('containerCustomFechamento').style.display = 'none';
             document.getElementById('containerCustomQuestionamento').style.display = 'none';
             document.getElementById('containerCustomCriacao').style.display = 'none';
@@ -1832,13 +1870,13 @@
                     if (!grupos[chave]) {
                         grupos[chave] = {
                             numeros: [],
-                            slas: [], // Agora guardamos um array com os SLAs
+                            slas: [], 
                             assuntoOriginal: assunto,
                             dataQuestionamento: c.dataQuestionamento 
                         };
                     }
                     grupos[chave].numeros.push(c.numero);
-                    grupos[chave].slas.push(formatarDataHoraSimples(c.sla)); // Preenchendo o array de SLAs do grupo
+                    grupos[chave].slas.push(formatarDataHoraSimples(c.sla)); 
                 }
             });
 
@@ -1856,7 +1894,7 @@
             for (const key in grupos) {
                 const g = grupos[key];
                 const chamadosConcatenados = g.numeros.join("<br>"); 
-                const slasConcatenados = g.slas.join("<br>"); // Concatena os SLAs igual aos chamados
+                const slasConcatenados = g.slas.join("<br>"); 
                 
                 html += `<tr>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${chamadosConcatenados}</td>
