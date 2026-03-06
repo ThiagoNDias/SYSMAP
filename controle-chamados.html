@@ -22,6 +22,8 @@
             --excel-color: #107c41;
             --teams-color: #464eb8;
             --bug-color: #6c757d;
+            --import-color: #fd7e14;
+            --template-color: #17a2b8;
         }
 
         body.dark-mode {
@@ -36,6 +38,8 @@
             --excel-color: #21a555;
             --teams-color: #7b83eb;
             --bug-color: #adb5bd;
+            --import-color: #ff983f;
+            --template-color: #3bc8dd;
         }
 
         /* Estilos Gerais */
@@ -439,6 +443,26 @@
             background-color: var(--teams-color);
             color: #fff;
         }
+        
+        .btn-importar {
+            color: var(--import-color);
+            border: 1px solid var(--import-color);
+        }
+
+        .btn-importar:hover {
+            background-color: var(--import-color);
+            color: #fff;
+        }
+
+        .btn-modelo {
+            color: var(--template-color);
+            border: 1px solid var(--template-color);
+        }
+
+        .btn-modelo:hover {
+            background-color: var(--template-color);
+            color: #fff;
+        }
 
         .painel-expansivel {
             background-color: var(--bg-color);
@@ -820,6 +844,15 @@
                         ➕ Novo Chamado
                     </button>
                     
+                    <input type="file" id="inputImportarCSV" accept=".csv" style="display: none;">
+                    
+                    <button type="button" class="btn-acao-icone btn-modelo" onclick="baixarModeloCSV()" title="Baixar Modelo CSV de Importação">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="M9 15l3 3 3-3"></path></svg>
+                    </button>
+                    <button type="button" class="btn-acao-icone btn-importar" id="btnImportarCSV" title="Importar CSV (Inserção em Massa)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    </button>
+
                     <button type="button" id="btnMaisFiltros" class="btn-acao-icone btn-filtro" title="Mostrar/Esconder Filtros">
                         <svg id="iconeFiltroSvg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                     </button>
@@ -1975,7 +2008,7 @@
             document.body.removeChild(tempDiv);
         }
 
-        // --- CSV ---
+        // --- CSV Exportação ---
         function exportarCSV() {
             if (chamadosFiltradosAtuais.length === 0) {
                 alert("Sem dados para exportar.");
@@ -2016,6 +2049,112 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        // --- CSV Importação ---
+        window.baixarModeloCSV = function() {
+            // Cria um modelo CSV com cabeçalhos exatos e uma linha de exemplo
+            const cabecalho = "Chamado;Analista;Categoria;Problema;Fila;AssuntoEmail;SLA(YYYY-MM-DDTHH:MM);DataQuestionamento(YYYY-MM-DDTHH:MM);DataFechamento(YYYY-MM-DD)\n";
+            const exemplo = "INC1234567;João Silva;Outros;Falha na fila;N2;Erro de acesso;2026-03-10T14:00;2026-03-05T10:00;2026-03-06\n";
+            const blob = new Blob(["\uFEFF" + cabecalho + exemplo], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Modelo_Importacao_Chamados.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        const inputImportarCSV = document.getElementById('inputImportarCSV');
+        document.getElementById('btnImportarCSV').addEventListener('click', () => {
+            inputImportarCSV.click();
+        });
+
+        inputImportarCSV.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            loading.style.display = 'flex';
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const text = event.target.result;
+                await processarImportacaoCSV(text);
+                inputImportarCSV.value = ''; // Limpa o input para permitir subir o mesmo arquivo novamente se precisar
+            };
+            reader.readAsText(file);
+        });
+
+        async function processarImportacaoCSV(csvText) {
+            // Separa as linhas lidando com diferentes quebras de linha
+            const linhas = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+            
+            if (linhas.length <= 1) {
+                alert("O arquivo está vazio ou contém apenas o cabeçalho.");
+                loading.style.display = 'none';
+                return;
+            }
+
+            let sucessos = 0;
+            let erros = 0;
+            
+            // Loop começando da linha 1 para pular o cabeçalho
+            for (let i = 1; i < linhas.length; i++) {
+                const colunas = linhas[i].split(';');
+                
+                // Exige pelo menos os 4 primeiros campos obrigatórios
+                if (colunas.length < 4) { erros++; continue; } 
+
+                const numeroInput = colunas[0]?.trim();
+                const analista = colunas[1]?.trim();
+                const categoria = colunas[2]?.trim();
+                const problema = colunas[3]?.trim();
+                
+                // Validação de campos em branco
+                if (!numeroInput || !analista || !categoria || !problema) {
+                    erros++; continue;
+                }
+
+                // Verifica se o chamado já existe para evitar duplicidade
+                const q = query(chamadosCollection, where("numero", "==", numeroInput));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    erros++; continue; 
+                }
+
+                const agora = new Date().toISOString();
+                
+                // Mapeia os dados seguindo a estrutura do banco
+                const dadosFormulario = {
+                    numero: numeroInput,
+                    analista: analista,
+                    categoria: categoria,
+                    problema: problema,
+                    fila: colunas[4]?.trim() || '',
+                    assuntoEmail: colunas[5]?.trim() || '',
+                    sla: colunas[6]?.trim() || '',
+                    dataQuestionamento: colunas[7]?.trim() || '',
+                    dataFechamento: colunas[8]?.trim() || '',
+                    usuarioAtualizacao: userEmail,
+                    dataAtualizacao: agora
+                };
+
+                try {
+                    const docRef = await addDoc(chamadosCollection, { 
+                        createdAt: new Date(), 
+                        criadoPor: userEmail,
+                        dataCriacao: agora,
+                        ...dadosFormulario 
+                    });
+                    await registrarLog('CRIACAO_EM_MASSA', docRef.id, dadosFormulario, userEmail);
+                    sucessos++;
+                } catch(err) {
+                    erros++;
+                }
+            }
+            
+            loading.style.display = 'none';
+            alert(`Importação concluída!\n\nChamados inseridos: ${sucessos}\nIgnorados (Duplicados ou com erro): ${erros}`);
         }
     </script>
 </body>
