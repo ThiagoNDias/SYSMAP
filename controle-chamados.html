@@ -804,6 +804,9 @@
             
             <div class="linha-formulario" style="justify-content: space-between; margin-bottom: 0; align-items: center;">
                 <div class="contador-painel" id="contadoresSLA">
+                    <div class="contador-item" onclick="filtrarSLA('pendente')" title="Filtrar chamados pendentes (sem data de fechamento)">
+                        <strong>Pendentes:</strong> <span id="countPendentes" style="font-size: 16px; color: var(--edit-color); font-weight: bold;">0</span>
+                    </div>
                     <div class="contador-item" onclick="filtrarSLA('hoje')" title="Filtrar chamados em aberto que vencem hoje">
                         <strong>SLA para hoje:</strong> <span id="countSlaHoje" class="status-aberto" style="font-size: 16px;">0</span>
                     </div>
@@ -1165,19 +1168,24 @@
 
             let qtdHoje = 0;
             let qtdVencido = 0;
+            let qtdPendente = 0;
 
             listaChamados.forEach(c => {
-                if (!c.dataFechamento && c.sla) {
-                    const slaDate = new Date(c.sla);
-                    if (slaDate >= hojeInicio && slaDate <= hojeFim) {
-                        qtdHoje++;
-                    }
-                    if (slaDate <= agora) {
-                        qtdVencido++;
+                if (!c.dataFechamento) {
+                    qtdPendente++; // Conta os pendentes
+                    if (c.sla) {
+                        const slaDate = new Date(c.sla);
+                        if (slaDate >= hojeInicio && slaDate <= hojeFim) {
+                            qtdHoje++;
+                        }
+                        if (slaDate <= agora) {
+                            qtdVencido++;
+                        }
                     }
                 }
             });
 
+            document.getElementById('countPendentes').textContent = qtdPendente;
             document.getElementById('countSlaHoje').textContent = qtdHoje;
             document.getElementById('countSlaVencido').textContent = qtdVencido;
         }
@@ -1352,6 +1360,7 @@
         }
 
         window.filtrarSLA = function(tipo) {
+            const itemPendente = document.getElementById('countPendentes').parentElement;
             const itemHoje = document.getElementById('countSlaHoje').parentElement;
             const itemVencido = document.getElementById('countSlaVencido').parentElement;
 
@@ -1359,6 +1368,7 @@
                 // CLICOU DE NOVO: Desativa o filtro rápido e restaura a memória
                 restaurarEstadoFiltro();
                 filtroRapidoAtivo = null;
+                itemPendente.classList.remove('ativo');
                 itemHoje.classList.remove('ativo');
                 itemVencido.classList.remove('ativo');
             } else {
@@ -1382,13 +1392,21 @@
 
                 // Aplica o filtro rápido escolhido
                 document.getElementById('filtroStatus').value = 'abertos';
-                if (tipo === 'hoje') {
+                
+                if (tipo === 'pendente') {
+                    document.getElementById('filtroSLA').value = 'todos';
+                    itemPendente.classList.add('ativo');
+                    itemHoje.classList.remove('ativo');
+                    itemVencido.classList.remove('ativo');
+                } else if (tipo === 'hoje') {
                     document.getElementById('filtroSLA').value = 'hoje';
                     itemHoje.classList.add('ativo');
+                    itemPendente.classList.remove('ativo');
                     itemVencido.classList.remove('ativo');
                 } else if (tipo === 'vencido') {
                     document.getElementById('filtroSLA').value = 'vencidos';
                     itemVencido.classList.add('ativo');
+                    itemPendente.classList.remove('ativo');
                     itemHoje.classList.remove('ativo');
                 }
             }
@@ -1517,6 +1535,7 @@
         function limparFiltros() {
             // Remove as marcações visuais dos botões de SLA
             filtroRapidoAtivo = null;
+            document.getElementById('countPendentes').parentElement.classList.remove('ativo');
             document.getElementById('countSlaHoje').parentElement.classList.remove('ativo');
             document.getElementById('countSlaVencido').parentElement.classList.remove('ativo');
 
