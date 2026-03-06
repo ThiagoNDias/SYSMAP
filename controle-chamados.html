@@ -574,6 +574,7 @@
             vertical-align: middle;
         }
 
+        /* ESTILOS PARA ORDENAÇÃO */
         th {
             background-color: var(--claro-red);
             color: #fff;
@@ -581,6 +582,32 @@
             text-transform: uppercase;
             font-size: 13px;
             white-space: nowrap;
+        }
+
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 25px;
+        }
+
+        th.sortable:hover {
+            background-color: var(--claro-red-dark);
+        }
+
+        .sort-icon {
+            font-size: 10px;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+        }
+
+        .sort-icon.active {
+            opacity: 1;
+            font-weight: bold;
+            font-size: 12px;
         }
 
         tr:last-child td { border-bottom: none; }
@@ -697,7 +724,6 @@
             transform: scale(1.05);
         }
 
-        /* Destaque quando o filtro rápido está ativo */
         .contador-item.ativo {
             background-color: rgba(218, 41, 28, 0.1);
             border-color: var(--claro-red);
@@ -1102,6 +1128,10 @@
         // Variáveis para a memória dos filtros
         let estadoFiltroSalvo = null;
         let filtroRapidoAtivo = null;
+
+        // Variáveis para Ordenação
+        let colunaOrdenacao = 'dataCriacao'; // Coluna padrão inicial
+        let ordemCrescente = false; // Decrescente por padrão (mais recentes primeiro)
 
         // --- Elementos DOM ---
         const telaLogin = document.getElementById('telaLogin');
@@ -1653,6 +1683,39 @@
             return true;
         }
 
+        // --- SISTEMA DE ORDENAÇÃO ---
+        window.ordenarTabela = function(colunaClicada) {
+            if (colunaOrdenacao === colunaClicada) {
+                ordemCrescente = !ordemCrescente; // Inverte a ordem se clicar na mesma coluna
+            } else {
+                colunaOrdenacao = colunaClicada;
+                ordemCrescente = true; // Por padrão, ao clicar em uma nova coluna, ordena do menor para o maior (A-Z)
+            }
+            executarOrdenacao();
+            atualizarTabelaHtml();
+        };
+
+        function executarOrdenacao() {
+            if (!colunaOrdenacao) return;
+
+            chamadosFiltradosAtuais.sort((a, b) => {
+                let valA = a[colunaOrdenacao];
+                let valB = b[colunaOrdenacao];
+
+                // Trata valores nulos ou vazios para não quebrar a lógica
+                if (valA === undefined || valA === null) valA = '';
+                if (valB === undefined || valB === null) valB = '';
+
+                // Converte para minúsculo caso seja texto, para a ordem alfabética ser perfeita
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                if (valA < valB) return ordemCrescente ? -1 : 1;
+                if (valA > valB) return ordemCrescente ? 1 : -1;
+                return 0;
+            });
+        }
+
         function processarVisualizacao(resetarPagina = true) {
             if (resetarPagina) paginaAtual = 1; 
             const vCategoria = inputFiltros.categoria.value;
@@ -1715,6 +1778,9 @@
                        atendeNumero && atendeAnalista && atendeProblema && 
                        atendeFila && atendeAssunto && atendeDataCriacaoRange && atendeCriadoPor;
             });
+
+            // Aplica a ordenação definida logo após filtrar os dados
+            executarOrdenacao();
 
             if (visaoAtual === 'resumo') atualizarPainelResumo();
             else atualizarTabelaHtml();
@@ -1800,23 +1866,37 @@
             });
         }
 
+        function getCabecalhoHtml(label, campoOrigem) {
+            let icone = '↕'; // Ícone neutro
+            let classeAtiva = '';
+            
+            if (colunaOrdenacao === campoOrigem) {
+                icone = ordemCrescente ? '▲' : '▼';
+                classeAtiva = 'active';
+            }
+            
+            return `<th class="sortable" onclick="ordenarTabela('${campoOrigem}')" title="Clique para ordenar">
+                        ${label} <span class="sort-icon ${classeAtiva}">${icone}</span>
+                    </th>`;
+        }
+
         function atualizarTabelaHtml() {
             const ehDonoOuAdmin = ehSuperUsuario(); 
             const podeVerColunasOcultas = soThiagoPodeVer(); 
 
-            let htmlCabecalho = `<th>Chamado</th>`;
-            if(colunasSalvas.analista) htmlCabecalho += `<th>Analista</th>`;
-            if(colunasSalvas.categoria) htmlCabecalho += `<th>Categoria</th>`;
-            if(colunasSalvas.problema) htmlCabecalho += `<th>Cenário / Problema</th>`;
-            if(colunasSalvas.fila) htmlCabecalho += `<th>Fila</th>`;
-            if(colunasSalvas.assunto) htmlCabecalho += `<th>Assunto do E-mail</th>`;
-            if(colunasSalvas.sla) htmlCabecalho += `<th>SLA</th>`;
-            if(colunasSalvas.dtQuest) htmlCabecalho += `<th>Dt. Quest.</th>`;
-            if(colunasSalvas.dtFecham) htmlCabecalho += `<th>Dt. Fecham.</th>`;
+            let htmlCabecalho = getCabecalhoHtml('Chamado', 'numero');
+            if(colunasSalvas.analista) htmlCabecalho += getCabecalhoHtml('Analista', 'analista');
+            if(colunasSalvas.categoria) htmlCabecalho += getCabecalhoHtml('Categoria', 'categoria');
+            if(colunasSalvas.problema) htmlCabecalho += getCabecalhoHtml('Cenário / Problema', 'problema');
+            if(colunasSalvas.fila) htmlCabecalho += getCabecalhoHtml('Fila', 'fila');
+            if(colunasSalvas.assunto) htmlCabecalho += getCabecalhoHtml('Assunto do E-mail', 'assuntoEmail');
+            if(colunasSalvas.sla) htmlCabecalho += getCabecalhoHtml('SLA', 'sla');
+            if(colunasSalvas.dtQuest) htmlCabecalho += getCabecalhoHtml('Dt. Quest.', 'dataQuestionamento');
+            if(colunasSalvas.dtFecham) htmlCabecalho += getCabecalhoHtml('Dt. Fecham.', 'dataFechamento');
             
-            if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlCabecalho += `<th>Data Criação</th>`;
-            if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlCabecalho += `<th>Data Atualização</th>`;
-            if(podeVerColunasOcultas && colunasSalvas.usrAtualizacao) htmlCabecalho += `<th>Atualizado Por</th>`;
+            if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlCabecalho += getCabecalhoHtml('Data Criação', 'dataCriacao');
+            if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlCabecalho += getCabecalhoHtml('Data Atualização', 'dataAtualizacao');
+            if(podeVerColunasOcultas && colunasSalvas.usrAtualizacao) htmlCabecalho += getCabecalhoHtml('Atualizado Por', 'usuarioAtualizacao');
 
             htmlCabecalho += `<th style="text-align: center;">Ações</th>`;
             
