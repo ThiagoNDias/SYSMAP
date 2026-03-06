@@ -1130,8 +1130,8 @@
         let filtroRapidoAtivo = null;
 
         // Variáveis para Ordenação
-        let colunaOrdenacao = 'dataCriacao'; // Coluna padrão inicial
-        let ordemCrescente = false; // Decrescente por padrão (mais recentes primeiro)
+        let colunaOrdenacao = ''; 
+        let direcaoOrdenacao = ''; // 'asc', 'desc' ou ''
 
         // --- Elementos DOM ---
         const telaLogin = document.getElementById('telaLogin');
@@ -1680,17 +1680,25 @@
         // --- SISTEMA DE ORDENAÇÃO ---
         window.ordenarTabela = function(colunaClicada) {
             if (colunaOrdenacao === colunaClicada) {
-                ordemCrescente = !ordemCrescente; 
+                if (direcaoOrdenacao === 'asc') {
+                    direcaoOrdenacao = 'desc'; // 2º clique: decrescente
+                } else if (direcaoOrdenacao === 'desc') {
+                    colunaOrdenacao = ''; // 3º clique: remove ordenação
+                    direcaoOrdenacao = '';
+                } else {
+                    direcaoOrdenacao = 'asc';
+                }
             } else {
-                colunaOrdenacao = colunaClicada;
-                ordemCrescente = true; 
+                colunaOrdenacao = colunaClicada; // 1º clique na coluna: crescente
+                direcaoOrdenacao = 'asc'; 
             }
-            executarOrdenacao();
-            atualizarTabelaHtml();
+            
+            // Para resetar a ordenação e voltar à lista original filtrada, reprocessamos a visualização
+            processarVisualizacao(true);
         };
 
         function executarOrdenacao() {
-            if (!colunaOrdenacao) return;
+            if (!colunaOrdenacao || !direcaoOrdenacao) return;
 
             chamadosFiltradosAtuais.sort((a, b) => {
                 let valA = a[colunaOrdenacao];
@@ -1702,8 +1710,8 @@
                 if (typeof valA === 'string') valA = valA.toLowerCase();
                 if (typeof valB === 'string') valB = valB.toLowerCase();
 
-                if (valA < valB) return ordemCrescente ? -1 : 1;
-                if (valA > valB) return ordemCrescente ? 1 : -1;
+                if (valA < valB) return direcaoOrdenacao === 'asc' ? -1 : 1;
+                if (valA > valB) return direcaoOrdenacao === 'asc' ? 1 : -1;
                 return 0;
             });
         }
@@ -1771,7 +1779,7 @@
                        atendeFila && atendeAssunto && atendeDataCriacaoRange && atendeCriadoPor;
             });
 
-            // Aplica a ordenação definida
+            // Aplica a ordenação definida logo após filtrar os dados
             executarOrdenacao();
 
             if (visaoAtual === 'resumo') atualizarPainelResumo();
@@ -1863,8 +1871,13 @@
             let classeAtiva = '';
             
             if (colunaOrdenacao === campoOrigem) {
-                icone = ordemCrescente ? '▲' : '▼';
-                classeAtiva = 'active';
+                if (direcaoOrdenacao === 'asc') {
+                    icone = '▲';
+                    classeAtiva = 'active';
+                } else if (direcaoOrdenacao === 'desc') {
+                    icone = '▼';
+                    classeAtiva = 'active';
+                }
             }
             
             return `<th class="sortable" onclick="ordenarTabela('${campoOrigem}')" title="Clique para ordenar">
@@ -1916,7 +1929,7 @@
                 chamadosParaExibir = chamadosFiltradosAtuais.slice(inicio, fim);
                 
                 const inicialExibido = chamadosFiltradosAtuais.length === 0 ? 0 : inicio + 1;
-                textoInfo = `Exibindo ${inicialExibido} a ${fim} de ${chamadosFiltradosAtuais.length} registros (Página ${paginaAtual} de ${totalPaginas})`;
+                textoInfo = `${inicialExibido} - ${fim} de ${chamadosFiltradosAtuais.length} (Pág ${paginaAtual} / ${totalPaginas})`;
             } else {
                 textoInfo = `Exibindo todos os ${chamadosFiltradosAtuais.length} registros`;
             }
