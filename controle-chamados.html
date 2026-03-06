@@ -1428,21 +1428,18 @@
             const itemVencido = document.getElementById('countSlaVencido').parentElement;
 
             if (filtroRapidoAtivo === tipo) {
-                // CLICOU DE NOVO: Desativa o filtro rápido e restaura a memória
                 restaurarEstadoFiltro();
                 filtroRapidoAtivo = null;
                 itemPendente.classList.remove('ativo');
                 itemHoje.classList.remove('ativo');
                 itemVencido.classList.remove('ativo');
             } else {
-                // CLICOU PARA ATIVAR: Salva a memória antes de aplicar
                 if (!filtroRapidoAtivo) {
                     salvarEstadoFiltro();
                 }
                 
                 filtroRapidoAtivo = tipo;
                 
-                // Limpa silenciosamente os campos apenas para a execução do filtro rápido
                 Object.values(inputFiltros).forEach(input => {
                     if(input.tagName === 'SELECT') {
                         if(input.id === 'filtroStatus' || input.id === 'filtroSLA') input.value = 'todos';
@@ -1453,7 +1450,6 @@
                     document.getElementById(id).value = '';
                 });
 
-                // Aplica o filtro rápido escolhido
                 document.getElementById('filtroStatus').value = 'abertos';
                 
                 if (tipo === 'pendente') {
@@ -1474,7 +1470,6 @@
                 }
             }
             
-            // Não expande mais o painel automaticamente, apenas atualiza a tabela
             processarVisualizacao(true);
             alterarVisao('tabela');
             document.getElementById('areaTabela').scrollIntoView({ behavior: 'smooth' });
@@ -1596,7 +1591,6 @@
         document.getElementById('filtroDataCriacao').addEventListener('change', () => alternarInputsPersonalizados('filtroDataCriacao', 'containerCustomCriacao'));
 
         function limparFiltros() {
-            // Remove as marcações visuais dos botões de SLA
             filtroRapidoAtivo = null;
             document.getElementById('countPendentes').parentElement.classList.remove('ativo');
             document.getElementById('countSlaHoje').parentElement.classList.remove('ativo');
@@ -1686,10 +1680,10 @@
         // --- SISTEMA DE ORDENAÇÃO ---
         window.ordenarTabela = function(colunaClicada) {
             if (colunaOrdenacao === colunaClicada) {
-                ordemCrescente = !ordemCrescente; // Inverte a ordem se clicar na mesma coluna
+                ordemCrescente = !ordemCrescente; 
             } else {
                 colunaOrdenacao = colunaClicada;
-                ordemCrescente = true; // Por padrão, ao clicar em uma nova coluna, ordena do menor para o maior (A-Z)
+                ordemCrescente = true; 
             }
             executarOrdenacao();
             atualizarTabelaHtml();
@@ -1702,11 +1696,9 @@
                 let valA = a[colunaOrdenacao];
                 let valB = b[colunaOrdenacao];
 
-                // Trata valores nulos ou vazios para não quebrar a lógica
                 if (valA === undefined || valA === null) valA = '';
                 if (valB === undefined || valB === null) valB = '';
 
-                // Converte para minúsculo caso seja texto, para a ordem alfabética ser perfeita
                 if (typeof valA === 'string') valA = valA.toLowerCase();
                 if (typeof valB === 'string') valB = valB.toLowerCase();
 
@@ -1779,7 +1771,7 @@
                        atendeFila && atendeAssunto && atendeDataCriacaoRange && atendeCriadoPor;
             });
 
-            // Aplica a ordenação definida logo após filtrar os dados
+            // Aplica a ordenação definida
             executarOrdenacao();
 
             if (visaoAtual === 'resumo') atualizarPainelResumo();
@@ -1867,7 +1859,7 @@
         }
 
         function getCabecalhoHtml(label, campoOrigem) {
-            let icone = '↕'; // Ícone neutro
+            let icone = '↕'; 
             let classeAtiva = '';
             
             if (colunaOrdenacao === campoOrigem) {
@@ -1913,17 +1905,23 @@
             controlePaginacao.style.display = 'flex';
             let chamadosParaExibir = chamadosFiltradosAtuais;
             let totalPaginas = 1;
+            let textoInfo = '';
 
             if (itensPorPagina !== 'todos') {
                 totalPaginas = Math.ceil(chamadosFiltradosAtuais.length / itensPorPagina);
                 if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
                 if (paginaAtual < 1) paginaAtual = 1;
                 const inicio = (paginaAtual - 1) * itensPorPagina;
-                const fim = inicio + itensPorPagina;
+                const fim = Math.min(inicio + itensPorPagina, chamadosFiltradosAtuais.length);
                 chamadosParaExibir = chamadosFiltradosAtuais.slice(inicio, fim);
+                
+                const inicialExibido = chamadosFiltradosAtuais.length === 0 ? 0 : inicio + 1;
+                textoInfo = `Exibindo ${inicialExibido} a ${fim} de ${chamadosFiltradosAtuais.length} registros (Página ${paginaAtual} de ${totalPaginas})`;
+            } else {
+                textoInfo = `Exibindo todos os ${chamadosFiltradosAtuais.length} registros`;
             }
 
-            infoPaginacao.textContent = itensPorPagina === 'todos' ? 'Exibindo todos' : `Página ${paginaAtual} de ${totalPaginas}`;
+            infoPaginacao.textContent = textoInfo;
             btnPaginaAnt.disabled = paginaAtual === 1 || itensPorPagina === 'todos';
             btnPaginaProx.disabled = paginaAtual === totalPaginas || itensPorPagina === 'todos';
 
@@ -2133,7 +2131,6 @@
 
         // --- CSV Importação ---
         window.baixarModeloCSV = function() {
-            // Cria um modelo CSV com cabeçalhos exatos e uma linha de exemplo
             const cabecalho = "Chamado;Analista;Categoria;Problema;Fila;AssuntoEmail;SLA(YYYY-MM-DDTHH:MM);DataQuestionamento(YYYY-MM-DDTHH:MM);DataFechamento(YYYY-MM-DD)\n";
             const exemplo = "INC1234567;João Silva;Outros;Falha na fila;N2;Erro de acesso;2026-03-10T14:00;2026-03-05T10:00;2026-03-06\n";
             const blob = new Blob(["\uFEFF" + cabecalho + exemplo], { type: 'text/csv;charset=utf-8;' });
@@ -2160,13 +2157,12 @@
             reader.onload = async function(event) {
                 const text = event.target.result;
                 await processarImportacaoCSV(text);
-                inputImportarCSV.value = ''; // Limpa o input para permitir subir o mesmo arquivo novamente se precisar
+                inputImportarCSV.value = ''; 
             };
             reader.readAsText(file);
         });
 
         async function processarImportacaoCSV(csvText) {
-            // Separa as linhas lidando com diferentes quebras de linha
             const linhas = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
             
             if (linhas.length <= 1) {
@@ -2178,11 +2174,9 @@
             let sucessos = 0;
             let erros = 0;
             
-            // Loop começando da linha 1 para pular o cabeçalho
             for (let i = 1; i < linhas.length; i++) {
                 const colunas = linhas[i].split(';');
                 
-                // Exige pelo menos os 4 primeiros campos obrigatórios
                 if (colunas.length < 4) { erros++; continue; } 
 
                 const numeroInput = colunas[0]?.trim();
@@ -2190,12 +2184,10 @@
                 const categoria = colunas[2]?.trim();
                 const problema = colunas[3]?.trim();
                 
-                // Validação de campos em branco
                 if (!numeroInput || !analista || !categoria || !problema) {
                     erros++; continue;
                 }
 
-                // Verifica se o chamado já existe para evitar duplicidade
                 const q = query(chamadosCollection, where("numero", "==", numeroInput));
                 const querySnapshot = await getDocs(q);
                 if (!querySnapshot.empty) {
@@ -2204,7 +2196,6 @@
 
                 const agora = new Date().toISOString();
                 
-                // Mapeia os dados seguindo a estrutura do banco
                 const dadosFormulario = {
                     numero: numeroInput,
                     analista: analista,
