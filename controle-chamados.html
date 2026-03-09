@@ -904,7 +904,7 @@
                     <label><input type="checkbox" class="chk-coluna" value="assunto" checked> Assunto do E-mail</label>
                     <label><input type="checkbox" class="chk-coluna" value="sla" checked> SLA</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtQuest" checked> Dt. Quest.</label>
-                    <label><input type="checkbox" class="chk-coluna" value="dtFecham" checked> Dt. Enc. Fecham.</label>
+                    <label><input type="checkbox" class="chk-coluna" value="dtFecham" checked> Dt. Enc. Fech.</label>
                     
                     <label id="lbl-dtCriacao"><input type="checkbox" class="chk-coluna" value="dtCriacao"> Data Criação</label>
                     <label id="lbl-dtAtualizacao"><input type="checkbox" class="chk-coluna" value="dtAtualizacao"> Data Atualização</label>
@@ -1897,7 +1897,7 @@
             if(colunasSalvas.assunto) htmlCabecalho += getCabecalhoHtml('Assunto do E-mail', 'assuntoEmail');
             if(colunasSalvas.sla) htmlCabecalho += getCabecalhoHtml('SLA', 'sla');
             if(colunasSalvas.dtQuest) htmlCabecalho += getCabecalhoHtml('Dt. Quest.', 'dataQuestionamento');
-            if(colunasSalvas.dtFecham) htmlCabecalho += getCabecalhoHtml('Dt. Enc. Fecham.', 'dataFechamento');
+            if(colunasSalvas.dtFecham) htmlCabecalho += getCabecalhoHtml('Dt. Enc. Fech.', 'dataFechamento');
             
             if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlCabecalho += getCabecalhoHtml('Data Criação', 'dataCriacao');
             if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlCabecalho += getCabecalhoHtml('Data Atualização', 'dataAtualizacao');
@@ -2108,7 +2108,7 @@
             
             const podeVerColunasOcultas = soThiagoPodeVer();
             
-            let cabecalhoCSV = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Enc. Fecham.";
+            let cabecalhoCSV = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Enc. Fech.";
             if(podeVerColunasOcultas) cabecalhoCSV += ";Data Criação;Data Atualização;Atualizado Por";
             cabecalhoCSV += "\n";
             
