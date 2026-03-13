@@ -685,6 +685,17 @@
             const jaPediu = folgas.find(f => f.analistaId === meuAnalistaId && f.dataSolicitada === dataInput && f.status !== 'recusada');
             if (jaPediu) return alert("Você já tem uma solicitação pendente ou aprovada para esta data.");
 
+            // NOVA VALIDAÇÃO: Limite de 1 folga por equipe por dia (somente para folgas já aprovadas)
+            const folgaAprovadaMesmaEquipe = folgas.find(f => 
+                f.dataSolicitada === dataInput && 
+                f.equipe === meuRegistro.equipe && 
+                f.status === 'aprovada'
+            );
+
+            if (folgaAprovadaMesmaEquipe) {
+                return alert(`Atenção: O analista ${folgaAprovadaMesmaEquipe.nomeAnalista} (da sua equipe) já possui uma folga aprovada para este dia. Não é permitido sobrepor folgas na mesma equipe.`);
+            }
+
             loading.style.display = 'flex';
             try {
                 await addDoc(dbFolgas, {
