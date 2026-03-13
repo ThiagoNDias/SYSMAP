@@ -127,6 +127,28 @@
         }
         button.btn-secundario:hover { background-color: var(--border-light); }
 
+        /* Botões de Ícones (Novos) */
+        .btn-icone {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            transition: transform 0.2s, background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-icone:hover {
+            transform: scale(1.1);
+            background-color: var(--border-light);
+        }
+        .icone-editar { color: var(--edit-color); }
+        .icone-excluir { color: var(--danger-color); }
+        .icone-sucesso { color: var(--success-color); }
+        .icone-concluido { color: var(--done-color); }
+        .acoes-container { display: flex; gap: 8px; align-items: center; }
+
         /* Tabelas */
         .tabela-container { overflow-x: auto; margin-top: 15px; }
         table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--border-light); border-radius: 8px; }
@@ -318,7 +340,7 @@
             </h3>
             <div class="tabela-container">
                 <table>
-                    <thead><tr><th>Equipe</th><th>Analista</th><th>Data Solicitada</th><th>Status</th><th>Ação</th></tr></thead>
+                    <thead><tr><th>Equipe</th><th>Analista</th><th>Data Solicitada</th><th>Status</th><th>Ações</th></tr></thead>
                     <tbody id="tabelaFolgasPendentes"></tbody>
                 </table>
             </div>
@@ -413,7 +435,15 @@
         let configSistema = { diasBloqueados: [], datasBloqueadas: [] };
         let meuAnalistaId = null;
         let emailsVisiveis = false;
-        let idFolgaEmEdicao = null; // Controle para edição/troca de data
+        let idFolgaEmEdicao = null; 
+
+        // Ícones SVG
+        const iconeEditar = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-editar"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+        const iconeExcluir = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+        const iconeTrocar = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-editar"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>`;
+        const iconeAprovar = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-sucesso"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        const iconeRecusar = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+        const iconeTirada = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-concluido"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
 
         // UI Elements
         const loading = document.getElementById('loading');
@@ -509,7 +539,6 @@
 
             analistas.forEach(analista => {
                 const qtdPlantoes = plantoes.filter(p => p.analistaId === analista.id).length;
-                // Folgas aprovadas ou usufruídas abatem o saldo
                 const folgasConsumidas = folgas.filter(f => f.analistaId === analista.id && ['aprovada', 'usufruida'].includes(f.status)).length;
                 
                 analista.saldo = qtdPlantoes - folgasConsumidas;
@@ -579,7 +608,11 @@
                     <td>${emailExibido}</td>
                     <td><strong>${a.equipe || '-'}</strong></td>
                     <td>${a.totalPlantoes || 0}</td>
-                    <td><button class="btn-secundario" style="padding: 4px 8px; color: var(--danger-color); border-color: var(--danger-color);" onclick="removerAnalista('${a.id}')">Excluir</button></td>
+                    <td>
+                        <div class="acoes-container">
+                            <button class="btn-icone" onclick="removerAnalista('${a.id}')" title="Excluir Analista">${iconeExcluir}</button>
+                        </div>
+                    </td>
                 </tr>`;
             });
         }
@@ -699,7 +732,6 @@
                         atualizadoPor: userEmail,
                         dataAtualizacao: new Date().toISOString()
                     });
-                    alert("Plantão atualizado com sucesso! Os saldos de folga foram recalculados automaticamente.");
                     cancelarEdicaoPlantao();
                 } catch(err) {
                     console.error(err);
@@ -740,8 +772,10 @@
 
             plantoesFiltrados.forEach(p => {
                 const botoesAdmin = isAdmin ? `
-                    <button class="btn-secundario" style="padding: 4px 8px; font-size: 12px; margin-right: 5px;" onclick="prepararEdicaoPlantao('${p.id}')">✏️ Editar</button>
-                    <button class="btn-secundario" style="padding: 4px 8px; font-size: 12px; color: var(--danger-color); border-color: var(--danger-color);" onclick="removerPlantao('${p.id}')">Excluir</button>
+                    <div class="acoes-container">
+                        <button class="btn-icone" onclick="prepararEdicaoPlantao('${p.id}')" title="Editar Plantão">${iconeEditar}</button>
+                        <button class="btn-icone" onclick="removerPlantao('${p.id}')" title="Excluir Plantão">${iconeExcluir}</button>
+                    </div>
                 ` : '';
 
                 tbody.innerHTML += `<tr>
@@ -787,7 +821,6 @@
             if (!meuAnalistaId) return alert("Seu e-mail não está vinculado a um analista. Fale com o Administrador.");
             
             const meuRegistro = analistas.find(a => a.id === meuAnalistaId);
-            // Se estiver editando, não barra saldo zero porque a pessoa já gastou aquele saldo.
             if (!idFolgaEmEdicao && meuRegistro.saldo <= 0) return alert("Você não possui saldo de folgas disponível.");
 
             const dataInput = document.getElementById('inputPedirFolga').value;
@@ -807,7 +840,6 @@
             const jaPediu = folgas.find(f => f.analistaId === meuAnalistaId && f.dataSolicitada === dataInput && f.status !== 'recusada' && f.id !== idFolgaEmEdicao);
             if (jaPediu) return alert("Você já tem uma solicitação pendente ou aprovada para esta mesma data.");
 
-            // REGRA DE OURO: Não permitir que 2 analistas da mesma equipe tirem folga no mesmo dia.
             const folgaAprovadaMesmaEquipe = folgas.find(f => 
                 f.dataSolicitada === dataInput && 
                 f.equipe === meuRegistro.equipe && 
@@ -822,16 +854,13 @@
             loading.style.display = 'flex';
             try {
                 if (idFolgaEmEdicao) {
-                    // Update existente
                     await updateDoc(doc(db, "escala_folgas", idFolgaEmEdicao), {
                         dataSolicitada: dataInput,
-                        status: 'pendente', // Retorna pra pendente para o adm avaliar a nova data
+                        status: 'pendente',
                         dataAtualizacao: new Date().toISOString()
                     });
-                    alert("A data foi alterada e enviada para nova aprovação pelo gestor!");
                     cancelarTrocaFolga();
                 } else {
-                    // Cria nova
                     await addDoc(dbFolgas, {
                         analistaId: meuAnalistaId,
                         nomeAnalista: meuRegistro.nome,
@@ -841,7 +870,6 @@
                         dataSolicitacao: new Date().toISOString()
                     });
                     document.getElementById('inputPedirFolga').value = '';
-                    alert("Solicitação enviada para aprovação!");
                 }
             } catch(e) { alert("Erro ao solicitar folga."); }
             loading.style.display = 'none';
@@ -858,9 +886,12 @@
             } else {
                 minhasFolgas.forEach(f => {
                     const dataPed = f.dataSolicitacao.split('T')[0];
-                    let btnTrocar = '';
+                    let btnTrocar = '-';
                     if (f.status === 'pendente' || f.status === 'aprovada') {
-                        btnTrocar = `<button class="btn-secundario" style="padding: 4px 8px; font-size: 12px;" onclick="prepararTrocaFolga('${f.id}')">🔄 Trocar</button>`;
+                        btnTrocar = `
+                            <div class="acoes-container">
+                                <button class="btn-icone" onclick="prepararTrocaFolga('${f.id}')" title="Trocar Data">${iconeTrocar}</button>
+                            </div>`;
                     }
 
                     tbodyMinhas.innerHTML += `<tr>
@@ -893,13 +924,17 @@
                         let botoesAcao = '-';
                         if (f.status === 'pendente') {
                             botoesAcao = `
-                                <button class="badge bg-aprovado" style="border:none; cursor:pointer; margin-right: 5px;" onclick="aprovarFolga('${f.id}')">Aprovar</button>
-                                <button class="badge bg-recusada" style="border:none; cursor:pointer;" onclick="recusarFolga('${f.id}')">Recusar</button>
+                                <div class="acoes-container">
+                                    <button class="btn-icone" onclick="aprovarFolga('${f.id}')" title="Aprovar Folga">${iconeAprovar}</button>
+                                    <button class="btn-icone" onclick="recusarFolga('${f.id}')" title="Recusar Folga">${iconeRecusar}</button>
+                                </div>
                             `;
                         } else if (f.status === 'aprovada') {
                             botoesAcao = `
-                                <button class="badge bg-usufruida" style="border:none; cursor:pointer; margin-right: 5px;" onclick="marcarFolgaTirada('${f.id}')" title="Confirmar que o analista gozou desta folga">✅ Tirada</button>
-                                <button class="badge bg-recusada" style="border:none; cursor:pointer;" onclick="recusarFolga('${f.id}')" title="Cancelar esta folga e devolver saldo">Cancelar</button>
+                                <div class="acoes-container">
+                                    <button class="btn-icone" onclick="marcarFolgaTirada('${f.id}')" title="Marcar como Tirada / Concluída">${iconeTirada}</button>
+                                    <button class="btn-icone" onclick="recusarFolga('${f.id}')" title="Cancelar Folga (Devolve Saldo)">${iconeRecusar}</button>
+                                </div>
                             `;
                         }
                         
