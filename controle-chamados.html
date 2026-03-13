@@ -833,7 +833,7 @@
                     </div>
                     <div class="campo">
                         <label for="dataFechamento">Data de Encaminhamento / Fechamento</label>
-                        <input type="text" id="dataFechamento" placeholder="DD/MM/AAAA HH:MM" maxlength="16">
+                        <input type="text" id="dataFechamento" placeholder="DD/MM/AAAA" maxlength="16">
                     </div>
                 </div>
 
@@ -1146,7 +1146,7 @@
 
         // --- Funções de Máscara e Validação de Data ---
         
-        // Aplica a formatação de data e hora enquanto o usuário digita
+        // Aplica a formatação de data e hora enquanto o usuário digita e já faz validação visual
         function mascaraDataHora(e) {
             let v = e.target.value.replace(/\D/g, "");
             if (v.length > 12) v = v.substring(0, 12);
@@ -1159,13 +1159,35 @@
                 v = v.replace(/(\d{2})(\d{0,2})/, "$1/$2");
             }
             e.target.value = v;
+
+            // Validação visual em tempo real
+            if (v.length === 10 || v.length === 16) {
+                if (!validarDataBR(v)) {
+                    e.target.style.borderColor = "var(--danger-color)";
+                    e.target.style.color = "var(--danger-color)";
+                } else {
+                    e.target.style.borderColor = "var(--border-color)";
+                    e.target.style.color = "var(--text-color)";
+                }
+            } else if (v.length < 10) {
+                // Se a pessoa estiver apagando, volta ao normal
+                e.target.style.borderColor = "var(--border-color)";
+                e.target.style.color = "var(--text-color)";
+            }
+        }
+
+        // Alerta na tela caso saia do campo com a data errada
+        function avisarDataInvalida(e) {
+            const v = e.target.value;
+            if (v.length > 0 && !validarDataBR(v)) {
+                alert("A data ou hora digitada não é válida.\n\nVerifique se os dias, meses e a hora estão corretos.");
+            }
         }
 
         // Valida se a data digitada realmente existe no calendário e no relógio
         function validarDataBR(dataStr) {
-            if (!dataStr || dataStr.trim() === '') return true; // Vazio é permitido
+            if (!dataStr || dataStr.trim() === '') return true; 
 
-            // Regex para verificar o formato básico DD/MM/AAAA ou DD/MM/AAAA HH:MM
             const regex = /^(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}))?$/;
             const match = dataStr.match(regex);
 
@@ -1179,23 +1201,21 @@
             if (mes < 1 || mes > 12) return false;
             const diasNoMes = new Date(ano, mes, 0).getDate();
             if (dia < 1 || dia > diasNoMes) return false;
-            if (ano < 1900 || ano > 2100) return false; // Evitar datas irreais
+            if (ano < 1900 || ano > 2100) return false; 
 
-            // Validação de hora e minuto (se o usuário preencheu)
+            // Validação de hora e minuto
             if (match[4] && match[5]) {
                 const hora = parseInt(match[4], 10);
                 const minuto = parseInt(match[5], 10);
                 if (hora < 0 || hora > 23) return false;
                 if (minuto < 0 || minuto > 59) return false;
             } else if (dataStr.length > 10) {
-                // Caso a pessoa tenha digitado a hora pela metade (ex: 10/10/2026 1)
                 return false;
             }
 
             return true;
         }
 
-        // Converte de "DD/MM/AAAA HH:MM" ou "DD/MM/AAAA" para o padrão do Banco (AAAA-MM-DDTHH:MM)
         function converterParaISO(dataBR) {
             if (!dataBR) return '';
             const partes = dataBR.trim().split(' ');
@@ -1208,7 +1228,6 @@
             return dataISO;
         }
 
-        // Converte do padrão do Banco para "DD/MM/AAAA HH:MM" ou "DD/MM/AAAA" para preencher o formulário na edição
         function converterParaBR(dataISO) {
             if (!dataISO) return '';
             if (dataISO.includes('T')) {
@@ -1221,10 +1240,13 @@
             }
         }
 
-        // Aplicando os ouvintes de evento da máscara aos campos de data
-        document.getElementById('sla').addEventListener('input', mascaraDataHora);
-        document.getElementById('dataQuestionamento').addEventListener('input', mascaraDataHora);
-        document.getElementById('dataFechamento').addEventListener('input', mascaraDataHora);
+        // Aplicando os ouvintes para aplicar a máscara ao digitar (input) e alertar ao sair (blur)
+        const camposData = ['sla', 'dataQuestionamento', 'dataFechamento'];
+        camposData.forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', mascaraDataHora);
+            el.addEventListener('blur', avisarDataInvalida);
+        });
 
         function ehSuperUsuario() {
             return SUPER_USERS.includes(userEmail.toLowerCase());
@@ -1552,8 +1574,26 @@
             document.getElementById('areaTabela').scrollIntoView({ behavior: 'smooth' });
         }
 
-        function abrirFormulario() { idChamadoEmEdicao = null; formChamado.reset(); tituloFormulario.textContent = 'Registrar Novo Chamado'; btnSalvar.textContent = 'Salvar Chamado'; painelFormulario.style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        function fecharFormulario() { painelFormulario.style.display = 'none'; idChamadoEmEdicao = null; formChamado.reset(); }
+        function abrirFormulario() { 
+            idChamadoEmEdicao = null; 
+            formChamado.reset(); 
+            // Resetar as bordas de erro ao abrir
+            camposData.forEach(id => {
+                const el = document.getElementById(id);
+                el.style.borderColor = "var(--border-color)";
+                el.style.color = "var(--text-color)";
+            });
+            tituloFormulario.textContent = 'Registrar Novo Chamado'; 
+            btnSalvar.textContent = 'Salvar Chamado'; 
+            painelFormulario.style.display = 'block'; 
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        }
+
+        function fecharFormulario() { 
+            painelFormulario.style.display = 'none'; 
+            idChamadoEmEdicao = null; 
+            formChamado.reset(); 
+        }
 
         function prepararEdicao(id) { 
             const chamado = listaChamados.find(c => c.id === id);
@@ -1569,6 +1609,13 @@
             document.getElementById('sla').value = converterParaBR(chamado.sla);
             document.getElementById('dataQuestionamento').value = converterParaBR(chamado.dataQuestionamento);
             document.getElementById('dataFechamento').value = converterParaBR(chamado.dataFechamento);
+
+            // Garantir que os campos voltem com cor normal ao editar
+            camposData.forEach(id => {
+                const el = document.getElementById(id);
+                el.style.borderColor = "var(--border-color)";
+                el.style.color = "var(--text-color)";
+            });
             
             tituloFormulario.textContent = 'Editar Chamado';
             btnSalvar.textContent = 'Atualizar Chamado';
@@ -1580,22 +1627,20 @@
             evento.preventDefault(); 
             loading.style.display = 'flex';
 
-            // Capturar os valores digitados de data
             const valSla = document.getElementById('sla').value;
             const valQuest = document.getElementById('dataQuestionamento').value;
             const valFecham = document.getElementById('dataFechamento').value;
 
-            // Executar a nova validação
+            // Bloqueia o envio se tiver formato de data/hora errados
             if (!validarDataBR(valSla) || !validarDataBR(valQuest) || !validarDataBR(valFecham)) {
-                alert("Atenção: Uma ou mais datas foram digitadas em um formato inválido.\n\nVerifique se os dias, meses e horas estão corretos e no formato: DD/MM/AAAA ou DD/MM/AAAA HH:MM.");
+                alert("Atenção: Uma ou mais datas foram preenchidas de forma incorreta.\n\nVerifique se não há dias inexistentes no mês ou horas inválidas.");
                 loading.style.display = 'none';
-                return; // Impede que continue e salve no banco
+                return;
             }
 
             const numeroInput = document.getElementById('numero').value.trim();
             const agora = new Date().toISOString();
 
-            // Convertendo as datas formatadas de volta para ISO antes de salvar
             const dadosFormulario = {
                 numero: numeroInput,
                 analista: document.getElementById('analista').value,
@@ -1875,7 +1920,7 @@
         }
 
         const iconeLapis = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-editar"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-        const iconeLixeira = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+        const iconeLixeira = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
 
         function formatarDataHoraSimples(dataISO) {
             if (!dataISO) return '-';
