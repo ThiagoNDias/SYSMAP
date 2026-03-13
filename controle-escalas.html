@@ -77,20 +77,26 @@
             border-top: 4px solid var(--claro-red); flex-wrap: wrap; gap: 15px;
         }
 
+        .navbar-brand {
+            display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+        }
+
         .titulo-container { display: flex; align-items: center; gap: 10px; }
+        .logo-titulo { height: 32px; width: auto; border-radius: 4px; }
         .navbar h1 { margin: 0; font-size: 22px; color: var(--claro-red); }
 
         .nav-links {
             display: flex; gap: 15px; align-items: center;
             border-left: 2px solid var(--border-light); padding-left: 15px;
         }
-        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.3s; }
         .nav-links a:hover { color: var(--claro-red); text-decoration: underline; }
 
         .user-info-container { display: flex; align-items: center; gap: 15px; }
         .user-info { display: flex; align-items: center; gap: 10px; font-size: 14px; }
         .user-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--claro-red); }
-        .btn-logout { background: transparent; border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        .btn-logout { background: transparent; border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-logout:hover { background: var(--border-light); }
 
         /* Painéis e Formulários */
         .painel {
@@ -168,10 +174,16 @@
         <div class="navbar">
             <div class="navbar-brand">
                 <div class="titulo-container">
+                    <img src="controle-chamado.png" alt="Logo" class="logo-titulo">
                     <h1>Gerenciador de Escala</h1>
                 </div>
                 <div class="nav-links">
-                    <a href="index.html">← Voltar para Chamados</a>
+                    <a href="/controle-chamados.html" style="font-weight: bold; color: var(--claro-red);">CPC Chamados</a>
+                    <a href="https://hjr2411.github.io/SPS_CH/index.html" target="_blank">SPS • Chamados</a>
+                    <a href="https://clarobr.atlassian.net/jira/dashboards/27247" target="_blank">Dash Analistas</a>
+                    <a href="http://10.29.148.9/script/list/" target="_blank">HOT DML</a>
+                    <a href="https://clarobr.atlassian.net/jira/for-you" target="_blank">Jira Analista</a>
+                    <a href="https://portal.sysmap.com.br/" target="_blank">SSG</a>
                 </div>
             </div>
             <div class="user-info-container">
@@ -289,6 +301,10 @@
                 </div>
             </div>
             
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="font-size: 16px; margin: 0;">Analistas Cadastrados</h3>
+                <button class="btn-secundario" style="padding: 6px 12px; font-size: 12px;" onclick="toggleEmailsVisibilidade()" id="btnToggleEmails">👁️ Mostrar E-mails</button>
+            </div>
             <div class="tabela-container" style="margin-bottom: 30px;">
                 <table>
                     <thead><tr><th>Analista</th><th>E-mail</th><th>Equipe</th><th>Plantões Feitos</th><th>Ação</th></tr></thead>
@@ -360,6 +376,7 @@
         let folgas = [];
         let configSistema = { diasBloqueados: [], datasBloqueadas: [] };
         let meuAnalistaId = null;
+        let emailsVisiveis = false;
 
         // UI Elements
         const loading = document.getElementById('loading');
@@ -377,6 +394,7 @@
         window.adicionarDataBloqueada = adicionarDataBloqueada;
         window.removerDataBloqueada = removerDataBloqueada;
         window.atualizarTabelaEscala = atualizarTabelaEscala;
+        window.toggleEmailsVisibilidade = toggleEmailsVisibilidade;
 
         // --- AUTH ---
         onAuthStateChanged(auth, async (user) => {
@@ -482,7 +500,14 @@
             if (equipesUnicas.includes(valorAtual)) selectFiltro.value = valorAtual;
         }
 
-        // --- GESTÃO DE ANALISTAS ---
+        // --- GESTÃO DE PRIVACIDADE E ANALISTAS ---
+        function toggleEmailsVisibilidade() {
+            emailsVisiveis = !emailsVisiveis;
+            const btn = document.getElementById('btnToggleEmails');
+            btn.innerHTML = emailsVisiveis ? '👁️ Ocultar E-mails' : '👁️ Mostrar E-mails';
+            atualizarTabelaAnalistas();
+        }
+
         async function vincularAnalista() {
             const nome = document.getElementById('novoNomeAnalista').value.trim();
             const email = document.getElementById('novoEmailAnalista').value.trim().toLowerCase();
@@ -508,9 +533,10 @@
             const tbody = document.getElementById('tabelaAnalistasCadastrados');
             tbody.innerHTML = '';
             analistas.forEach(a => {
+                const emailExibido = emailsVisiveis ? a.email : '•••••••••••••••••';
                 tbody.innerHTML += `<tr>
                     <td>${a.nome}</td>
-                    <td>${a.email}</td>
+                    <td>${emailExibido}</td>
                     <td><strong>${a.equipe || '-'}</strong></td>
                     <td>${a.totalPlantoes || 0}</td>
                     <td><button class="btn-secundario" style="padding: 4px 8px; color: var(--danger-color); border-color: var(--danger-color);" onclick="removerAnalista('${a.id}')">Excluir</button></td>
@@ -558,7 +584,7 @@
                 }
             }
 
-            // 3. Remove datas que já tem algum plantão salvo (independente da equipe, para não haver choque, ou você prefere separar total? Separei total por data e equipe abaixo)
+            // 3. Remove datas que já tem algum plantão salvo 
             const datasSemEscala = datasParaEscalar.filter(d => !plantoes.some(p => p.data === d && p.equipe === equipeAlvo));
             
             if (datasSemEscala.length === 0) {
