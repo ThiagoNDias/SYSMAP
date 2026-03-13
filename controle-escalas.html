@@ -241,6 +241,31 @@
             </div>
         </div>
 
+        <div class="painel admin-only" id="painelEdicaoPlantao" style="display: none; border-top: 4px solid var(--warning-color);">
+            <h2 style="color: var(--warning-color);">✏️ Editar Plantão</h2>
+            <form id="formEdicaoPlantao">
+                <input type="hidden" id="editPlantaoId">
+                <div class="linha-formulario">
+                    <div class="campo">
+                        <label>Data do Plantão</label>
+                        <input type="text" id="editPlantaoData" readonly style="background-color: var(--border-light); cursor: not-allowed;">
+                    </div>
+                    <div class="campo">
+                        <label>Equipe</label>
+                        <input type="text" id="editPlantaoEquipe" readonly style="background-color: var(--border-light); cursor: not-allowed;">
+                    </div>
+                    <div class="campo">
+                        <label>Novo Analista Escalado</label>
+                        <select id="editPlantaoAnalista" required></select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn-secundario" onclick="cancelarEdicaoPlantao()">Cancelar</button>
+                    <button type="submit" class="btn-acao" style="background-color: var(--warning-color); color: #000;">Salvar Alteração</button>
+                </div>
+            </form>
+        </div>
+
         <div class="painel admin-only">
             <h2>⚙️ Gestão de Escala (Apenas Admin)</h2>
             
@@ -402,6 +427,8 @@
         window.removerAnalista = removerAnalista;
         window.gerarEscalaAutomatica = gerarEscalaAutomatica;
         window.removerPlantao = removerPlantao;
+        window.prepararEdicaoPlantao = prepararEdicaoPlantao;
+        window.cancelarEdicaoPlantao = cancelarEdicaoPlantao;
         window.aprovarFolga = aprovarFolga;
         window.recusarFolga = recusarFolga;
         window.marcarFolgaTirada = marcarFolgaTirada;
@@ -629,6 +656,60 @@
             }
         }
 
+        // --- EDIÇÃO DE PLANTÃO ---
+        function prepararEdicaoPlantao(id) {
+            const plantao = plantoes.find(p => p.id === id);
+            if(!plantao) return;
+
+            document.getElementById('editPlantaoId').value = plantao.id;
+            document.getElementById('editPlantaoData').value = formatarDataBR(plantao.data);
+            document.getElementById('editPlantaoEquipe').value = plantao.equipe || '-';
+
+            const selectAnalista = document.getElementById('editPlantaoAnalista');
+            selectAnalista.innerHTML = '';
+            
+            const analistasDaEquipe = analistas.filter(a => a.equipe === plantao.equipe);
+            analistasDaEquipe.forEach(a => {
+                const selected = a.id === plantao.analistaId ? 'selected' : '';
+                selectAnalista.innerHTML += `<option value="${a.id}" ${selected}>${a.nome}</option>`;
+            });
+
+            document.getElementById('painelEdicaoPlantao').style.display = 'block';
+            window.scrollTo({ top: document.getElementById('painelEdicaoPlantao').offsetTop - 20, behavior: 'smooth' });
+        }
+
+        function cancelarEdicaoPlantao() {
+            document.getElementById('painelEdicaoPlantao').style.display = 'none';
+            document.getElementById('formEdicaoPlantao').reset();
+        }
+
+        document.getElementById('formEdicaoPlantao').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            loading.style.display = 'flex';
+            
+            const id = document.getElementById('editPlantaoId').value;
+            const novoAnalistaId = document.getElementById('editPlantaoAnalista').value;
+            const analistaInfo = analistas.find(a => a.id === novoAnalistaId);
+
+            if(id && analistaInfo) {
+                try {
+                    await updateDoc(doc(db, "escala_plantoes", id), {
+                        analistaId: analistaInfo.id,
+                        nomeAnalista: analistaInfo.nome,
+                        atualizadoPor: userEmail,
+                        dataAtualizacao: new Date().toISOString()
+                    });
+                    alert("Plantão atualizado com sucesso! Os saldos de folga foram recalculados automaticamente.");
+                    cancelarEdicaoPlantao();
+                } catch(err) {
+                    console.error(err);
+                    alert("Erro ao atualizar plantão.");
+                }
+            }
+            loading.style.display = 'none';
+        });
+
+        // --- UTILITÁRIOS DATA ---
         function formatarDataBR(dataISO) {
             if(!dataISO) return '-';
             const [ano, mes, dia] = dataISO.split('-');
@@ -658,13 +739,17 @@
             }
 
             plantoesFiltrados.forEach(p => {
-                const btnRemover = isAdmin ? `<button class="btn-secundario" style="padding: 4px; font-size: 12px; color: var(--danger-color); border-color: var(--danger-color);" onclick="removerPlantao('${p.id}')">Excluir</button>` : '';
+                const botoesAdmin = isAdmin ? `
+                    <button class="btn-secundario" style="padding: 4px 8px; font-size: 12px; margin-right: 5px;" onclick="prepararEdicaoPlantao('${p.id}')">✏️ Editar</button>
+                    <button class="btn-secundario" style="padding: 4px 8px; font-size: 12px; color: var(--danger-color); border-color: var(--danger-color);" onclick="removerPlantao('${p.id}')">Excluir</button>
+                ` : '';
+
                 tbody.innerHTML += `<tr>
                     <td><strong>${formatarDataBR(p.data)}</strong></td>
                     <td>${pegarNomeDiaSemana(p.data)}</td>
                     <td style="color: var(--text-muted); font-weight: bold;">${p.equipe || '-'}</td>
                     <td style="color: var(--claro-red); font-weight: bold;">${p.nomeAnalista}</td>
-                    <td class="admin-only">${btnRemover}</td>
+                    <td class="admin-only">${botoesAdmin}</td>
                 </tr>`;
             });
 
@@ -831,7 +916,7 @@
         }
 
         async function aprovarFolga(idFolga) {
-            if(confirm("Confirma a aprovação desta folga? O saldo do analista será bloqueado.")) {
+            if(confirm("Confirma a aprovação desta folga? O saldo do analista será descontado.")) {
                 await updateDoc(doc(db, "escala_folgas", idFolga), { status: 'aprovada', avaliadoPor: userEmail, dataAvaliacao: new Date().toISOString() });
             }
         }
