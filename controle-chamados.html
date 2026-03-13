@@ -1144,7 +1144,7 @@
         const lblDtAtualizacao = document.getElementById('lbl-dtAtualizacao');
         const lblUsrAtualizacao = document.getElementById('lbl-usrAtualizacao');
 
-        // --- Novas Funções de Máscara e Conversão de Data ---
+        // --- Funções de Máscara e Validação de Data ---
         
         // Aplica a formatação de data e hora enquanto o usuário digita
         function mascaraDataHora(e) {
@@ -1159,6 +1159,40 @@
                 v = v.replace(/(\d{2})(\d{0,2})/, "$1/$2");
             }
             e.target.value = v;
+        }
+
+        // Valida se a data digitada realmente existe no calendário e no relógio
+        function validarDataBR(dataStr) {
+            if (!dataStr || dataStr.trim() === '') return true; // Vazio é permitido
+
+            // Regex para verificar o formato básico DD/MM/AAAA ou DD/MM/AAAA HH:MM
+            const regex = /^(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}))?$/;
+            const match = dataStr.match(regex);
+
+            if (!match) return false;
+
+            const dia = parseInt(match[1], 10);
+            const mes = parseInt(match[2], 10);
+            const ano = parseInt(match[3], 10);
+
+            // Validação de dia, mês e ano
+            if (mes < 1 || mes > 12) return false;
+            const diasNoMes = new Date(ano, mes, 0).getDate();
+            if (dia < 1 || dia > diasNoMes) return false;
+            if (ano < 1900 || ano > 2100) return false; // Evitar datas irreais
+
+            // Validação de hora e minuto (se o usuário preencheu)
+            if (match[4] && match[5]) {
+                const hora = parseInt(match[4], 10);
+                const minuto = parseInt(match[5], 10);
+                if (hora < 0 || hora > 23) return false;
+                if (minuto < 0 || minuto > 59) return false;
+            } else if (dataStr.length > 10) {
+                // Caso a pessoa tenha digitado a hora pela metade (ex: 10/10/2026 1)
+                return false;
+            }
+
+            return true;
         }
 
         // Converte de "DD/MM/AAAA HH:MM" ou "DD/MM/AAAA" para o padrão do Banco (AAAA-MM-DDTHH:MM)
@@ -1187,7 +1221,7 @@
             }
         }
 
-        // Aplicando os ouvintes de evento da máscara aos novos inputs de texto
+        // Aplicando os ouvintes de evento da máscara aos campos de data
         document.getElementById('sla').addEventListener('input', mascaraDataHora);
         document.getElementById('dataQuestionamento').addEventListener('input', mascaraDataHora);
         document.getElementById('dataFechamento').addEventListener('input', mascaraDataHora);
@@ -1521,7 +1555,6 @@
         function abrirFormulario() { idChamadoEmEdicao = null; formChamado.reset(); tituloFormulario.textContent = 'Registrar Novo Chamado'; btnSalvar.textContent = 'Salvar Chamado'; painelFormulario.style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function fecharFormulario() { painelFormulario.style.display = 'none'; idChamadoEmEdicao = null; formChamado.reset(); }
 
-        // Utilizando as novas funções para carregar as datas da edição com a formatação em texto
         function prepararEdicao(id) { 
             const chamado = listaChamados.find(c => c.id === id);
             if (!chamado) return;
@@ -1546,6 +1579,19 @@
         formChamado.addEventListener('submit', async function(evento) {
             evento.preventDefault(); 
             loading.style.display = 'flex';
+
+            // Capturar os valores digitados de data
+            const valSla = document.getElementById('sla').value;
+            const valQuest = document.getElementById('dataQuestionamento').value;
+            const valFecham = document.getElementById('dataFechamento').value;
+
+            // Executar a nova validação
+            if (!validarDataBR(valSla) || !validarDataBR(valQuest) || !validarDataBR(valFecham)) {
+                alert("Atenção: Uma ou mais datas foram digitadas em um formato inválido.\n\nVerifique se os dias, meses e horas estão corretos e no formato: DD/MM/AAAA ou DD/MM/AAAA HH:MM.");
+                loading.style.display = 'none';
+                return; // Impede que continue e salve no banco
+            }
+
             const numeroInput = document.getElementById('numero').value.trim();
             const agora = new Date().toISOString();
 
@@ -1557,9 +1603,9 @@
                 problema: document.getElementById('problema').value,
                 fila: document.getElementById('fila').value,
                 assuntoEmail: document.getElementById('assuntoEmail').value,
-                sla: converterParaISO(document.getElementById('sla').value),
-                dataQuestionamento: converterParaISO(document.getElementById('dataQuestionamento').value),
-                dataFechamento: converterParaISO(document.getElementById('dataFechamento').value),
+                sla: converterParaISO(valSla),
+                dataQuestionamento: converterParaISO(valQuest),
+                dataFechamento: converterParaISO(valFecham),
                 usuarioAtualizacao: userEmail,
                 dataAtualizacao: agora
             };
@@ -1829,7 +1875,7 @@
         }
 
         const iconeLapis = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-editar"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-        const iconeLixeira = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+        const iconeLixeira = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
 
         function formatarDataHoraSimples(dataISO) {
             if (!dataISO) return '-';
