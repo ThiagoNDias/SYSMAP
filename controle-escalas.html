@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="controle-chamados.ico">
+    <title>Gerenciador de Escala</title>
+    <style>
+        /* Mesmas Variáveis de Cores do Controle de Chamados */
+        :root {
+            --bg-color: #f4f4f4;
+            --panel-bg: #fff;
+            --text-color: #333;
+            --text-muted: #555;
+            --border-color: #ccc;
+            --border-light: #eee;
+            --input-bg: #fff;
+            --claro-red: #da291c;
+            --claro-red-dark: #b81f15;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --edit-color: #0056b3;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-color: #f4f4f4;
+            --text-muted: #aaa;
+            --border-color: #444;
+            --border-light: #333;
+            --input-bg: #2c2c2c;
+            --edit-color: #4da3ff;
+            --success-color: #21a555;
+            --warning-color: #ffb400;
+        }
+
+        /* Estilos Gerais (Reaproveitados) */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 80px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Tela de Login */
+        #telaLogin {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color); z-index: 3000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        .login-box {
+            background: var(--panel-bg); padding: 40px; border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center;
+            border-top: 5px solid var(--claro-red);
+        }
+
+        .btn-google {
+            background-color: #4285f4; color: #fff; border: none; padding: 12px 24px;
+            border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; gap: 10px; margin-top: 20px;
+        }
+
+        .btn-google:hover { background-color: #357ae8; }
+
+        /* NAVBAR PRINCIPAL */
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--panel-bg); padding: 15px 25px; border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 25px;
+            border-top: 4px solid var(--claro-red); flex-wrap: wrap; gap: 15px;
+        }
+
+        .titulo-container { display: flex; align-items: center; gap: 10px; }
+        .navbar h1 { margin: 0; font-size: 22px; color: var(--claro-red); }
+
+        .nav-links {
+            display: flex; gap: 15px; align-items: center;
+            border-left: 2px solid var(--border-light); padding-left: 15px;
+        }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; }
+        .nav-links a:hover { color: var(--claro-red); text-decoration: underline; }
+
+        .user-info-container { display: flex; align-items: center; gap: 15px; }
+        .user-info { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--claro-red); }
+        .btn-logout { background: transparent; border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+
+        /* Painéis e Formulários */
+        .painel {
+            background: var(--panel-bg); padding: 25px; border-radius: 8px;
+            border-top: 4px solid var(--claro-red); box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        h2 { color: var(--claro-red); border-bottom: 2px solid var(--border-light); padding-bottom: 10px; margin-top: 0; font-size: 18px; }
+
+        .linha-formulario { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .campo { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
+        label { margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--text-muted); }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--input-bg); color: var(--text-color); font-family: inherit; }
+        input:focus, select:focus { outline: none; border-color: var(--claro-red); }
+
+        button.btn-acao {
+            background-color: var(--claro-red); color: #fff; border: none; padding: 10px 20px;
+            border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s;
+        }
+        button.btn-acao:hover { background-color: var(--claro-red-dark); }
+        
+        button.btn-secundario {
+            background-color: transparent; color: var(--text-color); border: 1px solid var(--border-color);
+            padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;
+        }
+        button.btn-secundario:hover { background-color: var(--border-light); }
+
+        /* Tabelas */
+        .tabela-container { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--border-light); border-radius: 8px; }
+        th { background-color: var(--claro-red); color: #fff; padding: 12px 15px; text-align: left; font-size: 13px; text-transform: uppercase; }
+        td { padding: 12px 15px; border-bottom: 1px solid var(--border-light); font-size: 14px; }
+        tr:last-child td { border-bottom: none; }
+
+        /* Badges de Status */
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; color: white; text-align: center; display: inline-block;}
+        .bg-pendente { background-color: var(--warning-color); color: #000; }
+        .bg-aprovado { background-color: var(--success-color); }
+        .bg-recusado { background-color: var(--danger-color); }
+
+        /* Controle de Visibilidade */
+        .admin-only { display: none; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 20px; font-weight: bold; }
+        #appContent { display: none; }
+        
+        .card-saldo {
+            background: var(--border-light); padding: 15px; border-radius: 8px;
+            border-left: 5px solid var(--edit-color); margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-saldo h3 { margin: 0; font-size: 16px; color: var(--text-color); }
+        .card-saldo span { font-size: 24px; font-weight: bold; color: var(--edit-color); }
+
+        .grid-dias-bloqueados { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;}
+        .grid-dias-bloqueados label { display: flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer;}
+    </style>
+</head>
+<body class="dark-mode">
+
+    <div id="loading">Conectando...</div>
+
+    <div id="telaLogin">
+        <div class="login-box">
+            <h2 style="border: none;">Escala & Folgas</h2>
+            <p>Faça login com sua conta Google.</p>
+            <button id="btnLoginGoogle" class="btn-google">Entrar com Google</button>
+        </div>
+    </div>
+
+    <div id="appContent">
+        <div class="navbar">
+            <div class="navbar-brand">
+                <div class="titulo-container">
+                    <h1>Gerenciador de Escala</h1>
+                </div>
+                <div class="nav-links">
+                    <a href="index.html">← Voltar para Chamados</a>
+                </div>
+            </div>
+            <div class="user-info-container">
+                <div class="user-info">
+                    <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+                    <span id="userName">Usuário</span>
+                </div>
+                <button id="btnLogout" class="btn-logout">Sair</button>
+            </div>
+        </div>
+
+        <div class="painel">
+            <h2>Meu Resumo de Folgas</h2>
+            <div class="card-saldo">
+                <h3>Saldo de Folgas Disponíveis:</h3>
+                <span id="saldoFolgasUser">0</span>
+            </div>
+
+            <div class="linha-formulario">
+                <div class="campo">
+                    <label>Solicitar Nova Folga</label>
+                    <input type="date" id="inputPedirFolga">
+                    <small id="avisoRegraFolga" style="color: var(--danger-color); margin-top: 5px;"></small>
+                </div>
+                <div class="campo" style="justify-content: flex-end;">
+                    <button class="btn-acao" onclick="solicitarFolga()">Enviar Solicitação</button>
+                </div>
+            </div>
+
+            <h2 style="margin-top: 30px;">Minhas Solicitações</h2>
+            <div class="tabela-container">
+                <table>
+                    <thead><tr><th>Data Solicitada</th><th>Status</th><th>Data do Pedido</th></tr></thead>
+                    <tbody id="tabelaMinhasFolgas"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="painel">
+            <h2>Próximos Plantões da Equipe</h2>
+            <div class="tabela-container">
+                <table>
+                    <thead><tr><th>Data</th><th>Dia da Semana</th><th>Analista Escalado</th><th class="admin-only">Ações</th></tr></thead>
+                    <tbody id="tabelaEscalaGeral"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="painel admin-only">
+            <h2>⚙️ Gestão de Escala (Apenas Admin)</h2>
+            
+            <div class="linha-formulario" style="background: var(--border-light); padding: 15px; border-radius: 8px;">
+                <div class="campo">
+                    <label>Mês de Referência</label>
+                    <input type="month" id="mesEscala">
+                </div>
+                <div class="campo">
+                    <label>Dia Alvo para a Escala</label>
+                    <select id="diaAlvoEscala">
+                        <option value="6">Sábado</option>
+                        <option value="0">Domingo</option>
+                    </select>
+                </div>
+                <div class="campo" style="justify-content: flex-end;">
+                    <button class="btn-acao" onclick="gerarEscalaAutomatica()">Gerar Escala Automática</button>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 20px; font-size: 16px;">Aprovação de Folgas Pendentes</h3>
+            <div class="tabela-container">
+                <table>
+                    <thead><tr><th>Analista</th><th>Data Solicitada</th><th>Saldo Atual</th><th>Ação</th></tr></thead>
+                    <tbody id="tabelaFolgasPendentes"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="painel admin-only">
+            <h2>⚙️ Configurações do Sistema</h2>
+            
+            <div class="linha-formulario">
+                <div class="campo" style="flex: 2;">
+                    <label>Vincular E-mail ao Analista</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="novoNomeAnalista" placeholder="Nome na Escala (Ex: João)">
+                        <input type="email" id="novoEmailAnalista" placeholder="E-mail Google">
+                        <button class="btn-secundario" onclick="vincularAnalista()">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tabela-container" style="margin-bottom: 30px;">
+                <table>
+                    <thead><tr><th>Analista</th><th>E-mail Vinculado</th><th>Plantões Feitos</th><th>Ação</th></tr></thead>
+                    <tbody id="tabelaAnalistasCadastrados"></tbody>
+                </table>
+            </div>
+
+            <h3 style="font-size: 16px;">Bloqueio de Dias para Folga</h3>
+            <div class="linha-formulario">
+                <div class="campo">
+                    <label>Bloquear Dias da Semana Permanentes:</label>
+                    <div class="grid-dias-bloqueados" id="checkboxesDias">
+                        <label><input type="checkbox" value="1" class="chk-dia"> Seg</label>
+                        <label><input type="checkbox" value="2" class="chk-dia"> Ter</label>
+                        <label><input type="checkbox" value="3" class="chk-dia"> Qua</label>
+                        <label><input type="checkbox" value="4" class="chk-dia"> Qui</label>
+                        <label><input type="checkbox" value="5" class="chk-dia"> Sex</label>
+                        <label><input type="checkbox" value="6" class="chk-dia"> Sáb</label>
+                        <label><input type="checkbox" value="0" class="chk-dia"> Dom</label>
+                    </div>
+                    <button class="btn-secundario" style="margin-top: 10px; width: fit-content;" onclick="salvarConfigDias()">Salvar Dias Regra</button>
+                </div>
+                <div class="campo">
+                    <label>Bloquear Data Específica (Feriados, etc):</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="date" id="dataBloqueioEspecifica">
+                        <button class="btn-secundario" onclick="adicionarDataBloqueada()">Bloquear</button>
+                    </div>
+                    <div id="listaDatasBloqueadas" style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- CONFIGURAÇÃO ---
+        const ADMIN_EMAILS = ["thiagofelipend@gmail.com", "thiago.nascimento@sysmap.com.br"];
+        
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, query, where, getDocs, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // Coleque as credenciais corretas do seu projeto aqui
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3ZVyXVY2YrKAWGCPduipasPsQN-6xHGI",
+            authDomain: "sincronismo-cpc-x-sixbell.firebaseapp.com",
+            projectId: "sincronismo-cpc-x-sixbell"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        const dbAnalistas = collection(db, "escala_analistas");
+        const dbPlantao = collection(db, "escala_plantoes");
+        const dbFolgas = collection(db, "escala_folgas");
+        const dbConfig = collection(db, "escala_configuracoes");
+
+        let userEmail = '';
+        let userName = '';
+        let isAdmin = false;
+        
+        // Dados em memória
+        let analistas = [];
+        let plantoes = [];
+        let folgas = [];
+        let configSistema = { diasBloqueados: [], datasBloqueadas: [] };
+        let meuAnalistaId = null;
+
+        // UI Elements
+        const loading = document.getElementById('loading');
+        const telaLogin = document.getElementById('telaLogin');
+        const appContent = document.getElementById('appContent');
+
+        window.solicitarFolga = solicitarFolga;
+        window.vincularAnalista = vincularAnalista;
+        window.removerAnalista = removerAnalista;
+        window.gerarEscalaAutomatica = gerarEscalaAutomatica;
+        window.removerPlantao = removerPlantao;
+        window.aprovarFolga = aprovarFolga;
+        window.recusarFolga = recusarFolga;
+        window.salvarConfigDias = salvarConfigDias;
+        window.adicionarDataBloqueada = adicionarDataBloqueada;
+        window.removerDataBloqueada = removerDataBloqueada;
+
+        // --- AUTH ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userEmail = user.email.toLowerCase();
+                userName = user.displayName;
+                isAdmin = ADMIN_EMAILS.includes(userEmail);
+                
+                document.getElementById('userName').textContent = userName;
+                document.getElementById('userAvatar').src = user.photoURL;
+                
+                telaLogin.style.display = 'none';
+                appContent.style.display = 'block';
+                loading.style.display = 'flex';
+                
+                if (isAdmin) {
+                    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+                }
+
+                iniciarListeners();
+            } else {
+                telaLogin.style.display = 'flex';
+                appContent.style.display = 'none';
+                loading.style.display = 'none';
+            }
+        });
+
+        document.getElementById('btnLoginGoogle').addEventListener('click', () => signInWithPopup(auth, provider));
+        document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
+
+        // --- LISTENERS FIRESTORE ---
+        function iniciarListeners() {
+            // Escutar Configurações
+            onSnapshot(doc(db, "escala_configuracoes", "geral"), (docSnap) => {
+                if (docSnap.exists()) {
+                    configSistema = docSnap.data();
+                    if(!configSistema.diasBloqueados) configSistema.diasBloqueados = [];
+                    if(!configSistema.datasBloqueadas) configSistema.datasBloqueadas = [];
+                }
+                atualizarUIConfig();
+            });
+
+            // Escutar Analistas
+            onSnapshot(dbAnalistas, (snap) => {
+                analistas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                
+                // Descobrir qual é o meu ID
+                const meuRegistro = analistas.find(a => a.email === userEmail);
+                meuAnalistaId = meuRegistro ? meuRegistro.id : null;
+                
+                atualizarTabelaAnalistas();
+                calcularSaldos();
+            });
+
+            // Escutar Plantões (Escala)
+            onSnapshot(query(dbPlantao), (snap) => {
+                plantoes = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(a.data) - new Date(b.data));
+                atualizarTabelaEscala();
+                calcularSaldos();
+            });
+
+            // Escutar Folgas
+            onSnapshot(query(dbFolgas), (snap) => {
+                folgas = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
+                atualizarTabelasFolgas();
+                calcularSaldos();
+                loading.style.display = 'none';
+            });
+        }
+
+        // --- LÓGICA DE NEGÓCIO ---
+
+        function calcularSaldos() {
+            if (!meuAnalistaId && !isAdmin) return;
+
+            analistas.forEach(analista => {
+                // Quantos plantões a pessoa já fez (ou está escalada)
+                const qtdPlantoes = plantoes.filter(p => p.analistaId === analista.id).length;
+                // Quantas folgas já foram APROVADAS
+                const qtdFolgasAprovadas = folgas.filter(f => f.analistaId === analista.id && f.status === 'aprovada').length;
+                
+                analista.saldo = qtdPlantoes - qtdFolgasAprovadas;
+                analista.totalPlantoes = qtdPlantoes;
+            });
+
+            if (meuAnalistaId) {
+                const meuDoc = analistas.find(a => a.id === meuAnalistaId);
+                document.getElementById('saldoFolgasUser').textContent = meuDoc ? meuDoc.saldo : 0;
+            }
+            
+            if (isAdmin) atualizarTabelaAnalistas();
+        }
+
+        // --- GESTÃO DE ANALISTAS ---
+        async function vincularAnalista() {
+            const nome = document.getElementById('novoNomeAnalista').value.trim();
+            const email = document.getElementById('novoEmailAnalista').value.trim().toLowerCase();
+            if (!nome || !email) return alert("Preencha nome e e-mail.");
+            
+            try {
+                await addDoc(dbAnalistas, { nome, email, dataCadastro: new Date().toISOString() });
+                document.getElementById('novoNomeAnalista').value = '';
+                document.getElementById('novoEmailAnalista').value = '';
+            } catch(e) { alert("Erro ao salvar analista."); }
+        }
+
+        async function removerAnalista(id) {
+            if(confirm("Remover este analista do controle de escala?")) {
+                await deleteDoc(doc(db, "escala_analistas", id));
+            }
+        }
+
+        function atualizarTabelaAnalistas() {
+            const tbody = document.getElementById('tabelaAnalistasCadastrados');
+            tbody.innerHTML = '';
+            analistas.forEach(a => {
+                tbody.innerHTML += `<tr>
+                    <td>${a.nome}</td>
+                    <td>${a.email}</td>
+                    <td>${a.totalPlantoes || 0}</td>
+                    <td><button class="btn-secundario" style="padding: 4px 8px; color: var(--danger-color); border-color: var(--danger-color);" onclick="removerAnalista('${a.id}')">Excluir</button></td>
+                </tr>`;
+            });
+        }
+
+        // --- ESCALA AUTOMÁTICA ---
+        async function gerarEscalaAutomatica() {
+            const mesInput = document.getElementById('mesEscala').value;
+            const diaAlvo = parseInt(document.getElementById('diaAlvoEscala').value);
+            
+            if (!mesInput) return alert("Selecione o mês.");
+            if (analistas.length === 0) return alert("Cadastre analistas primeiro.");
+
+            loading.style.display = 'flex';
+            const [ano, mes] = mesInput.split('-');
+            const datasDoMes = [];
+            
+            // Descobrir todos os dias do mês que caem no diaAlvo (ex: todos os sábados)
+            let dataCursor = new Date(ano, parseInt(mes) - 1, 1);
+            while (dataCursor.getMonth() === parseInt(mes) - 1) {
+                if (dataCursor.getDay() === diaAlvo) {
+                    // Formato YYYY-MM-DD
+                    const diaF = String(dataCursor.getDate()).padStart(2, '0');
+                    datasDoMes.push(`${ano}-${mes}-${diaF}`);
+                }
+                dataCursor.setDate(dataCursor.getDate() + 1);
+            }
+
+            // Filtrar as datas que JÁ TEM alguém escalado para não sobrepor
+            const datasSemEscala = datasDoMes.filter(d => !plantoes.some(p => p.data === d));
+            
+            if (datasSemEscala.length === 0) {
+                loading.style.display = 'none';
+                return alert("Todos os dias alvo deste mês já possuem escala gerada.");
+            }
+
+            // Copia a lista de analistas para ordenar
+            let analistasSorteio = [...analistas];
+
+            for (const dataPlantao of datasSemEscala) {
+                // Algoritmo de Justiça: Ordena quem tem MENOS plantões totais primeiro
+                analistasSorteio.sort((a, b) => (a.totalPlantoes || 0) - (b.totalPlantoes || 0));
+                
+                // Pega o analista do topo (o que tem menos plantões)
+                const analistaEscolhido = analistasSorteio[0];
+
+                try {
+                    await addDoc(dbPlantao, {
+                        data: dataPlantao,
+                        analistaId: analistaEscolhido.id,
+                        nomeAnalista: analistaEscolhido.nome,
+                        geradoAutomaticamente: true,
+                        criadoPor: userEmail
+                    });
+                    // Atualiza localmente para a próxima rodada do loop ser justa
+                    analistaEscolhido.totalPlantoes = (analistaEscolhido.totalPlantoes || 0) + 1;
+                } catch(e) { console.error("Erro ao inserir plantão:", e); }
+            }
+
+            loading.style.display = 'none';
+            alert("Escala gerada com sucesso!");
+        }
+
+        async function removerPlantao(id) {
+            if(confirm("Remover este plantão da escala? (Você precisará escalar alguém manualmente depois)")) {
+                await deleteDoc(doc(db, "escala_plantoes", id));
+            }
+        }
+
+        function formatarDataBR(dataISO) {
+            const [ano, mes, dia] = dataISO.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function pegarNomeDiaSemana(dataISO) {
+            const dias = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+            const [ano, mes, dia] = dataISO.split('-');
+            const dateObj = new Date(ano, mes - 1, dia);
+            return dias[dateObj.getDay()];
+        }
+
+        function atualizarTabelaEscala() {
+            const tbody = document.getElementById('tabelaEscalaGeral');
+            tbody.innerHTML = '';
+            
+            // Mostrar apenas plantões do dia atual para frente
+            const hojeISO = new Date().toISOString().split('T')[0];
+            const plantoesFuturos = plantoes.filter(p => p.data >= hojeISO);
+
+            if (plantoesFuturos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhuma escala futura.</td></tr>';
+                return;
+            }
+
+            plantoesFuturos.forEach(p => {
+                const btnRemover = isAdmin ? `<button class="btn-secundario" style="padding: 4px; font-size: 12px; color: var(--danger-color); border-color: var(--danger-color);" onclick="removerPlantao('${p.id}')">Excluir</button>` : '';
+                tbody.innerHTML += `<tr>
+                    <td><strong>${formatarDataBR(p.data)}</strong></td>
+                    <td>${pegarNomeDiaSemana(p.data)}</td>
+                    <td style="color: var(--claro-red); font-weight: bold;">${p.nomeAnalista}</td>
+                    <td class="admin-only">${btnRemover}</td>
+                </tr>`;
+            });
+
+            if(isAdmin) document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'table-cell');
+        }
+
+        // --- FOLGAS ---
+        async function solicitarFolga() {
+            if (!meuAnalistaId) return alert("Seu e-mail não está vinculado a um analista. Fale com o Administrador.");
+            
+            const meuRegistro = analistas.find(a => a.id === meuAnalistaId);
+            if (meuRegistro.saldo <= 0) return alert("Você não possui saldo de folgas disponível.");
+
+            const dataInput = document.getElementById('inputPedirFolga').value;
+            if (!dataInput) return alert("Selecione a data.");
+
+            // Validação de Regras (Dias bloqueados)
+            const [ano, mes, dia] = dataInput.split('-');
+            const dateObj = new Date(ano, mes - 1, dia);
+            const diaSemana = dateObj.getDay().toString();
+
+            if (configSistema.diasBloqueados.includes(diaSemana)) {
+                return alert("Este dia da semana está bloqueado para folgas pelo administrador.");
+            }
+            if (configSistema.datasBloqueadas.includes(dataInput)) {
+                return alert("Esta data específica foi bloqueada para folgas pelo administrador.");
+            }
+
+            // Verifica se já pediu pra esse dia
+            const jaPediu = folgas.find(f => f.analistaId === meuAnalistaId && f.dataSolicitada === dataInput && f.status !== 'recusada');
+            if (jaPediu) return alert("Você já tem uma solicitação pendente ou aprovada para esta data.");
+
+            loading.style.display = 'flex';
+            try {
+                await addDoc(dbFolgas, {
+                    analistaId: meuAnalistaId,
+                    nomeAnalista: meuRegistro.nome,
+                    dataSolicitada: dataInput,
+                    status: 'pendente',
+                    dataSolicitacao: new Date().toISOString()
+                });
+                document.getElementById('inputPedirFolga').value = '';
+                alert("Solicitação enviada para aprovação!");
+            } catch(e) { alert("Erro ao solicitar folga."); }
+            loading.style.display = 'none';
+        }
+
+        function atualizarTabelasFolgas() {
+            // Tabela do Usuário (Minhas Folgas)
+            const tbodyMinhas = document.getElementById('tabelaMinhasFolgas');
+            tbodyMinhas.innerHTML = '';
+            const minhasFolgas = folgas.filter(f => f.analistaId === meuAnalistaId);
+            
+            if (minhasFolgas.length === 0) {
+                tbodyMinhas.innerHTML = '<tr><td colspan="3" style="text-align:center;">Nenhuma solicitação feita.</td></tr>';
+            } else {
+                minhasFolgas.forEach(f => {
+                    let badgeClass = f.status === 'pendente' ? 'bg-pendente' : (f.status === 'aprovada' ? 'bg-aprovado' : 'bg-recusado');
+                    const dataPed = f.dataSolicitacao.split('T')[0];
+                    tbodyMinhas.innerHTML += `<tr>
+                        <td><strong>${formatarDataBR(f.dataSolicitada)}</strong></td>
+                        <td><span class="badge ${badgeClass}">${f.status.toUpperCase()}</span></td>
+                        <td style="font-size:12px; color: var(--text-muted);">${formatarDataBR(dataPed)}</td>
+                    </tr>`;
+                });
+            }
+
+            // Tabela Admin (Folgas Pendentes)
+            if (isAdmin) {
+                const tbodyPendentes = document.getElementById('tabelaFolgasPendentes');
+                tbodyPendentes.innerHTML = '';
+                const pendentes = folgas.filter(f => f.status === 'pendente');
+                
+                if (pendentes.length === 0) {
+                    tbodyPendentes.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhuma pendência.</td></tr>';
+                } else {
+                    pendentes.forEach(f => {
+                        const analista = analistas.find(a => a.id === f.analistaId);
+                        const saldo = analista ? analista.saldo : '?';
+                        
+                        tbodyPendentes.innerHTML += `<tr>
+                            <td><strong>${f.nomeAnalista}</strong></td>
+                            <td>${formatarDataBR(f.dataSolicitada)} (${pegarNomeDiaSemana(f.dataSolicitada)})</td>
+                            <td>${saldo} folgas disp.</td>
+                            <td>
+                                <button class="badge bg-aprovado" style="border:none; cursor:pointer; margin-right: 5px;" onclick="aprovarFolga('${f.id}')">Aprovar</button>
+                                <button class="badge bg-recusado" style="border:none; cursor:pointer;" onclick="recusarFolga('${f.id}')">Recusar</button>
+                            </td>
+                        </tr>`;
+                    });
+                }
+            }
+        }
+
+        async function aprovarFolga(idFolga) {
+            if(confirm("Confirma a aprovação desta folga? O saldo do analista será descontado.")) {
+                await updateDoc(doc(db, "escala_folgas", idFolga), { status: 'aprovada', avaliadoPor: userEmail, dataAvaliacao: new Date().toISOString() });
+            }
+        }
+
+        async function recusarFolga(idFolga) {
+            if(confirm("Deseja recusar esta folga? O saldo do analista retornará.")) {
+                await updateDoc(doc(db, "escala_folgas", idFolga), { status: 'recusada', avaliadoPor: userEmail, dataAvaliacao: new Date().toISOString() });
+            }
+        }
+
+        // --- CONFIGURAÇÕES DE BLOQUEIO ---
+        function atualizarUIConfig() {
+            // Atualizar Checkboxes
+            document.querySelectorAll('.chk-dia').forEach(chk => {
+                chk.checked = configSistema.diasBloqueados.includes(chk.value);
+            });
+
+            // Atualizar lista de datas específicas
+            const divDatas = document.getElementById('listaDatasBloqueadas');
+            divDatas.innerHTML = '';
+            if(configSistema.datasBloqueadas) {
+                configSistema.datasBloqueadas.sort().forEach(d => {
+                    divDatas.innerHTML += `<span style="background: var(--border-color); padding: 4px 8px; border-radius: 12px; font-size: 12px; display: flex; align-items: center; gap: 5px;">
+                        ${formatarDataBR(d)}
+                        <span style="cursor:pointer; color: var(--danger-color); font-weight: bold;" onclick="removerDataBloqueada('${d}')">x</span>
+                    </span>`;
+                });
+            }
+        }
+
+        async function salvarConfigFirestore(novoConfig) {
+            try {
+                await setDoc(doc(db, "escala_configuracoes", "geral"), novoConfig, { merge: true });
+                alert("Regras atualizadas!");
+            } catch(e) { alert("Erro ao salvar regras."); }
+        }
+
+        function salvarConfigDias() {
+            const selecionados = Array.from(document.querySelectorAll('.chk-dia:checked')).map(chk => chk.value);
+            configSistema.diasBloqueados = selecionados;
+            salvarConfigFirestore(configSistema);
+        }
+
+        function adicionarDataBloqueada() {
+            const dt = document.getElementById('dataBloqueioEspecifica').value;
+            if(!dt) return;
+            if(configSistema.datasBloqueadas.includes(dt)) return;
+            
+            configSistema.datasBloqueadas.push(dt);
+            salvarConfigFirestore(configSistema);
+            document.getElementById('dataBloqueioEspecifica').value = '';
+        }
+
+        function removerDataBloqueada(dt) {
+            configSistema.datasBloqueadas = configSistema.datasBloqueadas.filter(d => d !== dt);
+            salvarConfigFirestore(configSistema);
+        }
+
+    </script>
+</body>
+</html>
