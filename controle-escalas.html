@@ -272,16 +272,28 @@
             </div>
 
             <div id="aba-principal-folgas" class="aba-principal-content">
-                <div class="tabela-container" style="margin-top: 0; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <span style="font-size: 14px; font-weight: bold; color: var(--text-muted);">Escala Geral de Folgas</span>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="filtroEquipeFolgaPrincipal" style="width: auto; font-size: 14px; padding: 6px 10px;" onchange="atualizarFiltrosFolga(); atualizarTabelasFolgas();">
+                            <option value="todas">Todas as Equipes</option>
+                        </select>
+                        <select id="filtroAnalistaFolgaPrincipal" style="width: auto; font-size: 14px; padding: 6px 10px;" onchange="atualizarTabelasFolgas()">
+                            <option value="todos">Todos os Analistas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="tabela-container" style="margin-top: 0; margin-bottom: 30px;">
                     <table>
-                        <thead><tr><th>Plantão Gerador</th><th>Data Solicitada</th><th>Status</th><th>Data do Pedido</th><th>Ações</th></tr></thead>
-                        <tbody id="tabelaMinhasFolgas"></tbody>
+                        <thead><tr><th>Equipe</th><th>Analista</th><th>Plantão Gerador</th><th>Data Solicitada</th><th>Status</th><th>Data do Pedido</th><th>Ações</th></tr></thead>
+                        <tbody id="tabelaFolgasPrincipal"></tbody>
                     </table>
                 </div>
 
                 <div style="background: var(--border-light); padding: 15px 20px; border-radius: 8px; border-left: 5px solid var(--edit-color); display: flex; gap: 20px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
                     <div style="font-size: 15px; color: var(--text-color);">
-                        <strong>Saldo Disponível:</strong> 
+                        <strong>Seu Saldo Disponível:</strong> 
                         <span id="saldoFolgasUser" style="color: var(--claro-red); font-size: 24px; font-weight: bold; margin-left: 5px;">0</span>
                     </div>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; flex: 1; justify-content: flex-end;">
@@ -483,7 +495,7 @@
         window.solicitarFolga = solicitarFolga;
         window.prepararTrocaFolga = prepararTrocaFolga;
         window.cancelarTrocaFolga = cancelarTrocaFolga;
-        window.removerMinhaFolga = removerMinhaFolga; // NOVA: Excluir/Cancelar pedido de folga
+        window.removerMinhaFolga = removerMinhaFolga; 
         window.salvarAnalista = salvarAnalista;
         window.prepararEdicaoAnalista = prepararEdicaoAnalista;
         window.cancelarEdicaoAnalista = cancelarEdicaoAnalista;
@@ -500,6 +512,7 @@
         window.removerDataBloqueada = removerDataBloqueada;
         window.atualizarTabelaEscala = atualizarTabelaEscala;
         window.atualizarTabelasFolgas = atualizarTabelasFolgas;
+        window.atualizarFiltrosFolga = atualizarFiltrosFolga;
         window.toggleEmailsVisibilidade = toggleEmailsVisibilidade;
 
         // --- SISTEMA DE ABAS E PAINÉIS ---
@@ -591,6 +604,7 @@
                 meuAnalistaId = meuRegistro ? meuRegistro.id : null;
                 
                 atualizarSelectsEquipe();
+                atualizarFiltrosFolga();
                 atualizarTabelaAnalistas();
                 calcularSaldos();
                 atualizarOpcoesPlantaoOrigem();
@@ -646,6 +660,28 @@
                 equipesUnicas.map(eq => `<option value="${eq}">${eq}</option>`).join('');
             
             if (equipesUnicas.includes(valorAtual)) selectFiltro.value = valorAtual;
+        }
+
+        function atualizarFiltrosFolga() {
+            const selectEq = document.getElementById('filtroEquipeFolgaPrincipal');
+            const selectAn = document.getElementById('filtroAnalistaFolgaPrincipal');
+            if(!selectEq || !selectAn) return;
+
+            const valEq = selectEq.value;
+            const equipesUnicas = [...new Set(analistas.map(a => a.equipe).filter(Boolean))].sort();
+            selectEq.innerHTML = '<option value="todas">Todas as Equipes</option>' + equipesUnicas.map(eq => `<option value="${eq}">${eq}</option>`).join('');
+            if (equipesUnicas.includes(valEq)) selectEq.value = valEq;
+
+            const eqSelecionada = selectEq.value;
+            let anFiltrados = analistas;
+            if(eqSelecionada !== 'todas') {
+                anFiltrados = analistas.filter(a => a.equipe === eqSelecionada);
+            }
+
+            const valAn = selectAn.value;
+            selectAn.innerHTML = '<option value="todos">Todos os Analistas</option>' + 
+                anFiltrados.sort((a,b)=>a.nome.localeCompare(b.nome)).map(an => `<option value="${an.id}">${an.nome}</option>`).join('');
+            if (anFiltrados.some(a => a.id === valAn)) selectAn.value = valAn;
         }
 
         // --- GESTÃO DE PRIVACIDADE E ANALISTAS ---
@@ -1101,19 +1137,28 @@
         }
 
         function atualizarTabelasFolgas() {
-            // Tabela do Usuário
-            const tbodyMinhas = document.getElementById('tabelaMinhasFolgas');
-            tbodyMinhas.innerHTML = '';
-            const minhasFolgas = folgas.filter(f => f.analistaId === meuAnalistaId);
+            // Tabela Geral de Folgas (Aba Principal)
+            const tbodyFolgas = document.getElementById('tabelaFolgasPrincipal');
+            tbodyFolgas.innerHTML = '';
             
-            if (minhasFolgas.length === 0) {
-                tbodyMinhas.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma solicitação feita.</td></tr>';
+            const eqFiltro = document.getElementById('filtroEquipeFolgaPrincipal').value;
+            const anFiltro = document.getElementById('filtroAnalistaFolgaPrincipal').value;
+
+            const folgasFiltradas = folgas.filter(f => {
+                const atendeEq = eqFiltro === 'todas' || f.equipe === eqFiltro;
+                const atendeAn = anFiltro === 'todos' || f.analistaId === anFiltro;
+                return atendeEq && atendeAn;
+            });
+
+            if (folgasFiltradas.length === 0) {
+                tbodyFolgas.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhuma folga encontrada.</td></tr>';
             } else {
-                minhasFolgas.forEach(f => {
+                folgasFiltradas.forEach(f => {
                     const dataPed = f.dataSolicitacao.split('T')[0];
                     let botoesAcao = '-';
                     
-                    if (f.status !== 'usufruida') {
+                    // Apenas o dono da folga pode ver os botões de editar e excluir
+                    if (f.analistaId === meuAnalistaId && f.status !== 'usufruida') {
                         botoesAcao = `
                             <div class="acoes-container">
                                 <button class="btn-icone" onclick="prepararTrocaFolga('${f.id}')" title="Trocar Data / Editar">${iconeTrocar}</button>
@@ -1123,7 +1168,9 @@
 
                     const plantaoRef = f.plantaoOrigemData ? formatarDataBR(f.plantaoOrigemData) : '-';
 
-                    tbodyMinhas.innerHTML += `<tr>
+                    tbodyFolgas.innerHTML += `<tr>
+                        <td style="color: var(--text-muted); font-weight: bold;">${f.equipe || '-'}</td>
+                        <td><strong style="color: var(--claro-red);">${f.nomeAnalista}</strong></td>
                         <td style="color: var(--text-muted); font-weight: bold;">${plantaoRef}</td>
                         <td><strong>${formatarDataBR(f.dataSolicitada)}</strong></td>
                         <td>${getStatusBadge(f.status)}</td>
@@ -1133,7 +1180,7 @@
                 });
             }
 
-            // Tabela Admin
+            // Tabela Admin (Painel ADM)
             if (isAdmin) {
                 const filtroStatusAdmin = document.getElementById('filtroStatusFolgasAdmin').value;
                 const tbodyPendentes = document.getElementById('tabelaFolgasPendentes');
