@@ -825,15 +825,15 @@
                 <div class="linha-formulario">
                     <div class="campo">
                         <label for="sla">SLA (Prazo Limite)</label>
-                        <input type="datetime-local" id="sla">
+                        <input type="text" id="sla" placeholder="DD/MM/AAAA HH:MM" maxlength="16">
                     </div>
                     <div class="campo">
                         <label for="dataQuestionamento">Data e Hora de Questionamento</label>
-                        <input type="datetime-local" id="dataQuestionamento">
+                        <input type="text" id="dataQuestionamento" placeholder="DD/MM/AAAA HH:MM" maxlength="16">
                     </div>
                     <div class="campo">
                         <label for="dataFechamento">Data de Encaminhamento / Fechamento</label>
-                        <input type="date" id="dataFechamento">
+                        <input type="text" id="dataFechamento" placeholder="DD/MM/AAAA HH:MM" maxlength="16">
                     </div>
                 </div>
 
@@ -1125,13 +1125,10 @@
         let itensPorPagina = 10;
         let userEmail = '';
         
-        // Variáveis para a memória dos filtros
         let estadoFiltroSalvo = null;
         let filtroRapidoAtivo = null;
-
-        // Variáveis para Ordenação
         let colunaOrdenacao = ''; 
-        let direcaoOrdenacao = ''; // 'asc', 'desc' ou ''
+        let direcaoOrdenacao = ''; 
 
         // --- Elementos DOM ---
         const telaLogin = document.getElementById('telaLogin');
@@ -1142,11 +1139,58 @@
         const userAvatar = document.getElementById('userAvatar');
         const loading = document.getElementById('loading');
         
-        // Elementos de visibilidade restrita
         const campoFiltroCriadoPor = document.getElementById('campoFiltroCriadoPor');
         const lblDtCriacao = document.getElementById('lbl-dtCriacao');
         const lblDtAtualizacao = document.getElementById('lbl-dtAtualizacao');
         const lblUsrAtualizacao = document.getElementById('lbl-usrAtualizacao');
+
+        // --- Novas Funções de Máscara e Conversão de Data ---
+        
+        // Aplica a formatação de data e hora enquanto o usuário digita
+        function mascaraDataHora(e) {
+            let v = e.target.value.replace(/\D/g, "");
+            if (v.length > 12) v = v.substring(0, 12);
+
+            if (v.length > 8) {
+                v = v.replace(/(\d{2})(\d{2})(\d{4})(\d{2})(\d{0,2})/, "$1/$2/$3 $4:$5");
+            } else if (v.length > 4) {
+                v = v.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
+            } else if (v.length > 2) {
+                v = v.replace(/(\d{2})(\d{0,2})/, "$1/$2");
+            }
+            e.target.value = v;
+        }
+
+        // Converte de "DD/MM/AAAA HH:MM" ou "DD/MM/AAAA" para o padrão do Banco (AAAA-MM-DDTHH:MM)
+        function converterParaISO(dataBR) {
+            if (!dataBR) return '';
+            const partes = dataBR.trim().split(' ');
+            const dataPartes = partes[0].split('/');
+            if (dataPartes.length !== 3) return dataBR; 
+            const dataISO = `${dataPartes[2]}-${dataPartes[1]}-${dataPartes[0]}`;
+            if (partes[1]) {
+                return `${dataISO}T${partes[1]}`;
+            }
+            return dataISO;
+        }
+
+        // Converte do padrão do Banco para "DD/MM/AAAA HH:MM" ou "DD/MM/AAAA" para preencher o formulário na edição
+        function converterParaBR(dataISO) {
+            if (!dataISO) return '';
+            if (dataISO.includes('T')) {
+                const [data, hora] = dataISO.split('T');
+                const [ano, mes, dia] = data.split('-');
+                return `${dia}/${mes}/${ano} ${hora}`;
+            } else {
+                const [ano, mes, dia] = dataISO.split('-');
+                return `${dia}/${mes}/${ano}`;
+            }
+        }
+
+        // Aplicando os ouvintes de evento da máscara aos novos inputs de texto
+        document.getElementById('sla').addEventListener('input', mascaraDataHora);
+        document.getElementById('dataQuestionamento').addEventListener('input', mascaraDataHora);
+        document.getElementById('dataFechamento').addEventListener('input', mascaraDataHora);
 
         function ehSuperUsuario() {
             return SUPER_USERS.includes(userEmail.toLowerCase());
@@ -1235,7 +1279,7 @@
 
             listaChamados.forEach(c => {
                 if (!c.dataFechamento) {
-                    qtdPendente++; // Conta os pendentes
+                    qtdPendente++;
                     if (c.sla) {
                         const slaDate = new Date(c.sla);
                         if (slaDate >= hojeInicio && slaDate <= hojeFim) {
@@ -1332,14 +1376,14 @@
             categoria: document.getElementById('buscaCategoria'),
             status: document.getElementById('filtroStatus'),
             sla: document.getElementById('filtroSLA'),
-            data: document.getElementById('buscaData'), // Fechamento
+            data: document.getElementById('buscaData'), 
             numero: document.getElementById('buscaNumero'),
-            analista: document.getElementById('filtroAnalista'), // Filtro de lista
+            analista: document.getElementById('filtroAnalista'), 
             problema: document.getElementById('buscaProblema'),
             fila: document.getElementById('buscaFila'),
             assunto: document.getElementById('buscaAssunto'),
-            dataQuest: document.getElementById('buscaDataQuestionamento'), // Questionamento
-            dataCriacaoRange: document.getElementById('filtroDataCriacao'), // Criação
+            dataQuest: document.getElementById('buscaDataQuestionamento'), 
+            dataCriacaoRange: document.getElementById('filtroDataCriacao'), 
             criadoPor: document.getElementById('filtroCriadoPor')
         };
 
@@ -1397,7 +1441,6 @@
             else { btnVisaoTabela.classList.add('ativo'); btnVisaoResumo.classList.remove('ativo'); areaResumo.style.display = 'none'; areaTabela.style.display = 'block'; atualizarTabelaHtml(); }
         }
 
-        // --- SISTEMA DE MEMÓRIA PARA OS FILTROS RÁPIDOS ---
         function salvarEstadoFiltro() {
             estadoFiltroSalvo = {};
             Object.keys(inputFiltros).forEach(key => {
@@ -1478,6 +1521,7 @@
         function abrirFormulario() { idChamadoEmEdicao = null; formChamado.reset(); tituloFormulario.textContent = 'Registrar Novo Chamado'; btnSalvar.textContent = 'Salvar Chamado'; painelFormulario.style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function fecharFormulario() { painelFormulario.style.display = 'none'; idChamadoEmEdicao = null; formChamado.reset(); }
 
+        // Utilizando as novas funções para carregar as datas da edição com a formatação em texto
         function prepararEdicao(id) { 
             const chamado = listaChamados.find(c => c.id === id);
             if (!chamado) return;
@@ -1488,9 +1532,11 @@
             document.getElementById('problema').value = chamado.problema || '';
             document.getElementById('fila').value = chamado.fila || '';
             document.getElementById('assuntoEmail').value = chamado.assuntoEmail || '';
-            document.getElementById('sla').value = chamado.sla || '';
-            document.getElementById('dataQuestionamento').value = chamado.dataQuestionamento || '';
-            document.getElementById('dataFechamento').value = chamado.dataFechamento || '';
+            
+            document.getElementById('sla').value = converterParaBR(chamado.sla);
+            document.getElementById('dataQuestionamento').value = converterParaBR(chamado.dataQuestionamento);
+            document.getElementById('dataFechamento').value = converterParaBR(chamado.dataFechamento);
+            
             tituloFormulario.textContent = 'Editar Chamado';
             btnSalvar.textContent = 'Atualizar Chamado';
             painelFormulario.style.display = 'block';
@@ -1503,6 +1549,7 @@
             const numeroInput = document.getElementById('numero').value.trim();
             const agora = new Date().toISOString();
 
+            // Convertendo as datas formatadas de volta para ISO antes de salvar
             const dadosFormulario = {
                 numero: numeroInput,
                 analista: document.getElementById('analista').value,
@@ -1510,9 +1557,9 @@
                 problema: document.getElementById('problema').value,
                 fila: document.getElementById('fila').value,
                 assuntoEmail: document.getElementById('assuntoEmail').value,
-                sla: document.getElementById('sla').value,
-                dataQuestionamento: document.getElementById('dataQuestionamento').value,
-                dataFechamento: document.getElementById('dataFechamento').value,
+                sla: converterParaISO(document.getElementById('sla').value),
+                dataQuestionamento: converterParaISO(document.getElementById('dataQuestionamento').value),
+                dataFechamento: converterParaISO(document.getElementById('dataFechamento').value),
                 usuarioAtualizacao: userEmail,
                 dataAtualizacao: agora
             };
@@ -1574,7 +1621,6 @@
             }
         }
 
-        // --- Datas Personalizadas ---
         function alternarInputsPersonalizados(selectId, containerId) {
             const select = document.getElementById(selectId);
             const container = document.getElementById(containerId);
@@ -1616,7 +1662,6 @@
             processarVisualizacao(true);
         }
 
-        // --- COMPARAÇÃO DE DATAS ---
         function dataEstaNoRange(dataIso, range, idInicioCustom, idFimCustom) {
             if (!range || range === '') return true; 
             if (range === 'aberto') return !dataIso || dataIso.trim() === '';
@@ -1677,23 +1722,21 @@
             return true;
         }
 
-        // --- SISTEMA DE ORDENAÇÃO ---
         window.ordenarTabela = function(colunaClicada) {
             if (colunaOrdenacao === colunaClicada) {
                 if (direcaoOrdenacao === 'asc') {
-                    direcaoOrdenacao = 'desc'; // 2º clique: decrescente
+                    direcaoOrdenacao = 'desc';
                 } else if (direcaoOrdenacao === 'desc') {
-                    colunaOrdenacao = ''; // 3º clique: remove ordenação
+                    colunaOrdenacao = ''; 
                     direcaoOrdenacao = '';
                 } else {
                     direcaoOrdenacao = 'asc';
                 }
             } else {
-                colunaOrdenacao = colunaClicada; // 1º clique na coluna: crescente
+                colunaOrdenacao = colunaClicada; 
                 direcaoOrdenacao = 'asc'; 
             }
             
-            // Para resetar a ordenação e voltar à lista original filtrada, reprocessamos a visualização
             processarVisualizacao(true);
         };
 
@@ -1721,14 +1764,14 @@
             const vCategoria = inputFiltros.categoria.value;
             const vStatus = inputFiltros.status.value;
             const vSLA = inputFiltros.sla.value;
-            const vData = inputFiltros.data.value; // Fechamento
+            const vData = inputFiltros.data.value; 
             const vNumero = inputFiltros.numero.value.trim().toLowerCase();
-            const vAnalista = inputFiltros.analista.value; // Select de analista
+            const vAnalista = inputFiltros.analista.value; 
             const vProblema = inputFiltros.problema.value.trim().toLowerCase();
             const vFila = inputFiltros.fila.value.trim().toLowerCase();
             const vAssunto = inputFiltros.assunto.value.trim().toLowerCase();
-            const vDataQuest = inputFiltros.dataQuest.value; // Questionamento
-            const vDataCriacaoRange = inputFiltros.dataCriacaoRange.value; // Criação
+            const vDataQuest = inputFiltros.dataQuest.value; 
+            const vDataCriacaoRange = inputFiltros.dataCriacaoRange.value; 
             const vCriadoPor = inputFiltros.criadoPor.value;
 
             const agora = new Date();
@@ -1779,7 +1822,6 @@
                        atendeFila && atendeAssunto && atendeDataCriacaoRange && atendeCriadoPor;
             });
 
-            // Aplica a ordenação definida logo após filtrar os dados
             executarOrdenacao();
 
             if (visaoAtual === 'resumo') atualizarPainelResumo();
@@ -1802,6 +1844,7 @@
         function formatarDataTela(dataISO) {
             if (!dataISO) return '<span class="status-aberto">Em aberto</span>';
             const partes = dataISO.split('-');
+            if(partes.length < 3) return dataISO;
             return `${partes[2]}/${partes[1]}/${partes[0]}`;
         }
 
@@ -1824,6 +1867,7 @@
                 return `E-mail enviado em ${partes[2]}/${partes[1]} às ${hora}`;
             } else {
                 const partes = dataISO.split('-');
+                if(partes.length < 3) return dataISO;
                 return `E-mail enviado em ${partes[2]}/${partes[1]}`;
             }
         }
