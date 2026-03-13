@@ -98,6 +98,7 @@
             border-top: 4px solid var(--claro-red); box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-bottom: 25px;
         }
+        .painel-admin-wrapper { margin-top: 30px; }
 
         h2 { color: var(--claro-red); border-bottom: 2px solid var(--border-light); padding-bottom: 10px; margin-top: 0; font-size: 18px; }
 
@@ -115,7 +116,7 @@
         
         button.btn-secundario {
             background-color: transparent; color: var(--text-color); border: 1px solid var(--border-color);
-            padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; box-sizing: border-box;
+            padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; box-sizing: border-box; transition: background-color 0.2s;
         }
         button.btn-secundario:hover { background-color: var(--border-light); }
 
@@ -147,20 +148,24 @@
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 20px; font-weight: bold; }
         #appContent { display: none; }
         
-        .card-saldo { background: var(--border-light); padding: 15px; border-radius: 8px; border-left: 5px solid var(--edit-color); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .card-saldo h3 { margin: 0; font-size: 16px; color: var(--text-color); }
-        .card-saldo span { font-size: 24px; font-weight: bold; color: var(--edit-color); }
-        
-        /* Ajuste fino de alinhamento */
         .form-inline-container { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; }
 
+        /* Abas Principais */
+        .tab-header-principal { display: flex; border-bottom: 2px solid var(--border-light); margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .tab-btn-principal { background: transparent; border: none; padding: 12px 25px; font-size: 16px; font-weight: bold; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .tab-btn-principal:hover { color: var(--claro-red); }
+        .tab-btn-principal.ativo { color: var(--claro-red); border-bottom-color: var(--claro-red); }
+        .aba-principal-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .aba-principal-content.ativo { display: block; }
+
         /* Abas do Painel de Administração */
-        .tab-header { display: flex; border-bottom: 2px solid var(--border-light); margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .tab-btn { background: transparent; border: none; padding: 12px 20px; font-size: 15px; font-weight: bold; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; }
-        .tab-btn:hover { color: var(--claro-red); }
-        .tab-btn.ativo { color: var(--claro-red); border-bottom-color: var(--claro-red); }
-        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
-        .tab-content.ativo { display: block; }
+        .tab-header-admin { display: flex; border-bottom: 2px solid var(--border-light); margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .tab-btn-admin { background: transparent; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .tab-btn-admin:hover { color: var(--text-color); }
+        .tab-btn-admin.ativo { color: var(--text-color); border-bottom-color: var(--text-color); }
+        .aba-admin-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .aba-admin-content.ativo { display: block; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Modal para Edição */
@@ -238,168 +243,176 @@
         </div>
 
         <div class="painel">
-            <h2>Meu Resumo de Folgas</h2>
-            <div class="card-saldo">
-                <h3>Saldo de Folgas Disponíveis:</h3>
-                <span id="saldoFolgasUser">0</span>
+            <div class="tab-header-principal">
+                <button class="tab-btn-principal ativo" onclick="abrirAbaPrincipal('plantoes')">📅 Escala de Plantões</button>
+                <button class="tab-btn-principal" onclick="abrirAbaPrincipal('folgas')">🏖️ Escala de Folgas</button>
             </div>
 
-            <div class="form-inline-container" style="align-items: flex-end;">
-                <div class="campo" style="flex: 1; min-width: 200px;">
-                    <label>Solicitar Nova Folga</label>
-                    <input type="date" id="inputPedirFolga">
-                    <small id="avisoRegraFolga" style="color: var(--danger-color); margin-top: 5px; display: none;"></small>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-acao" id="btnSubmitFolga" onclick="solicitarFolga()" style="height: 42px; white-space: nowrap;">Enviar Solicitação</button>
-                    <button class="btn-secundario" id="btnCancelarTroca" onclick="cancelarTrocaFolga()" style="height: 42px; display: none;">Cancelar</button>
-                </div>
-            </div>
-
-            <h2 style="margin-top: 30px;">Minhas Solicitações</h2>
-            <div class="tabela-container">
-                <table>
-                    <thead><tr><th>Data Solicitada</th><th>Status</th><th>Data do Pedido</th><th>Ações</th></tr></thead>
-                    <tbody id="tabelaMinhasFolgas"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="painel">
-            <h2 style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                Escala de Plantões
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <select id="filtroPeriodoEscala" style="width: auto; font-size: 14px; padding: 6px 10px; font-weight: normal;" onchange="atualizarTabelaEscala()">
-                        <option value="futuros" selected>Próximos Plantões</option>
-                        <option value="passados">Plantões Anteriores</option>
-                        <option value="todos">Todos</option>
-                    </select>
-                    <select id="filtroVisaoEquipe" style="width: auto; font-size: 14px; padding: 6px 10px; font-weight: normal;" onchange="atualizarTabelaEscala()">
-                        <option value="todas">Todas as Equipes</option>
-                    </select>
-                </div>
-            </h2>
-            <div class="tabela-container">
-                <table>
-                    <thead><tr><th>Data</th><th>Dia da Semana</th><th>Equipe</th><th>Analista Escalado</th><th class="admin-only">Ações</th></tr></thead>
-                    <tbody id="tabelaEscalaGeral"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="painel admin-only">
-            
-            <div class="tab-header">
-                <button class="tab-btn ativo" onclick="abrirAbaAdmin('escala')">⚙️ Gestão de Escala</button>
-                <button class="tab-btn" onclick="abrirAbaAdmin('config')">🔧 Configurações do Sistema</button>
-            </div>
-
-            <div id="aba-escala" class="tab-content ativo">
-                <h3 style="font-size: 16px; color: var(--text-color); margin-top: 0;">Gerador Automático de Plantões</h3>
-                <div class="form-inline-container" style="background: var(--border-light); padding: 15px; border-radius: 8px; align-items: flex-end;">
-                    <div class="campo" style="flex: 1; min-width: 120px;">
-                        <label>Equipe</label>
-                        <select id="equipeAlvoEscala">
-                            <option value="">Carregando...</option>
+            <div id="aba-principal-plantoes" class="aba-principal-content ativo">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <span style="font-size: 14px; font-weight: bold; color: var(--text-muted);">Visualizando Escala Geral</span>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="filtroPeriodoEscala" style="width: auto; font-size: 14px; padding: 6px 10px;" onchange="atualizarTabelaEscala()">
+                            <option value="futuros" selected>Próximos Plantões</option>
+                            <option value="passados">Plantões Anteriores</option>
+                            <option value="todos">Todos</option>
                         </select>
-                    </div>
-                    <div class="campo" style="flex: 1; min-width: 140px;">
-                        <label>Mês de Ref.</label>
-                        <input type="month" id="mesEscala">
-                    </div>
-                    <div class="campo" style="flex: 1; min-width: 130px;">
-                        <label>Frequência</label>
-                        <select id="frequenciaEscala">
-                            <option value="all">Todos os...</option>
-                            <option value="1">1º do mês</option>
-                            <option value="2">2º do mês</option>
-                            <option value="3">3º do mês</option>
-                            <option value="4">4º do mês</option>
-                            <option value="last">Último do mês</option>
+                        <select id="filtroVisaoEquipe" style="width: auto; font-size: 14px; padding: 6px 10px;" onchange="atualizarTabelaEscala()">
+                            <option value="todas">Todas as Equipes</option>
                         </select>
-                    </div>
-                    <div class="campo" style="flex: 1; min-width: 120px;">
-                        <label>Dia</label>
-                        <select id="diaAlvoEscala">
-                            <option value="0">Domingo</option>
-                            <option value="1">Segunda-feira</option>
-                            <option value="2">Terça-feira</option>
-                            <option value="3">Quarta-feira</option>
-                            <option value="4">Quinta-feira</option>
-                            <option value="5">Sexta-feira</option>
-                            <option value="6" selected>Sábado</option>
-                        </select>
-                    </div>
-                    <div style="flex: none;">
-                        <button class="btn-acao" onclick="gerarEscalaAutomatica()" style="height: 42px; white-space: nowrap;">Gerar Escala</button>
-                    </div>
-                </div>
-
-                <h3 style="margin-top: 30px; font-size: 16px; display: flex; justify-content: space-between; align-items: center; color: var(--text-color);">
-                    Gestão de Folgas e Pedidos
-                    <select id="filtroStatusFolgasAdmin" style="width: auto; font-size: 13px; padding: 4px 8px; font-weight: normal; background-color: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px;" onchange="atualizarTabelasFolgas()">
-                        <option value="pendente">Apenas Pendentes</option>
-                        <option value="aprovada">Aprovadas (Aguardando Retorno)</option>
-                        <option value="todas">Histórico Completo (Todas)</option>
-                    </select>
-                </h3>
-                <div class="tabela-container">
-                    <table>
-                        <thead><tr><th>Equipe</th><th>Analista</th><th>Data Solicitada</th><th>Status</th><th>Ação</th></tr></thead>
-                        <tbody id="tabelaFolgasPendentes"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="aba-config" class="tab-content">
-                <h3 style="font-size: 16px; color: var(--text-color); margin-top: 0;">Vincular E-mail ao Analista</h3>
-                <div class="campo" style="margin-bottom: 20px;">
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <input type="text" id="novoNomeAnalista" placeholder="Nome (Ex: João)" style="flex: 1; min-width: 140px;">
-                        <input type="email" id="novoEmailAnalista" placeholder="E-mail Google" style="flex: 1; min-width: 160px;">
-                        <input type="text" id="novaEquipeAnalista" placeholder="Equipe (Ex: N1, Infra)" style="flex: 1; min-width: 140px;">
-                        <button class="btn-secundario" onclick="vincularAnalista()" style="height: 42px; flex: none;">Adicionar</button>
                     </div>
                 </div>
                 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="font-size: 14px; margin: 0; color: var(--text-muted);">Analistas Cadastrados</h3>
-                    <button class="btn-secundario" style="padding: 4px 10px; font-size: 12px; height: auto;" onclick="toggleEmailsVisibilidade()" id="btnToggleEmails">👁️ Mostrar E-mails</button>
-                </div>
-                <div class="tabela-container" style="margin-bottom: 30px;">
+                <div class="tabela-container" style="margin-top: 0;">
                     <table>
-                        <thead><tr><th>Analista</th><th>E-mail</th><th>Equipe</th><th>Plantões Feitos</th><th>Ação</th></tr></thead>
-                        <tbody id="tabelaAnalistasCadastrados"></tbody>
+                        <thead><tr><th>Data</th><th>Dia da Semana</th><th>Equipe</th><th>Analista Escalado</th><th class="admin-only">Ações</th></tr></thead>
+                        <tbody id="tabelaEscalaGeral"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="aba-principal-folgas" class="aba-principal-content">
+                <div class="tabela-container" style="margin-top: 0; margin-bottom: 20px;">
+                    <table>
+                        <thead><tr><th>Plantão Gerador</th><th>Data Solicitada</th><th>Status</th><th>Data do Pedido</th><th>Ações</th></tr></thead>
+                        <tbody id="tabelaMinhasFolgas"></tbody>
                     </table>
                 </div>
 
-                <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 30px 0;">
-
-                <h3 style="font-size: 16px; color: var(--text-color);">Bloqueio de Dias para Folga</h3>
-                <div class="linha-formulario">
-                    <div class="campo">
-                        <label>Bloquear Dias da Semana Permanentes:</label>
-                        <div class="grid-dias-bloqueados" id="checkboxesDias">
-                            <label><input type="checkbox" value="1" class="chk-dia"> Seg</label>
-                            <label><input type="checkbox" value="2" class="chk-dia"> Ter</label>
-                            <label><input type="checkbox" value="3" class="chk-dia"> Qua</label>
-                            <label><input type="checkbox" value="4" class="chk-dia"> Qui</label>
-                            <label><input type="checkbox" value="5" class="chk-dia"> Sex</label>
-                            <label><input type="checkbox" value="6" class="chk-dia"> Sáb</label>
-                            <label><input type="checkbox" value="0" class="chk-dia"> Dom</label>
-                        </div>
-                        <button class="btn-secundario" style="margin-top: 10px; width: fit-content; height: auto;" onclick="salvarConfigDias()">Salvar Dias Regra</button>
+                <div style="background: var(--border-light); padding: 15px 20px; border-radius: 8px; border-left: 5px solid var(--edit-color); display: flex; gap: 20px; align-items: center; flex-wrap: wrap; justify-content: space-between;">
+                    <div style="font-size: 15px; color: var(--text-color);">
+                        <strong>Saldo Disponível:</strong> 
+                        <span id="saldoFolgasUser" style="color: var(--claro-red); font-size: 24px; font-weight: bold; margin-left: 5px;">0</span>
                     </div>
-                    <div class="campo">
-                        <label>Bloquear Data Específica ou Período:</label>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <input type="date" id="dataBloqueioInicio" style="flex: 1; min-width: 130px;" title="Data Inicial">
-                            <span style="display:flex; align-items:center; color: var(--text-muted);">até</span>
-                            <input type="date" id="dataBloqueioFim" style="flex: 1; min-width: 130px;" title="Data Final (Opcional)">
-                            <button class="btn-secundario" onclick="adicionarDataBloqueada()" style="height: 42px; flex: none;">Bloquear</button>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; flex: 1; justify-content: flex-end;">
+                        <select id="plantaoOrigem" style="width: auto; min-width: 200px; padding: 10px;">
+                            <option value="">Plantão de Origem...</option>
+                        </select>
+                        <input type="date" id="inputPedirFolga" style="width: auto; padding: 10px;">
+                        <button class="btn-acao" id="btnSubmitFolga" onclick="solicitarFolga()">Solicitar Folga</button>
+                        <button class="btn-secundario" id="btnCancelarTroca" onclick="cancelarTrocaFolga()" style="display: none;">Cancelar Troca</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-only painel-admin-wrapper">
+            <button class="btn-secundario" style="width: 100%; text-align: left; display: flex; justify-content: space-between; border-color: var(--text-muted); color: var(--text-muted); padding: 15px 20px; background: var(--panel-bg);" onclick="togglePainelAdmin()">
+                <span style="font-size: 16px;">🛡️ Painel do Administrador (Gestão & Configurações)</span>
+                <span id="iconeAdminToggle">▼ Expandir</span>
+            </button>
+            
+            <div id="painelAdminConteudo" style="display: none; margin-top: 15px;" class="painel">
+                <div class="tab-header-admin">
+                    <button class="tab-btn-admin ativo" onclick="abrirAbaAdmin('escala')">⚙️ Gestão de Escala</button>
+                    <button class="tab-btn-admin" onclick="abrirAbaAdmin('config')">🔧 Configurações do Sistema</button>
+                </div>
+
+                <div id="aba-admin-escala" class="aba-admin-content ativo">
+                    <h3 style="font-size: 15px; color: var(--text-color); margin-top: 0;">Gerador Automático de Plantões</h3>
+                    <div class="form-inline-container" style="background: var(--border-light); padding: 15px; border-radius: 8px; align-items: flex-end;">
+                        <div class="campo" style="flex: 1; min-width: 120px;">
+                            <label>Equipe</label>
+                            <select id="equipeAlvoEscala"><option value="">Carregando...</option></select>
                         </div>
-                        <small style="color: var(--text-muted); margin-top: 5px;">* Deixe a segunda data em branco para bloquear apenas um dia.</small>
-                        <div id="listaDatasBloqueadas" style="margin-top: 15px; display: flex; gap: 5px; flex-wrap: wrap;"></div>
+                        <div class="campo" style="flex: 1; min-width: 140px;">
+                            <label>Mês de Ref.</label>
+                            <input type="month" id="mesEscala">
+                        </div>
+                        <div class="campo" style="flex: 1; min-width: 130px;">
+                            <label>Frequência</label>
+                            <select id="frequenciaEscala">
+                                <option value="all">Todos os...</option>
+                                <option value="1">1º do mês</option>
+                                <option value="2">2º do mês</option>
+                                <option value="3">3º do mês</option>
+                                <option value="4">4º do mês</option>
+                                <option value="last">Último do mês</option>
+                            </select>
+                        </div>
+                        <div class="campo" style="flex: 1; min-width: 120px;">
+                            <label>Dia</label>
+                            <select id="diaAlvoEscala">
+                                <option value="0">Domingo</option>
+                                <option value="1">Segunda-feira</option>
+                                <option value="2">Terça-feira</option>
+                                <option value="3">Quarta-feira</option>
+                                <option value="4">Quinta-feira</option>
+                                <option value="5">Sexta-feira</option>
+                                <option value="6" selected>Sábado</option>
+                            </select>
+                        </div>
+                        <div style="flex: none;">
+                            <button class="btn-acao" onclick="gerarEscalaAutomatica()" style="height: 42px; white-space: nowrap;">Gerar Escala</button>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; color: var(--text-color);">
+                        Aprovação de Folgas
+                        <select id="filtroStatusFolgasAdmin" style="width: auto; font-size: 13px; padding: 4px 8px; font-weight: normal; background-color: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px;" onchange="atualizarTabelasFolgas()">
+                            <option value="pendente">Apenas Pendentes</option>
+                            <option value="aprovada">Aprovadas (Aguardando Retorno)</option>
+                            <option value="todas">Histórico Completo (Todas)</option>
+                        </select>
+                    </h3>
+                    <div class="tabela-container">
+                        <table>
+                            <thead><tr><th>Equipe</th><th>Analista</th><th>Plantão Ref.</th><th>Data Solicitada</th><th>Status</th><th>Ação</th></tr></thead>
+                            <tbody id="tabelaFolgasPendentes"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="aba-admin-config" class="aba-admin-content">
+                    <h3 style="font-size: 15px; color: var(--text-color); margin-top: 0;">Vincular E-mail ao Analista</h3>
+                    <div class="campo" style="margin-bottom: 20px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <input type="text" id="novoNomeAnalista" placeholder="Nome (Ex: João)" style="flex: 1; min-width: 140px;">
+                            <input type="email" id="novoEmailAnalista" placeholder="E-mail Google" style="flex: 1; min-width: 160px;">
+                            <input type="text" id="novaEquipeAnalista" placeholder="Equipe (Ex: N1, Infra)" style="flex: 1; min-width: 140px;">
+                            <button class="btn-secundario" onclick="vincularAnalista()" style="height: 42px; flex: none;">Adicionar</button>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3 style="font-size: 14px; margin: 0; color: var(--text-muted);">Analistas Cadastrados</h3>
+                        <button class="btn-secundario" style="padding: 4px 10px; font-size: 12px; height: auto;" onclick="toggleEmailsVisibilidade()" id="btnToggleEmails">👁️ Mostrar E-mails</button>
+                    </div>
+                    <div class="tabela-container" style="margin-bottom: 30px;">
+                        <table>
+                            <thead><tr><th>Analista</th><th>E-mail</th><th>Equipe</th><th>Plantões Feitos</th><th>Ação</th></tr></thead>
+                            <tbody id="tabelaAnalistasCadastrados"></tbody>
+                        </table>
+                    </div>
+
+                    <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 30px 0;">
+
+                    <h3 style="font-size: 15px; color: var(--text-color);">Bloqueio de Dias para Folga</h3>
+                    <div class="linha-formulario">
+                        <div class="campo">
+                            <label>Bloquear Dias da Semana Permanentes:</label>
+                            <div class="grid-dias-bloqueados" id="checkboxesDias">
+                                <label><input type="checkbox" value="1" class="chk-dia"> Seg</label>
+                                <label><input type="checkbox" value="2" class="chk-dia"> Ter</label>
+                                <label><input type="checkbox" value="3" class="chk-dia"> Qua</label>
+                                <label><input type="checkbox" value="4" class="chk-dia"> Qui</label>
+                                <label><input type="checkbox" value="5" class="chk-dia"> Sex</label>
+                                <label><input type="checkbox" value="6" class="chk-dia"> Sáb</label>
+                                <label><input type="checkbox" value="0" class="chk-dia"> Dom</label>
+                            </div>
+                            <button class="btn-secundario" style="margin-top: 10px; width: fit-content; height: auto;" onclick="salvarConfigDias()">Salvar Dias Regra</button>
+                        </div>
+                        <div class="campo">
+                            <label>Bloquear Data Específica ou Período:</label>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <input type="date" id="dataBloqueioInicio" style="flex: 1; min-width: 130px;" title="Data Inicial">
+                                <span style="display:flex; align-items:center; color: var(--text-muted);">até</span>
+                                <input type="date" id="dataBloqueioFim" style="flex: 1; min-width: 130px;" title="Data Final (Opcional)">
+                                <button class="btn-secundario" onclick="adicionarDataBloqueada()" style="height: 42px; flex: none;">Bloquear</button>
+                            </div>
+                            <small style="color: var(--text-muted); margin-top: 5px;">* Deixe a segunda data em branco para bloquear apenas um dia.</small>
+                            <div id="listaDatasBloqueadas" style="margin-top: 15px; display: flex; gap: 5px; flex-wrap: wrap;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -451,13 +464,10 @@
         const iconeRecusar = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
         const iconeTirada = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-concluido"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
 
-        // UI Elements
-        const loading = document.getElementById('loading');
-        const telaLogin = document.getElementById('telaLogin');
-        const appContent = document.getElementById('appContent');
-
         // Expor funções pro window
+        window.abrirAbaPrincipal = abrirAbaPrincipal;
         window.abrirAbaAdmin = abrirAbaAdmin;
+        window.togglePainelAdmin = togglePainelAdmin;
         window.solicitarFolga = solicitarFolga;
         window.prepararTrocaFolga = prepararTrocaFolga;
         window.cancelarTrocaFolga = cancelarTrocaFolga;
@@ -477,17 +487,42 @@
         window.atualizarTabelasFolgas = atualizarTabelasFolgas;
         window.toggleEmailsVisibilidade = toggleEmailsVisibilidade;
 
-        // --- SISTEMA DE ABAS (ADMIN) ---
+        // --- SISTEMA DE ABAS E PAINÉIS ---
+        function abrirAbaPrincipal(aba) {
+            document.querySelectorAll('.tab-btn-principal').forEach(btn => btn.classList.remove('ativo'));
+            document.querySelectorAll('.aba-principal-content').forEach(content => content.classList.remove('ativo'));
+            
+            if(aba === 'plantoes') {
+                document.querySelectorAll('.tab-btn-principal')[0].classList.add('ativo');
+                document.getElementById('aba-principal-plantoes').classList.add('ativo');
+            } else {
+                document.querySelectorAll('.tab-btn-principal')[1].classList.add('ativo');
+                document.getElementById('aba-principal-folgas').classList.add('ativo');
+            }
+        }
+
         function abrirAbaAdmin(aba) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('ativo'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('ativo'));
+            document.querySelectorAll('.tab-btn-admin').forEach(btn => btn.classList.remove('ativo'));
+            document.querySelectorAll('.aba-admin-content').forEach(content => content.classList.remove('ativo'));
             
             if(aba === 'escala') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('ativo');
-                document.getElementById('aba-escala').classList.add('ativo');
+                document.querySelectorAll('.tab-btn-admin')[0].classList.add('ativo');
+                document.getElementById('aba-admin-escala').classList.add('ativo');
             } else {
-                document.querySelectorAll('.tab-btn')[1].classList.add('ativo');
-                document.getElementById('aba-config').classList.add('ativo');
+                document.querySelectorAll('.tab-btn-admin')[1].classList.add('ativo');
+                document.getElementById('aba-admin-config').classList.add('ativo');
+            }
+        }
+
+        function togglePainelAdmin() {
+            const painel = document.getElementById('painelAdminConteudo');
+            const icone = document.getElementById('iconeAdminToggle');
+            if (painel.style.display === 'none') {
+                painel.style.display = 'block';
+                icone.textContent = '▲ Recolher';
+            } else {
+                painel.style.display = 'none';
+                icone.textContent = '▼ Expandir';
             }
         }
 
@@ -507,8 +542,7 @@
                 
                 if (isAdmin) {
                     document.querySelectorAll('.admin-only').forEach(el => {
-                        // Respeitar o fluxo de display default baseado no css da aba
-                        if(!el.classList.contains('tab-content') && el.id !== 'painelEdicaoPlantao') {
+                        if(!el.classList.contains('aba-admin-content') && el.id !== 'painelEdicaoPlantao') {
                             el.style.display = 'block';
                         }
                     });
@@ -544,23 +578,26 @@
                 atualizarSelectsEquipe();
                 atualizarTabelaAnalistas();
                 calcularSaldos();
+                atualizarOpcoesPlantaoOrigem();
             });
 
             onSnapshot(query(dbPlantao), (snap) => {
                 plantoes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 atualizarTabelaEscala();
                 calcularSaldos();
+                atualizarOpcoesPlantaoOrigem();
             });
 
             onSnapshot(query(dbFolgas), (snap) => {
                 folgas = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
                 atualizarTabelasFolgas();
                 calcularSaldos();
+                atualizarOpcoesPlantaoOrigem();
                 loading.style.display = 'none';
             });
         }
 
-        // --- LÓGICA DE NEGÓCIO ---
+        // --- LÓGICA DE NEGÓCIO E SALDOS ---
         function calcularSaldos() {
             if (!meuAnalistaId && !isAdmin) return;
 
@@ -596,6 +633,7 @@
             if (equipesUnicas.includes(valorAtual)) selectFiltro.value = valorAtual;
         }
 
+        // --- GESTÃO DE PRIVACIDADE E ANALISTAS ---
         function toggleEmailsVisibilidade() {
             emailsVisiveis = !emailsVisiveis;
             const btn = document.getElementById('btnToggleEmails');
@@ -831,12 +869,11 @@
             });
 
             if(isAdmin) document.querySelectorAll('.admin-only').forEach(el => {
-                // não forçar block genérico, validar se é TH ou TD
                 if(el.tagName === 'TH' || el.tagName === 'TD') el.style.display = 'table-cell';
             });
         }
 
-        // --- FOLGAS ---
+        // --- FOLGAS E VÍNCULO COM PLANTÃO ---
         function getStatusBadge(status) {
             if(status === 'pendente') return '<span class="badge bg-pendente">PENDENTE</span>';
             if(status === 'aprovada') return '<span class="badge bg-aprovado">APROVADA</span>';
@@ -845,22 +882,57 @@
             return `<span class="badge">${status}</span>`;
         }
 
+        function atualizarOpcoesPlantaoOrigem() {
+            const select = document.getElementById('plantaoOrigem');
+            if(!meuAnalistaId) return;
+
+            const folgasAtivas = folgas.filter(f => f.analistaId === meuAnalistaId && f.status !== 'recusada');
+            
+            let idsUsados = folgasAtivas.map(f => f.plantaoOrigemId);
+            if (idFolgaEmEdicao) {
+                const folgaEditada = folgas.find(f => f.id === idFolgaEmEdicao);
+                if(folgaEditada) {
+                    idsUsados = idsUsados.filter(id => id !== folgaEditada.plantaoOrigemId);
+                }
+            }
+
+            const plantoesDisponiveis = plantoes.filter(p => p.analistaId === meuAnalistaId && !idsUsados.includes(p.id));
+            plantoesDisponiveis.sort((a,b) => new Date(a.data) - new Date(b.data));
+
+            const valSalvo = select.value;
+            select.innerHTML = '<option value="">Selecione o plantão que gerou a folga...</option>';
+            
+            plantoesDisponiveis.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${formatarDataBR(p.data)} (${pegarNomeDiaSemana(p.data)})</option>`;
+            });
+
+            if (plantoesDisponiveis.some(p => p.id === valSalvo)) {
+                select.value = valSalvo;
+            }
+        }
+
         function prepararTrocaFolga(idFolga) {
             const folgaTarget = folgas.find(f => f.id === idFolga);
             if(!folgaTarget) return;
 
             idFolgaEmEdicao = idFolga;
             document.getElementById('inputPedirFolga').value = folgaTarget.dataSolicitada;
-            document.getElementById('btnSubmitFolga').textContent = "Confirmar Troca de Data";
+            
+            atualizarOpcoesPlantaoOrigem(); 
+            document.getElementById('plantaoOrigem').value = folgaTarget.plantaoOrigemId || '';
+
+            document.getElementById('btnSubmitFolga').textContent = "Confirmar Troca";
             document.getElementById('btnCancelarTroca').style.display = "inline-block";
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
 
         function cancelarTrocaFolga() {
             idFolgaEmEdicao = null;
             document.getElementById('inputPedirFolga').value = '';
-            document.getElementById('btnSubmitFolga').textContent = "Enviar Solicitação";
+            document.getElementById('plantaoOrigem').value = '';
+            document.getElementById('btnSubmitFolga').textContent = "Solicitar Folga";
             document.getElementById('btnCancelarTroca').style.display = "none";
+            atualizarOpcoesPlantaoOrigem();
         }
 
         async function solicitarFolga() {
@@ -869,8 +941,11 @@
             const meuRegistro = analistas.find(a => a.id === meuAnalistaId);
             if (!idFolgaEmEdicao && meuRegistro.saldo <= 0) return alert("Você não possui saldo de folgas disponível.");
 
+            const plantaoOrigemId = document.getElementById('plantaoOrigem').value;
+            if (!plantaoOrigemId) return alert("Selecione qual plantão dá direito a esta folga.");
+            
             const dataInput = document.getElementById('inputPedirFolga').value;
-            if (!dataInput) return alert("Selecione a data.");
+            if (!dataInput) return alert("Selecione a data da folga.");
 
             const [ano, mes, dia] = dataInput.split('-');
             const dateObj = new Date(ano, mes - 1, dia);
@@ -897,25 +972,39 @@
                 return alert(`Atenção: ${folgaAprovadaMesmaEquipe.nomeAnalista} (da sua equipe) já possui uma folga garantida neste dia. Não é permitido sobrepor folgas na mesma equipe.`);
             }
 
+            const plantaoObj = plantoes.find(p => p.id === plantaoOrigemId);
+
+            if (dataInput < plantaoObj.data) {
+                const proceed = confirm(`A data solicitada (${formatarDataBR(dataInput)}) é anterior ao plantão selecionado (${formatarDataBR(plantaoObj.data)}).\n\nNormalmente, a folga só pode ser tirada após o plantão. Deseja enviar o pedido para análise do administrador mesmo assim?`);
+                if (!proceed) return;
+            }
+
             loading.style.display = 'flex';
             try {
                 if (idFolgaEmEdicao) {
                     await updateDoc(doc(db, "escala_folgas", idFolgaEmEdicao), {
                         dataSolicitada: dataInput,
+                        plantaoOrigemId: plantaoOrigemId,
+                        plantaoOrigemData: plantaoObj.data,
                         status: 'pendente',
                         dataAtualizacao: new Date().toISOString()
                     });
                     cancelarTrocaFolga();
+                    alert("A folga foi alterada e enviada para nova aprovação pelo gestor!");
                 } else {
                     await addDoc(dbFolgas, {
                         analistaId: meuAnalistaId,
                         nomeAnalista: meuRegistro.nome,
                         equipe: meuRegistro.equipe,
                         dataSolicitada: dataInput,
+                        plantaoOrigemId: plantaoOrigemId,
+                        plantaoOrigemData: plantaoObj.data,
                         status: 'pendente',
                         dataSolicitacao: new Date().toISOString()
                     });
                     document.getElementById('inputPedirFolga').value = '';
+                    document.getElementById('plantaoOrigem').value = '';
+                    alert("Solicitação enviada para aprovação!");
                 }
             } catch(e) { alert("Erro ao solicitar folga."); }
             loading.style.display = 'none';
@@ -928,7 +1017,7 @@
             const minhasFolgas = folgas.filter(f => f.analistaId === meuAnalistaId);
             
             if (minhasFolgas.length === 0) {
-                tbodyMinhas.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhuma solicitação feita.</td></tr>';
+                tbodyMinhas.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma solicitação feita.</td></tr>';
             } else {
                 minhasFolgas.forEach(f => {
                     const dataPed = f.dataSolicitacao.split('T')[0];
@@ -936,11 +1025,14 @@
                     if (f.status === 'pendente' || f.status === 'aprovada') {
                         btnTrocar = `
                             <div class="acoes-container">
-                                <button class="btn-icone" onclick="prepararTrocaFolga('${f.id}')" title="Trocar Data">${iconeTrocar}</button>
+                                <button class="btn-icone" onclick="prepararTrocaFolga('${f.id}')" title="Trocar Data / Editar">${iconeTrocar}</button>
                             </div>`;
                     }
 
+                    const plantaoRef = f.plantaoOrigemData ? formatarDataBR(f.plantaoOrigemData) : '-';
+
                     tbodyMinhas.innerHTML += `<tr>
+                        <td style="color: var(--text-muted); font-weight: bold;">${plantaoRef}</td>
                         <td><strong>${formatarDataBR(f.dataSolicitada)}</strong></td>
                         <td>${getStatusBadge(f.status)}</td>
                         <td style="font-size:12px; color: var(--text-muted);">${formatarDataBR(dataPed)}</td>
@@ -961,12 +1053,9 @@
                 }
                 
                 if (folgasAdmin.length === 0) {
-                    tbodyPendentes.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
+                    tbodyPendentes.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
                 } else {
                     folgasAdmin.forEach(f => {
-                        const analista = analistas.find(a => a.id === f.analistaId);
-                        const saldo = analista ? analista.saldo : '?';
-                        
                         let botoesAcao = '-';
                         if (f.status === 'pendente') {
                             botoesAcao = `
@@ -983,10 +1072,13 @@
                                 </div>
                             `;
                         }
+
+                        const plantaoRef = f.plantaoOrigemData ? formatarDataBR(f.plantaoOrigemData) : '-';
                         
                         tbodyPendentes.innerHTML += `<tr>
                             <td><strong>${f.equipe || '-'}</strong></td>
                             <td><strong>${f.nomeAnalista}</strong></td>
+                            <td style="color: var(--text-muted);">${plantaoRef}</td>
                             <td>${formatarDataBR(f.dataSolicitada)} <span style="font-size: 11px; color: var(--text-muted);">(${pegarNomeDiaSemana(f.dataSolicitada)})</span></td>
                             <td>${getStatusBadge(f.status)}</td>
                             <td>${botoesAcao}</td>
