@@ -6,7 +6,7 @@
     <link rel="icon" type="image/x-icon" href="controle-chamados.ico">
     <title>Gerenciador de Escala</title>
     <style>
-        /* Mesmas Variáveis de Cores do Controle de Chamados */
+        /* Variáveis de Cores */
         :root {
             --bg-color: #f4f4f4;
             --panel-bg: #fff;
@@ -36,7 +36,7 @@
             --warning-color: #ffb400;
         }
 
-        /* Estilos Gerais (Reaproveitados) */
+        /* Estilos Gerais */
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
@@ -148,7 +148,7 @@
         .grid-dias-bloqueados { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;}
         .grid-dias-bloqueados label { display: flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer;}
         
-        /* Ajuste fino de alinhamento para os formulários em linha */
+        /* Ajuste fino de alinhamento */
         .form-inline-container { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; }
     </style>
 </head>
@@ -211,10 +211,15 @@
         </div>
 
         <div class="painel">
-            <h2>Próximos Plantões da Equipe</h2>
+            <h2 style="display: flex; justify-content: space-between; align-items: center;">
+                Próximos Plantões
+                <select id="filtroVisaoEquipe" style="width: auto; font-size: 14px; padding: 6px 10px; font-weight: normal;" onchange="atualizarTabelaEscala()">
+                    <option value="todas">Todas as Equipes</option>
+                </select>
+            </h2>
             <div class="tabela-container">
                 <table>
-                    <thead><tr><th>Data</th><th>Dia da Semana</th><th>Analista Escalado</th><th class="admin-only">Ações</th></tr></thead>
+                    <thead><tr><th>Data</th><th>Dia da Semana</th><th>Equipe</th><th>Analista Escalado</th><th class="admin-only">Ações</th></tr></thead>
                     <tbody id="tabelaEscalaGeral"></tbody>
                 </table>
             </div>
@@ -224,26 +229,48 @@
             <h2>⚙️ Gestão de Escala (Apenas Admin)</h2>
             
             <div class="form-inline-container" style="background: var(--border-light); padding: 15px; border-radius: 8px; align-items: flex-end;">
-                <div class="campo" style="flex: 1; min-width: 150px;">
-                    <label>Mês de Referência</label>
+                <div class="campo" style="flex: 1; min-width: 120px;">
+                    <label>Equipe</label>
+                    <select id="equipeAlvoEscala">
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
+                <div class="campo" style="flex: 1; min-width: 140px;">
+                    <label>Mês de Ref.</label>
                     <input type="month" id="mesEscala">
                 </div>
-                <div class="campo" style="flex: 1; min-width: 150px;">
-                    <label>Dia Alvo para a Escala</label>
+                <div class="campo" style="flex: 1; min-width: 130px;">
+                    <label>Frequência</label>
+                    <select id="frequenciaEscala">
+                        <option value="all">Todos os...</option>
+                        <option value="1">1º do mês</option>
+                        <option value="2">2º do mês</option>
+                        <option value="3">3º do mês</option>
+                        <option value="4">4º do mês</option>
+                        <option value="last">Último do mês</option>
+                    </select>
+                </div>
+                <div class="campo" style="flex: 1; min-width: 120px;">
+                    <label>Dia</label>
                     <select id="diaAlvoEscala">
-                        <option value="6">Sábado</option>
                         <option value="0">Domingo</option>
+                        <option value="1">Segunda-feira</option>
+                        <option value="2">Terça-feira</option>
+                        <option value="3">Quarta-feira</option>
+                        <option value="4">Quinta-feira</option>
+                        <option value="5">Sexta-feira</option>
+                        <option value="6" selected>Sábado</option>
                     </select>
                 </div>
                 <div style="flex: none;">
-                    <button class="btn-acao" onclick="gerarEscalaAutomatica()" style="height: 42px; white-space: nowrap;">Gerar Escala Automática</button>
+                    <button class="btn-acao" onclick="gerarEscalaAutomatica()" style="height: 42px; white-space: nowrap;">Gerar Escala</button>
                 </div>
             </div>
 
             <h3 style="margin-top: 20px; font-size: 16px;">Aprovação de Folgas Pendentes</h3>
             <div class="tabela-container">
                 <table>
-                    <thead><tr><th>Analista</th><th>Data Solicitada</th><th>Saldo Atual</th><th>Ação</th></tr></thead>
+                    <thead><tr><th>Equipe</th><th>Analista</th><th>Data Solicitada</th><th>Saldo Atual</th><th>Ação</th></tr></thead>
                     <tbody id="tabelaFolgasPendentes"></tbody>
                 </table>
             </div>
@@ -255,15 +282,16 @@
             <div class="campo" style="margin-bottom: 20px;">
                 <label>Vincular E-mail ao Analista</label>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <input type="text" id="novoNomeAnalista" placeholder="Nome na Escala (Ex: João)" style="flex: 1; min-width: 180px;">
-                    <input type="email" id="novoEmailAnalista" placeholder="E-mail Google" style="flex: 1; min-width: 180px;">
+                    <input type="text" id="novoNomeAnalista" placeholder="Nome (Ex: João)" style="flex: 1; min-width: 140px;">
+                    <input type="email" id="novoEmailAnalista" placeholder="E-mail Google" style="flex: 1; min-width: 160px;">
+                    <input type="text" id="novaEquipeAnalista" placeholder="Equipe (Ex: N1, Infra)" style="flex: 1; min-width: 140px;">
                     <button class="btn-secundario" onclick="vincularAnalista()" style="height: 42px; flex: none;">Adicionar</button>
                 </div>
             </div>
             
             <div class="tabela-container" style="margin-bottom: 30px;">
                 <table>
-                    <thead><tr><th>Analista</th><th>E-mail Vinculado</th><th>Plantões Feitos</th><th>Ação</th></tr></thead>
+                    <thead><tr><th>Analista</th><th>E-mail</th><th>Equipe</th><th>Plantões Feitos</th><th>Ação</th></tr></thead>
                     <tbody id="tabelaAnalistasCadastrados"></tbody>
                 </table>
             </div>
@@ -284,12 +312,15 @@
                     <button class="btn-secundario" style="margin-top: 10px; width: fit-content;" onclick="salvarConfigDias()">Salvar Dias Regra</button>
                 </div>
                 <div class="campo">
-                    <label>Bloquear Data Específica (Feriados, etc):</label>
+                    <label>Bloquear Data Específica ou Período:</label>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <input type="date" id="dataBloqueioEspecifica" style="flex: 1; min-width: 150px;">
+                        <input type="date" id="dataBloqueioInicio" style="flex: 1; min-width: 130px;" title="Data Inicial">
+                        <span style="display:flex; align-items:center; color: var(--text-muted);">até</span>
+                        <input type="date" id="dataBloqueioFim" style="flex: 1; min-width: 130px;" title="Data Final (Opcional)">
                         <button class="btn-secundario" onclick="adicionarDataBloqueada()" style="height: 42px; flex: none;">Bloquear</button>
                     </div>
-                    <div id="listaDatasBloqueadas" style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;"></div>
+                    <small style="color: var(--text-muted); margin-top: 5px;">* Deixe a segunda data em branco para bloquear apenas um dia específico.</small>
+                    <div id="listaDatasBloqueadas" style="margin-top: 15px; display: flex; gap: 5px; flex-wrap: wrap;"></div>
                 </div>
             </div>
         </div>
@@ -345,6 +376,7 @@
         window.salvarConfigDias = salvarConfigDias;
         window.adicionarDataBloqueada = adicionarDataBloqueada;
         window.removerDataBloqueada = removerDataBloqueada;
+        window.atualizarTabelaEscala = atualizarTabelaEscala;
 
         // --- AUTH ---
         onAuthStateChanged(auth, async (user) => {
@@ -390,11 +422,10 @@
             // Escutar Analistas
             onSnapshot(dbAnalistas, (snap) => {
                 analistas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                
-                // Descobrir qual é o meu ID
                 const meuRegistro = analistas.find(a => a.email === userEmail);
                 meuAnalistaId = meuRegistro ? meuRegistro.id : null;
                 
+                atualizarSelectsEquipe();
                 atualizarTabelaAnalistas();
                 calcularSaldos();
             });
@@ -416,14 +447,11 @@
         }
 
         // --- LÓGICA DE NEGÓCIO ---
-
         function calcularSaldos() {
             if (!meuAnalistaId && !isAdmin) return;
 
             analistas.forEach(analista => {
-                // Quantos plantões a pessoa já fez (ou está escalada)
                 const qtdPlantoes = plantoes.filter(p => p.analistaId === analista.id).length;
-                // Quantas folgas já foram APROVADAS
                 const qtdFolgasAprovadas = folgas.filter(f => f.analistaId === analista.id && f.status === 'aprovada').length;
                 
                 analista.saldo = qtdPlantoes - qtdFolgasAprovadas;
@@ -438,16 +466,35 @@
             if (isAdmin) atualizarTabelaAnalistas();
         }
 
+        function atualizarSelectsEquipe() {
+            const equipesUnicas = [...new Set(analistas.map(a => a.equipe).filter(Boolean))].sort();
+            
+            const selectGerar = document.getElementById('equipeAlvoEscala');
+            selectGerar.innerHTML = equipesUnicas.length > 0 
+                ? equipesUnicas.map(eq => `<option value="${eq}">${eq}</option>`).join('')
+                : '<option value="">Sem equipes</option>';
+
+            const selectFiltro = document.getElementById('filtroVisaoEquipe');
+            const valorAtual = selectFiltro.value;
+            selectFiltro.innerHTML = '<option value="todas">Todas as Equipes</option>' + 
+                equipesUnicas.map(eq => `<option value="${eq}">${eq}</option>`).join('');
+            
+            if (equipesUnicas.includes(valorAtual)) selectFiltro.value = valorAtual;
+        }
+
         // --- GESTÃO DE ANALISTAS ---
         async function vincularAnalista() {
             const nome = document.getElementById('novoNomeAnalista').value.trim();
             const email = document.getElementById('novoEmailAnalista').value.trim().toLowerCase();
-            if (!nome || !email) return alert("Preencha nome e e-mail.");
+            const equipe = document.getElementById('novaEquipeAnalista').value.trim();
+            
+            if (!nome || !email || !equipe) return alert("Preencha nome, e-mail e equipe.");
             
             try {
-                await addDoc(dbAnalistas, { nome, email, dataCadastro: new Date().toISOString() });
+                await addDoc(dbAnalistas, { nome, email, equipe, dataCadastro: new Date().toISOString() });
                 document.getElementById('novoNomeAnalista').value = '';
                 document.getElementById('novoEmailAnalista').value = '';
+                document.getElementById('novaEquipeAnalista').value = '';
             } catch(e) { alert("Erro ao salvar analista."); }
         }
 
@@ -464,51 +511,64 @@
                 tbody.innerHTML += `<tr>
                     <td>${a.nome}</td>
                     <td>${a.email}</td>
+                    <td><strong>${a.equipe || '-'}</strong></td>
                     <td>${a.totalPlantoes || 0}</td>
                     <td><button class="btn-secundario" style="padding: 4px 8px; color: var(--danger-color); border-color: var(--danger-color);" onclick="removerAnalista('${a.id}')">Excluir</button></td>
                 </tr>`;
             });
         }
 
-        // --- ESCALA AUTOMÁTICA ---
+        // --- ESCALA AUTOMÁTICA INTELIGENTE ---
         async function gerarEscalaAutomatica() {
             const mesInput = document.getElementById('mesEscala').value;
+            const frequencia = document.getElementById('frequenciaEscala').value;
             const diaAlvo = parseInt(document.getElementById('diaAlvoEscala').value);
+            const equipeAlvo = document.getElementById('equipeAlvoEscala').value;
             
-            if (!mesInput) return alert("Selecione o mês.");
-            if (analistas.length === 0) return alert("Cadastre analistas primeiro.");
+            if (!mesInput) return alert("Selecione o mês de referência.");
+            if (!equipeAlvo) return alert("Selecione uma equipe.");
+
+            let analistasSorteio = analistas.filter(a => a.equipe === equipeAlvo);
+            if (analistasSorteio.length === 0) return alert("Nenhum analista cadastrado nesta equipe.");
 
             loading.style.display = 'flex';
             const [ano, mes] = mesInput.split('-');
-            const datasDoMes = [];
+            const datasEncontradas = [];
             
-            // Descobrir todos os dias do mês que caem no diaAlvo (ex: todos os sábados)
+            // 1. Descobre todos os dias do mês que caem no Dia da Semana escolhido
             let dataCursor = new Date(ano, parseInt(mes) - 1, 1);
             while (dataCursor.getMonth() === parseInt(mes) - 1) {
                 if (dataCursor.getDay() === diaAlvo) {
-                    // Formato YYYY-MM-DD
                     const diaF = String(dataCursor.getDate()).padStart(2, '0');
-                    datasDoMes.push(`${ano}-${mes}-${diaF}`);
+                    datasEncontradas.push(`${ano}-${mes}-${diaF}`);
                 }
                 dataCursor.setDate(dataCursor.getDate() + 1);
             }
 
-            // Filtrar as datas que JÁ TEM alguém escalado para não sobrepor
-            const datasSemEscala = datasDoMes.filter(d => !plantoes.some(p => p.data === d));
+            // 2. Aplica o filtro de "Frequência" (Todos, 1º, 2º, etc)
+            let datasParaEscalar = [];
+            if (frequencia === 'all') {
+                datasParaEscalar = datasEncontradas;
+            } else if (frequencia === 'last') {
+                if(datasEncontradas.length > 0) datasParaEscalar.push(datasEncontradas[datasEncontradas.length - 1]);
+            } else {
+                const index = parseInt(frequencia) - 1;
+                if(datasEncontradas.length > index) {
+                    datasParaEscalar.push(datasEncontradas[index]);
+                }
+            }
+
+            // 3. Remove datas que já tem algum plantão salvo (independente da equipe, para não haver choque, ou você prefere separar total? Separei total por data e equipe abaixo)
+            const datasSemEscala = datasParaEscalar.filter(d => !plantoes.some(p => p.data === d && p.equipe === equipeAlvo));
             
             if (datasSemEscala.length === 0) {
                 loading.style.display = 'none';
-                return alert("Todos os dias alvo deste mês já possuem escala gerada.");
+                return alert("A(s) data(s) selecionada(s) com essa regra não existe(m) ou a equipe já possui plantão gerado neste dia.");
             }
 
-            // Copia a lista de analistas para ordenar
-            let analistasSorteio = [...analistas];
-
             for (const dataPlantao of datasSemEscala) {
-                // Algoritmo de Justiça: Ordena quem tem MENOS plantões totais primeiro
+                // Algoritmo de Justiça: Analista da Equipe com MENOS plantões vai para o topo
                 analistasSorteio.sort((a, b) => (a.totalPlantoes || 0) - (b.totalPlantoes || 0));
-                
-                // Pega o analista do topo (o que tem menos plantões)
                 const analistaEscolhido = analistasSorteio[0];
 
                 try {
@@ -516,20 +576,20 @@
                         data: dataPlantao,
                         analistaId: analistaEscolhido.id,
                         nomeAnalista: analistaEscolhido.nome,
+                        equipe: equipeAlvo,
                         geradoAutomaticamente: true,
                         criadoPor: userEmail
                     });
-                    // Atualiza localmente para a próxima rodada do loop ser justa
                     analistaEscolhido.totalPlantoes = (analistaEscolhido.totalPlantoes || 0) + 1;
                 } catch(e) { console.error("Erro ao inserir plantão:", e); }
             }
 
             loading.style.display = 'none';
-            alert("Escala gerada com sucesso!");
+            alert(`Sucesso! Foram gerados ${datasSemEscala.length} plantão(ões) para a equipe ${equipeAlvo}.`);
         }
 
         async function removerPlantao(id) {
-            if(confirm("Remover este plantão da escala? (Você precisará escalar alguém manualmente depois)")) {
+            if(confirm("Remover este plantão da escala? (O saldo do analista será corrigido automaticamente)")) {
                 await deleteDoc(doc(db, "escala_plantoes", id));
             }
         }
@@ -550,20 +610,23 @@
             const tbody = document.getElementById('tabelaEscalaGeral');
             tbody.innerHTML = '';
             
-            // Mostrar apenas plantões do dia atual para frente
             const hojeISO = new Date().toISOString().split('T')[0];
-            const plantoesFuturos = plantoes.filter(p => p.data >= hojeISO);
+            const filtroEquipe = document.getElementById('filtroVisaoEquipe').value;
 
-            if (plantoesFuturos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhuma escala futura.</td></tr>';
+            // Filtra por data e pela equipe selecionada no Dropdown do título
+            const plantoesFiltrados = plantoes.filter(p => p.data >= hojeISO && (filtroEquipe === 'todas' || p.equipe === filtroEquipe));
+
+            if (plantoesFiltrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma escala encontrada.</td></tr>';
                 return;
             }
 
-            plantoesFuturos.forEach(p => {
+            plantoesFiltrados.forEach(p => {
                 const btnRemover = isAdmin ? `<button class="btn-secundario" style="padding: 4px; font-size: 12px; color: var(--danger-color); border-color: var(--danger-color);" onclick="removerPlantao('${p.id}')">Excluir</button>` : '';
                 tbody.innerHTML += `<tr>
                     <td><strong>${formatarDataBR(p.data)}</strong></td>
                     <td>${pegarNomeDiaSemana(p.data)}</td>
+                    <td style="color: var(--text-muted); font-weight: bold;">${p.equipe || '-'}</td>
                     <td style="color: var(--claro-red); font-weight: bold;">${p.nomeAnalista}</td>
                     <td class="admin-only">${btnRemover}</td>
                 </tr>`;
@@ -582,7 +645,6 @@
             const dataInput = document.getElementById('inputPedirFolga').value;
             if (!dataInput) return alert("Selecione a data.");
 
-            // Validação de Regras (Dias bloqueados)
             const [ano, mes, dia] = dataInput.split('-');
             const dateObj = new Date(ano, mes - 1, dia);
             const diaSemana = dateObj.getDay().toString();
@@ -594,7 +656,6 @@
                 return alert("Esta data específica foi bloqueada para folgas pelo administrador.");
             }
 
-            // Verifica se já pediu pra esse dia
             const jaPediu = folgas.find(f => f.analistaId === meuAnalistaId && f.dataSolicitada === dataInput && f.status !== 'recusada');
             if (jaPediu) return alert("Você já tem uma solicitação pendente ou aprovada para esta data.");
 
@@ -603,6 +664,7 @@
                 await addDoc(dbFolgas, {
                     analistaId: meuAnalistaId,
                     nomeAnalista: meuRegistro.nome,
+                    equipe: meuRegistro.equipe,
                     dataSolicitada: dataInput,
                     status: 'pendente',
                     dataSolicitacao: new Date().toISOString()
@@ -614,7 +676,6 @@
         }
 
         function atualizarTabelasFolgas() {
-            // Tabela do Usuário (Minhas Folgas)
             const tbodyMinhas = document.getElementById('tabelaMinhasFolgas');
             tbodyMinhas.innerHTML = '';
             const minhasFolgas = folgas.filter(f => f.analistaId === meuAnalistaId);
@@ -633,20 +694,20 @@
                 });
             }
 
-            // Tabela Admin (Folgas Pendentes)
             if (isAdmin) {
                 const tbodyPendentes = document.getElementById('tabelaFolgasPendentes');
                 tbodyPendentes.innerHTML = '';
                 const pendentes = folgas.filter(f => f.status === 'pendente');
                 
                 if (pendentes.length === 0) {
-                    tbodyPendentes.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhuma pendência.</td></tr>';
+                    tbodyPendentes.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma pendência.</td></tr>';
                 } else {
                     pendentes.forEach(f => {
                         const analista = analistas.find(a => a.id === f.analistaId);
                         const saldo = analista ? analista.saldo : '?';
                         
                         tbodyPendentes.innerHTML += `<tr>
+                            <td><strong>${f.equipe || '-'}</strong></td>
                             <td><strong>${f.nomeAnalista}</strong></td>
                             <td>${formatarDataBR(f.dataSolicitada)} (${pegarNomeDiaSemana(f.dataSolicitada)})</td>
                             <td>${saldo} folgas disp.</td>
@@ -674,19 +735,17 @@
 
         // --- CONFIGURAÇÕES DE BLOQUEIO ---
         function atualizarUIConfig() {
-            // Atualizar Checkboxes
             document.querySelectorAll('.chk-dia').forEach(chk => {
                 chk.checked = configSistema.diasBloqueados.includes(chk.value);
             });
 
-            // Atualizar lista de datas específicas
             const divDatas = document.getElementById('listaDatasBloqueadas');
             divDatas.innerHTML = '';
             if(configSistema.datasBloqueadas) {
                 configSistema.datasBloqueadas.sort().forEach(d => {
-                    divDatas.innerHTML += `<span style="background: var(--border-color); padding: 4px 8px; border-radius: 12px; font-size: 12px; display: flex; align-items: center; gap: 5px;">
+                    divDatas.innerHTML += `<span style="background: var(--border-color); padding: 6px 10px; border-radius: 12px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
                         ${formatarDataBR(d)}
-                        <span style="cursor:pointer; color: var(--danger-color); font-weight: bold;" onclick="removerDataBloqueada('${d}')">x</span>
+                        <span style="cursor:pointer; color: var(--danger-color); font-weight: bold; font-size: 14px;" onclick="removerDataBloqueada('${d}')" title="Desbloquear data">✕</span>
                     </span>`;
                 });
             }
@@ -706,13 +765,42 @@
         }
 
         function adicionarDataBloqueada() {
-            const dt = document.getElementById('dataBloqueioEspecifica').value;
-            if(!dt) return;
-            if(configSistema.datasBloqueadas.includes(dt)) return;
+            const dtInicio = document.getElementById('dataBloqueioInicio').value;
+            const dtFim = document.getElementById('dataBloqueioFim').value;
             
-            configSistema.datasBloqueadas.push(dt);
-            salvarConfigFirestore(configSistema);
-            document.getElementById('dataBloqueioEspecifica').value = '';
+            if(!dtInicio) return alert("Selecione pelo menos a primeira data.");
+
+            let datasParaAdicionar = [];
+            
+            if (dtFim && dtFim >= dtInicio) {
+                let dataCursor = new Date(dtInicio + 'T12:00:00');
+                let dataFinal = new Date(dtFim + 'T12:00:00');
+                
+                while(dataCursor <= dataFinal) {
+                    const iso = dataCursor.toISOString().split('T')[0];
+                    datasParaAdicionar.push(iso);
+                    dataCursor.setDate(dataCursor.getDate() + 1);
+                }
+            } else {
+                datasParaAdicionar.push(dtInicio);
+            }
+
+            let adicionouAlguma = false;
+            datasParaAdicionar.forEach(dt => {
+                if(!configSistema.datasBloqueadas.includes(dt)) {
+                    configSistema.datasBloqueadas.push(dt);
+                    adicionouAlguma = true;
+                }
+            });
+            
+            if(adicionouAlguma) {
+                salvarConfigFirestore(configSistema);
+            } else {
+                alert("Esta(s) data(s) já estava(m) na lista de bloqueio.");
+            }
+            
+            document.getElementById('dataBloqueioInicio').value = '';
+            document.getElementById('dataBloqueioFim').value = '';
         }
 
         function removerDataBloqueada(dt) {
