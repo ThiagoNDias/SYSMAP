@@ -483,6 +483,7 @@
         window.solicitarFolga = solicitarFolga;
         window.prepararTrocaFolga = prepararTrocaFolga;
         window.cancelarTrocaFolga = cancelarTrocaFolga;
+        window.removerMinhaFolga = removerMinhaFolga; // NOVA: Excluir/Cancelar pedido de folga
         window.salvarAnalista = salvarAnalista;
         window.prepararEdicaoAnalista = prepararEdicaoAnalista;
         window.cancelarEdicaoAnalista = cancelarEdicaoAnalista;
@@ -802,9 +803,28 @@
             alert(`Sucesso! Foram gerados ${datasSemEscala.length} plantão(ões) para a equipe ${equipeAlvo}.`);
         }
 
+        // EXCLUSÃO EM CASCATA
         async function removerPlantao(id) {
-            if(confirm("Remover este plantão da escala? (O saldo do analista será corrigido automaticamente)")) {
-                await deleteDoc(doc(db, "escala_plantoes", id));
+            if(confirm("Remover este plantão da escala?\n\nATENÇÃO: Qualquer pedido de folga (pendente ou aprovado) atrelado a este plantão será CANCELADO AUTOMATICAMENTE, e o saldo de folgas do analista será recalculado.")) {
+                loading.style.display = 'flex';
+                try {
+                    // Excluir folgas associadas a este plantão
+                    const qFolgas = query(dbFolgas, where("plantaoOrigemId", "==", id));
+                    const snapFolgas = await getDocs(qFolgas);
+                    
+                    const deletePromises = [];
+                    snapFolgas.forEach((docSnap) => {
+                        deletePromises.push(deleteDoc(doc(db, "escala_folgas", docSnap.id)));
+                    });
+                    await Promise.all(deletePromises);
+
+                    // Excluir plantão
+                    await deleteDoc(doc(db, "escala_plantoes", id));
+                } catch(e) {
+                    console.error("Erro ao remover plantão e folgas associadas: ", e);
+                    alert("Erro ao remover plantão.");
+                }
+                loading.style.display = 'none';
             }
         }
 
@@ -990,6 +1010,21 @@
             atualizarOpcoesPlantaoOrigem();
         }
 
+        // CANCELAR / REMOVER FOLGA DO ANALISTA
+        async function removerMinhaFolga(idFolga) {
+            const folgaTarget = folgas.find(f => f.id === idFolga);
+            if(!folgaTarget) return;
+
+            if(confirm("Tem certeza que deseja cancelar este pedido de folga?")) {
+                loading.style.display = 'flex';
+                try {
+                    await deleteDoc(doc(db, "escala_folgas", idFolga));
+                    if(idFolgaEmEdicao === idFolga) cancelarTrocaFolga();
+                } catch(e) { alert("Erro ao cancelar o pedido de folga."); }
+                loading.style.display = 'none';
+            }
+        }
+
         async function solicitarFolga() {
             if (!meuAnalistaId) return alert("Seu e-mail não está vinculado a um analista. Fale com o Administrador.");
             
@@ -1029,8 +1064,8 @@
 
             const plantaoObj = plantoes.find(p => p.id === plantaoOrigemId);
 
-            if (dataInput < plantaoObj.data) {
-                const proceed = confirm(`A data solicitada (${formatarDataBR(dataInput)}) é anterior ao plantão selecionado (${formatarDataBR(plantaoObj.data)}).\n\nNormalmente, a folga só pode ser tirada após o plantão. Deseja enviar o pedido para análise do administrador mesmo assim?`);
+            if (dataInput <= plantaoObj.data) {
+                const proceed = confirm(`A data solicitada (${formatarDataBR(dataInput)}) é igual ou anterior ao plantão selecionado (${formatarDataBR(plantaoObj.data)}).\n\nNormalmente, a folga só pode ser tirada após o plantão. Deseja enviar o pedido para análise do administrador mesmo assim?`);
                 if (!proceed) return;
             }
 
@@ -1076,11 +1111,13 @@
             } else {
                 minhasFolgas.forEach(f => {
                     const dataPed = f.dataSolicitacao.split('T')[0];
-                    let btnTrocar = '-';
-                    if (f.status === 'pendente' || f.status === 'aprovada') {
-                        btnTrocar = `
+                    let botoesAcao = '-';
+                    
+                    if (f.status !== 'usufruida') {
+                        botoesAcao = `
                             <div class="acoes-container">
                                 <button class="btn-icone" onclick="prepararTrocaFolga('${f.id}')" title="Trocar Data / Editar">${iconeTrocar}</button>
+                                <button class="btn-icone" onclick="removerMinhaFolga('${f.id}')" title="Cancelar e Excluir Pedido">${iconeExcluir}</button>
                             </div>`;
                     }
 
@@ -1091,7 +1128,7 @@
                         <td><strong>${formatarDataBR(f.dataSolicitada)}</strong></td>
                         <td>${getStatusBadge(f.status)}</td>
                         <td style="font-size:12px; color: var(--text-muted);">${formatarDataBR(dataPed)}</td>
-                        <td>${btnTrocar}</td>
+                        <td>${botoesAcao}</td>
                     </tr>`;
                 });
             }
