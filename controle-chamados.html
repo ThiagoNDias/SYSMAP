@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="controle-chamados.ico">
-    <title>Controle de Chamados</title>
+    <title>Gerenciador de Escala</title>
     <style>
         /* Variáveis de Cores */
         :root {
@@ -18,12 +18,9 @@
             --claro-red: #da291c;
             --claro-red-dark: #b81f15;
             --danger-color: #dc3545;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
             --edit-color: #0056b3;
-            --excel-color: #107c41;
-            --teams-color: #464eb8;
-            --bug-color: #6c757d;
-            --import-color: #fd7e14;
-            --template-color: #17a2b8;
         }
 
         body.dark-mode {
@@ -35,11 +32,8 @@
             --border-light: #333;
             --input-bg: #2c2c2c;
             --edit-color: #4da3ff;
-            --excel-color: #21a555;
-            --teams-color: #7b83eb;
-            --bug-color: #adb5bd;
-            --import-color: #ff983f;
-            --template-color: #3bc8dd;
+            --success-color: #21a555;
+            --warning-color: #ffb400;
         }
 
         /* Estilos Gerais */
@@ -56,719 +50,128 @@
 
         /* Tela de Login */
         #telaLogin {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-color);
-            z-index: 3000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color); z-index: 3000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
 
         .login-box {
-            background: var(--panel-bg);
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            text-align: center;
+            background: var(--panel-bg); padding: 40px; border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); text-align: center;
             border-top: 5px solid var(--claro-red);
         }
 
         .btn-google {
-            background-color: #4285f4;
-            color: #fff;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 20px;
+            background-color: #4285f4; color: #fff; border: none; padding: 12px 24px;
+            border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; gap: 10px; margin-top: 20px;
         }
 
-        .btn-google:hover {
-            background-color: #357ae8;
-        }
+        .btn-google:hover { background-color: #357ae8; }
 
         /* NAVBAR PRINCIPAL */
         .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--panel-bg);
-            padding: 15px 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
-            border-top: 4px solid var(--claro-red);
-            flex-wrap: wrap;
-            gap: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--panel-bg); padding: 15px 25px; border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 25px;
+            border-top: 4px solid var(--claro-red); flex-wrap: wrap; gap: 15px;
         }
 
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .titulo-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo-titulo {
-            height: 32px;
-            width: auto;
-            border-radius: 4px;
-        }
-
-        .navbar-brand h1 {
-            margin: 0;
-            font-size: 22px;
-            color: var(--claro-red);
-            text-align: left;
-        }
+        .titulo-container { display: flex; align-items: center; gap: 10px; }
+        .navbar h1 { margin: 0; font-size: 22px; color: var(--claro-red); }
 
         .nav-links {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            border-left: 2px solid var(--border-light);
-            padding-left: 15px;
+            display: flex; gap: 15px; align-items: center;
+            border-left: 2px solid var(--border-light); padding-left: 15px;
         }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; }
+        .nav-links a:hover { color: var(--claro-red); text-decoration: underline; }
 
-        .nav-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 13px;
-            transition: color 0.3s;
-            font-weight: 500;
-        }
+        .user-info-container { display: flex; align-items: center; gap: 15px; }
+        .user-info { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--claro-red); }
+        .btn-logout { background: transparent; border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
 
-        .nav-links a:hover {
-            color: var(--claro-red);
-            text-decoration: underline;
-        }
-
-        .user-info-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-        }
-
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid var(--claro-red);
-        }
-
-        .btn-logout {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .btn-logout:hover {
-            background: var(--border-light);
-        }
-
-        /* Botões Flutuantes */
-        .btn-flutuante {
-            position: fixed;
-            bottom: 25px;
-            z-index: 1000;
-            background-color: var(--panel-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 10px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-        }
-
-        .btn-flutuante:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-        }
-
-        #btnTema { left: 25px; }
-        #btnReportBug {
-            right: 25px;
-            border-color: var(--bug-color);
-            color: var(--bug-color);
-        }
-
-        #btnReportBug:hover {
-            background-color: var(--bug-color);
-            color: #fff;
-        }
-
-        h2 {
-            color: var(--claro-red);
-            border-bottom: 2px solid var(--border-light);
-            padding-bottom: 10px;
-            margin-top: 0;
-            font-size: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .cabecalho-painel {
-            border-bottom: 2px solid var(--border-light);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-            display: flex;
-        }
-
-        .seletor-visao {
-            display: flex;
-            gap: 5px;
-            background-color: var(--border-light);
-            padding: 4px;
-            border-radius: 6px;
-        }
-
-        .btn-visao {
-            background-color: transparent;
-            color: var(--text-muted);
-            border: none;
-            padding: 6px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-
-        .btn-visao:hover {
-            color: var(--text-color);
-        }
-
-        .btn-visao.ativo {
-            background-color: var(--panel-bg);
-            color: var(--claro-red);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
+        /* Painéis e Formulários */
         .painel {
-            background: var(--panel-bg);
-            padding: 25px;
-            border-radius: 8px;
-            border-top: 4px solid var(--claro-red);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: var(--panel-bg); padding: 25px; border-radius: 8px;
+            border-top: 4px solid var(--claro-red); box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-bottom: 25px;
-            transition: background-color 0.3s;
         }
 
-        .linha-formulario {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
+        h2 { color: var(--claro-red); border-bottom: 2px solid var(--border-light); padding-bottom: 10px; margin-top: 0; font-size: 18px; }
 
-        .campo {
-            flex: 1;
-            min-width: 200px;
-            display: flex;
-            flex-direction: column;
-        }
+        .linha-formulario { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .campo { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
+        label { margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--text-muted); }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--input-bg); color: var(--text-color); font-family: inherit; box-sizing: border-box; }
+        input:focus, select:focus { outline: none; border-color: var(--claro-red); }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--text-muted);
+        button.btn-acao {
+            background-color: var(--claro-red); color: #fff; border: none; padding: 10px 20px;
+            border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s;
         }
-
-        input, select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            box-sizing: border-box;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
-            font-family: inherit;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--claro-red);
-        }
-
-        .container-custom-date {
-            display: none;
-            margin-top: 8px;
-            align-items: center;
-            gap: 8px;
-            background-color: var(--border-light);
-            padding: 8px;
-            border-radius: 4px;
-        }
-
-        .container-custom-date input {
-            padding: 6px 8px;
-            font-size: 13px;
-        }
-
-        .container-custom-date span {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: bold;
-        }
-
-        .grupo-botoes {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        button { font-family: inherit; }
-
-        button.btn-salvar {
-            background-color: var(--claro-red);
-            color: #fff;
-            border: none;
-            padding: 12px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            flex: 1;
-            transition: background-color 0.3s;
-        }
-
-        button.btn-salvar:hover {
-            background-color: var(--claro-red-dark);
-        }
-
-        button.btn-cancelar {
-            background-color: transparent;
-            color: var(--text-color);
-            border: 2px solid var(--border-color);
-            padding: 12px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            flex: 1;
-            transition: background-color 0.3s;
-        }
-
-        button.btn-cancelar:hover {
-            background-color: var(--border-light);
-        }
-
-        .btn-acao-icone {
-            background-color: transparent;
-            padding: 0;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-            height: 42px;
-            width: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .btn-filtro {
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-filtro:hover, .btn-filtro.ativo {
-            background-color: var(--border-light);
-            border-color: var(--text-color);
-        }
-
-        .btn-colunas {
-            color: var(--edit-color);
-            border: 1px solid var(--edit-color);
-        }
-
-        .btn-colunas:hover, .btn-colunas.ativo {
-            background-color: var(--edit-color);
-            color: #fff;
-        }
-
-        .btn-exportar {
-            color: var(--excel-color);
-            border: 1px solid var(--excel-color);
-        }
-
-        .btn-exportar:hover {
-            background-color: var(--excel-color);
-            color: #fff;
-        }
-
-        .btn-teams {
-            color: var(--teams-color);
-            border: 1px solid var(--teams-color);
-        }
-
-        .btn-teams:hover {
-            background-color: var(--teams-color);
-            color: #fff;
-        }
+        button.btn-acao:hover { background-color: var(--claro-red-dark); }
         
-        .btn-importar {
-            color: var(--import-color);
-            border: 1px solid var(--import-color);
+        button.btn-secundario {
+            background-color: transparent; color: var(--text-color); border: 1px solid var(--border-color);
+            padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; box-sizing: border-box;
         }
+        button.btn-secundario:hover { background-color: var(--border-light); }
 
-        .btn-importar:hover {
-            background-color: var(--import-color);
-            color: #fff;
-        }
-
-        .btn-modelo {
-            color: var(--template-color);
-            border: 1px solid var(--template-color);
-        }
-
-        .btn-modelo:hover {
-            background-color: var(--template-color);
-            color: #fff;
-        }
-
-        .painel-expansivel {
-            background-color: var(--bg-color);
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid var(--border-light);
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .grid-colunas {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .grid-colunas label {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 0;
-            cursor: pointer;
-            font-weight: normal;
-        }
-
-        .tabela-resumo {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        .tabela-resumo th {
-            background-color: var(--border-light);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            text-align: center;
-        }
-
-        .tabela-resumo td {
-            border: 1px solid var(--border-color);
-            text-align: center;
-        }
-
-        .tabela-resumo td:first-child {
-            text-align: left;
-        }
-
-        body.dark-mode .tabela-resumo th {
-            background-color: #2c2c2c;
-        }
-
-        .btn-icone {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 4px;
-            transition: transform 0.2s, background-color 0.2s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-icone:hover {
-            transform: scale(1.1);
-            background-color: var(--border-light);
-        }
-
-        .icone-editar { color: var(--edit-color); }
-        .icone-excluir { color: var(--danger-color); }
-
-        .link-chamado {
-            color: var(--claro-red);
-            text-decoration: none;
-            font-size: 15px;
-            transition: color 0.3s;
-        }
-
-        .link-chamado:hover {
-            color: var(--claro-red-dark);
-            text-decoration: underline;
-        }
-
-        body.dark-mode .link-chamado { color: #ff6b6b; }
-        body.dark-mode .link-chamado:hover { color: #ff8787; }
-
-        .status-aberto { color: var(--claro-red); font-weight: bold; }
-        body.dark-mode .status-aberto { color: #ff6b6b; }
-
-        .sla-vencido { color: var(--claro-red); font-weight: bold; }
-        body.dark-mode .sla-vencido { color: #ff6b6b; }
-
-        .tabela-container { overflow-x: auto; }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: var(--panel-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-light);
-        }
-
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            font-size: 14px;
-            border-bottom: 1px solid var(--border-light);
-            vertical-align: middle;
-        }
-
-        /* ESTILOS PARA ORDENAÇÃO */
-        th {
-            background-color: var(--claro-red);
-            color: #fff;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 13px;
-            white-space: nowrap;
-        }
-
-        th.sortable {
-            cursor: pointer;
-            user-select: none;
-            position: relative;
-            padding-right: 25px;
-        }
-
-        th.sortable:hover {
-            background-color: var(--claro-red-dark);
-        }
-
-        .sort-icon {
-            font-size: 10px;
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            opacity: 0.5;
-        }
-
-        .sort-icon.active {
-            opacity: 1;
-            font-weight: bold;
-            font-size: 12px;
-        }
-
+        /* Tabelas */
+        .tabela-container { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--border-light); border-radius: 8px; }
+        th { background-color: var(--claro-red); color: #fff; padding: 12px 15px; text-align: left; font-size: 13px; text-transform: uppercase; }
+        td { padding: 12px 15px; border-bottom: 1px solid var(--border-light); font-size: 14px; }
         tr:last-child td { border-bottom: none; }
 
-        .acoes-container {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
+        /* Badges de Status */
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; color: white; text-align: center; display: inline-block;}
+        .bg-pendente { background-color: var(--warning-color); color: #000; }
+        .bg-aprovado { background-color: var(--success-color); }
+        .bg-recusado { background-color: var(--danger-color); }
 
-        .mensagem-vazia {
-            text-align: center;
-            color: var(--text-muted);
-            font-style: italic;
-            padding: 30px;
-        }
-
-        .sem-permissao {
-            color: var(--text-muted);
-            font-size: 12px;
-            font-style: italic;
-        }
-
-        .paginacao-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-            padding: 10px 0;
-            border-top: 1px solid var(--border-light);
-        }
-
-        .itens-por-pagina {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-        }
-
-        .itens-por-pagina select {
-            width: auto;
-            padding: 6px 10px;
-        }
-
-        .botoes-paginacao {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .btn-pagina {
-            background-color: var(--panel-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-
-        .btn-pagina:hover:not(:disabled) {
-            background-color: var(--border-light);
-        }
-
-        .btn-pagina:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .info-paginacao {
-            font-size: 14px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        #loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
+        /* Controle de Visibilidade */
+        .admin-only { display: none; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 20px; font-weight: bold; }
         #appContent { display: none; }
         
-        .contador-painel {
-            display: flex;
-            gap: 15px;
-            font-size: 14px;
-            background: var(--border-light);
-            padding: 6px 15px;
-            border-radius: 6px;
-            border-left: 4px solid var(--claro-red);
+        .card-saldo {
+            background: var(--border-light); padding: 15px; border-radius: 8px;
+            border-left: 5px solid var(--edit-color); margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        
-        .contador-item {
-            cursor: pointer;
-            transition: all 0.2s;
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid transparent;
-        }
-        
-        .contador-item:hover {
-            transform: scale(1.05);
-        }
+        .card-saldo h3 { margin: 0; font-size: 16px; color: var(--text-color); }
+        .card-saldo span { font-size: 24px; font-weight: bold; color: var(--edit-color); }
 
-        .contador-item.ativo {
-            background-color: rgba(218, 41, 28, 0.1);
-            border-color: var(--claro-red);
-        }
-        body.dark-mode .contador-item.ativo {
-            background-color: rgba(255, 107, 107, 0.15);
-            border-color: #ff6b6b;
-        }
+        .grid-dias-bloqueados { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;}
+        .grid-dias-bloqueados label { display: flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer;}
+        
+        /* Ajuste fino de alinhamento */
+        .form-inline-container { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; }
     </style>
 </head>
-<body class="dark-mode"> 
+<body class="dark-mode">
 
     <div id="loading">Conectando...</div>
 
-    <button id="btnTema" class="btn-flutuante">☀️ Tema</button>
-    <button id="btnReportBug" class="btn-flutuante" onclick="reportarBug()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c0 4.97-3 8-3 8s3 3 3 8"></path><path d="M8 2c0 4.97 3 8 3 8s-3 3-3 8"></path><path d="M20 2v20"></path><path d="M4 2v20"></path><circle cx="12" cy="12" r="4"></circle><line x1="16" y1="12" x2="22" y2="12"></line><line x1="2" y1="12" x2="8" y2="12"></line><line x1="14.8" y1="14.8" x2="19" y2="19"></line><line x1="5" y1="19" x2="9.2" y2="14.8"></line><line x1="14.8" y1="9.2" x2="19" y2="5"></line><line x1="5" y1="5" x2="9.2" y2="9.2"></line></svg>
-        Reportar Bug
-    </button>
-
     <div id="telaLogin">
         <div class="login-box">
-            <h2 style="justify-content: center; border: none;">Acesso Restrito</h2>
-            <p>Faça login com sua conta Google para acessar o sistema.</p>
-            <button id="btnLoginGoogle" class="btn-google">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
-                Entrar com Google
-            </button>
+            <h2 style="border: none;">Escala & Folgas</h2>
+            <p>Faça login com sua conta Google.</p>
+            <button id="btnLoginGoogle" class="btn-google">Entrar com Google</button>
         </div>
     </div>
 
     <div id="appContent">
-        
         <div class="navbar">
             <div class="navbar-brand">
                 <div class="titulo-container">
-                    <img src="controle-chamado.png" alt="Logo" class="logo-titulo">
-                    <h1>Controle de Chamados</h1>
+                    <h1>Gerenciador de Escala</h1>
                 </div>
                 <div class="nav-links">
-                    <a href="https://hjr2411.github.io/SPS_CH/index.html" target="_blank">SPS • Chamados</a>
-                    <a href="https://clarobr.atlassian.net/jira/dashboards/27247" target="_blank">Dash Analistas</a>
-                    <a href="http://10.29.148.9/script/list/" target="_blank">HOT DML</a>
-                    <a href="https://clarobr.atlassian.net/jira/for-you" target="_blank">Jira Analista</a>
-                    <a href="https://portal.sysmap.com.br/" target="_blank">SSG</a>
+                    <a href="index.html">← Voltar para Chamados</a>
                 </div>
             </div>
             <div class="user-info-container">
@@ -780,494 +183,226 @@
             </div>
         </div>
 
-        <div class="painel" id="painelFormulario" style="display: none;">
-            <h2 id="tituloFormulario">Registrar Novo Chamado</h2>
-            <form id="formChamado">
-                <div class="linha-formulario">
-                    <div class="campo">
-                        <label for="numero">Número do Chamado *</label>
-                        <input type="text" id="numero" required>
-                    </div>
-                    <div class="campo">
-                        <label for="analista">Analista *</label>
-                        <input type="text" id="analista" required>
-                    </div>
-                </div>
-                
-                <div class="linha-formulario">
-                    <div class="campo">
-                        <label for="categoria">Categoria *</label>
-                        <select id="categoria" required>
-                            <option value="" disabled selected>Selecione...</option>
-                            <option value="Gol Revolution">Gol Revolution</option>
-                            <option value="Portabilidade">Portabilidade</option>
-                            <option value="Suporte à Sistemas - OMS/CRM">Suporte à Sistemas - OMS/CRM</option>
-                            <option value="Outros">Outros</option>
-                        </select>
-                    </div>
-                    <div class="campo">
-                        <label for="problema">Problema / Cenário *</label>
-                        <input type="text" id="problema" placeholder="Ex: Falha no login..." required>
-                    </div>
-                </div>
+        <div class="painel">
+            <h2>Meu Resumo de Folgas</h2>
+            <div class="card-saldo">
+                <h3>Saldo de Folgas Disponíveis:</h3>
+                <span id="saldoFolgasUser">0</span>
+            </div>
 
-                <div class="linha-formulario">
-                    <div class="campo">
-                        <label for="fila">Fila de Encaminhamento</label>
-                        <input type="text" id="fila" placeholder="Ex: N2, Suporte Técnico...">
-                    </div>
-                    <div class="campo">
-                        <label for="assuntoEmail">Assunto do E-mail</label>
-                        <input type="text" id="assuntoEmail" placeholder="Ex: Correção de erro">
-                    </div>
+            <div class="form-inline-container">
+                <div class="campo" style="flex: 1; min-width: 200px;">
+                    <label>Solicitar Nova Folga</label>
+                    <input type="date" id="inputPedirFolga">
+                    <small id="avisoRegraFolga" style="color: var(--danger-color); margin-top: 5px;"></small>
                 </div>
+                <div style="padding-top: 26px;">
+                    <button class="btn-acao" onclick="solicitarFolga()" style="height: 42px; white-space: nowrap;">Enviar Solicitação</button>
+                </div>
+            </div>
 
-                <div class="linha-formulario">
-                    <div class="campo">
-                        <label for="sla">SLA (Prazo Limite)</label>
-                        <input type="text" id="sla" placeholder="DD/MM/AAAA HH:MM" maxlength="16">
-                    </div>
-                    <div class="campo">
-                        <label for="dataQuestionamento">Data e Hora de Questionamento</label>
-                        <input type="text" id="dataQuestionamento" placeholder="DD/MM/AAAA HH:MM" maxlength="16">
-                    </div>
-                    <div class="campo">
-                        <label for="dataFechamento">Data de Encaminhamento / Fechamento</label>
-                        <input type="text" id="dataFechamento" placeholder="DD/MM/AAAA" maxlength="16">
-                    </div>
-                </div>
-
-                <div class="grupo-botoes">
-                    <button type="button" class="btn-cancelar" onclick="fecharFormulario()">Cancelar</button>
-                    <button type="submit" id="btnSalvar" class="btn-salvar">Salvar Chamado</button>
-                </div>
-            </form>
+            <h2 style="margin-top: 30px;">Minhas Solicitações</h2>
+            <div class="tabela-container">
+                <table>
+                    <thead><tr><th>Data Solicitada</th><th>Status</th><th>Data do Pedido</th></tr></thead>
+                    <tbody id="tabelaMinhasFolgas"></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="painel">
-            <div class="cabecalho-painel">
-                <div class="seletor-visao">
-                    <button type="button" id="btnVisaoResumo" class="btn-visao">📊 Resumo</button>
-                    <button type="button" id="btnVisaoTabela" class="btn-visao ativo">📄 Tabela</button>
+            <h2 style="display: flex; justify-content: space-between; align-items: center;">
+                Próximos Plantões
+                <select id="filtroVisaoEquipe" style="width: auto; font-size: 14px; padding: 6px 10px; font-weight: normal;" onchange="atualizarTabelaEscala()">
+                    <option value="todas">Todas as Equipes</option>
+                </select>
+            </h2>
+            <div class="tabela-container">
+                <table>
+                    <thead><tr><th>Data</th><th>Dia da Semana</th><th>Equipe</th><th>Analista Escalado</th><th class="admin-only">Ações</th></tr></thead>
+                    <tbody id="tabelaEscalaGeral"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="painel admin-only">
+            <h2>⚙️ Gestão de Escala (Apenas Admin)</h2>
+            
+            <div class="form-inline-container" style="background: var(--border-light); padding: 15px; border-radius: 8px; align-items: flex-end;">
+                <div class="campo" style="flex: 1; min-width: 120px;">
+                    <label>Equipe</label>
+                    <select id="equipeAlvoEscala">
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
+                <div class="campo" style="flex: 1; min-width: 140px;">
+                    <label>Mês de Ref.</label>
+                    <input type="month" id="mesEscala">
+                </div>
+                <div class="campo" style="flex: 1; min-width: 130px;">
+                    <label>Frequência</label>
+                    <select id="frequenciaEscala">
+                        <option value="all">Todos os...</option>
+                        <option value="1">1º do mês</option>
+                        <option value="2">2º do mês</option>
+                        <option value="3">3º do mês</option>
+                        <option value="4">4º do mês</option>
+                        <option value="last">Último do mês</option>
+                    </select>
+                </div>
+                <div class="campo" style="flex: 1; min-width: 120px;">
+                    <label>Dia</label>
+                    <select id="diaAlvoEscala">
+                        <option value="0">Domingo</option>
+                        <option value="1">Segunda-feira</option>
+                        <option value="2">Terça-feira</option>
+                        <option value="3">Quarta-feira</option>
+                        <option value="4">Quinta-feira</option>
+                        <option value="5">Sexta-feira</option>
+                        <option value="6" selected>Sábado</option>
+                    </select>
+                </div>
+                <div style="flex: none;">
+                    <button class="btn-acao" onclick="gerarEscalaAutomatica()" style="height: 42px; white-space: nowrap;">Gerar Escala</button>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 20px; font-size: 16px;">Aprovação de Folgas Pendentes</h3>
+            <div class="tabela-container">
+                <table>
+                    <thead><tr><th>Equipe</th><th>Analista</th><th>Data Solicitada</th><th>Saldo Atual</th><th>Ação</th></tr></thead>
+                    <tbody id="tabelaFolgasPendentes"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="painel admin-only">
+            <h2>⚙️ Configurações do Sistema</h2>
+            
+            <div class="campo" style="margin-bottom: 20px;">
+                <label>Vincular E-mail ao Analista</label>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="novoNomeAnalista" placeholder="Nome (Ex: João)" style="flex: 1; min-width: 140px;">
+                    <input type="email" id="novoEmailAnalista" placeholder="E-mail Google" style="flex: 1; min-width: 160px;">
+                    <input type="text" id="novaEquipeAnalista" placeholder="Equipe (Ex: N1, Infra)" style="flex: 1; min-width: 140px;">
+                    <button class="btn-secundario" onclick="vincularAnalista()" style="height: 42px; flex: none;">Adicionar</button>
                 </div>
             </div>
             
-            <div class="linha-formulario" style="justify-content: space-between; margin-bottom: 0; align-items: center;">
-                <div class="contador-painel" id="contadoresSLA">
-                    <div class="contador-item" onclick="filtrarSLA('pendente')" title="Filtrar chamados pendentes (sem data de fechamento)">
-                        <strong>Pendentes:</strong> <span id="countPendentes" style="font-size: 16px; color: var(--edit-color); font-weight: bold;">0</span>
-                    </div>
-                    <div class="contador-item" onclick="filtrarSLA('hoje')" title="Filtrar chamados em aberto que vencem hoje">
-                        <strong>SLA para hoje:</strong> <span id="countSlaHoje" class="status-aberto" style="font-size: 16px;">0</span>
-                    </div>
-                    <div class="contador-item" onclick="filtrarSLA('vencido')" title="Filtrar chamados em aberto com SLA vencido">
-                        <strong>SLA Vencido:</strong> <span id="countSlaVencido" class="sla-vencido" style="font-size: 16px; color: var(--danger-color);">0</span>
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button type="button" class="btn-salvar" style="margin-top: 0; padding: 0 20px; height: 42px; border-radius: 6px; width: auto; font-size: 14px;" id="btnNovoChamado" onclick="abrirFormulario()">
-                        ➕ Novo Chamado
-                    </button>
-                    
-                    <input type="file" id="inputImportarCSV" accept=".csv" style="display: none;">
-                    
-                    <button type="button" class="btn-acao-icone btn-modelo" onclick="baixarModeloCSV()" title="Baixar Modelo CSV de Importação">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M12 18v-6"></path><path d="M9 15l3 3 3-3"></path></svg>
-                    </button>
-                    <button type="button" class="btn-acao-icone btn-importar" id="btnImportarCSV" title="Importar CSV (Inserção em Massa)">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                    </button>
-
-                    <button type="button" id="btnMaisFiltros" class="btn-acao-icone btn-filtro" title="Mostrar/Esconder Filtros">
-                        <svg id="iconeFiltroSvg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                    </button>
-                    <button type="button" id="btnGerenciarColunas" class="btn-acao-icone btn-colunas" title="Escolher Colunas da Tabela">
-                        <svg id="iconeColunasSvg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
-                    </button>
-                    <button type="button" class="btn-acao-icone btn-exportar" onclick="exportarCSV()" title="Exportar para Excel">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    </button>
-                    <button type="button" class="btn-acao-icone btn-teams" onclick="copiarParaTeams()" title="Copiar para o Teams">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    </button>
-                </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="font-size: 16px; margin: 0;">Analistas Cadastrados</h3>
+                <button class="btn-secundario" style="padding: 6px 12px; font-size: 12px;" onclick="toggleEmailsVisibilidade()" id="btnToggleEmails">👁️ Mostrar E-mails</button>
             </div>
-
-            <div id="painelColunas" class="painel-expansivel">
-                <label style="margin-bottom: 10px; color: var(--claro-red);">Selecione as colunas visíveis na tabela:</label>
-                <div class="grid-colunas">
-                    <label><input type="checkbox" class="chk-coluna" value="analista" checked> Analista</label>
-                    <label><input type="checkbox" class="chk-coluna" value="categoria" checked> Categoria</label>
-                    <label><input type="checkbox" class="chk-coluna" value="problema" checked> Cenário / Problema</label>
-                    <label><input type="checkbox" class="chk-coluna" value="fila" checked> Fila</label>
-                    <label><input type="checkbox" class="chk-coluna" value="assunto" checked> Assunto do E-mail</label>
-                    <label><input type="checkbox" class="chk-coluna" value="sla" checked> SLA</label>
-                    <label><input type="checkbox" class="chk-coluna" value="dtQuest" checked> Dt. Quest.</label>
-                    <label><input type="checkbox" class="chk-coluna" value="dtFecham" checked> Dt. Enc. Fech.</label>
-                    
-                    <label id="lbl-dtCriacao"><input type="checkbox" class="chk-coluna" value="dtCriacao"> Data Criação</label>
-                    <label id="lbl-dtAtualizacao"><input type="checkbox" class="chk-coluna" value="dtAtualizacao"> Data Atualização</label>
-                    <label id="lbl-usrAtualizacao"><input type="checkbox" class="chk-coluna" value="usrAtualizacao"> Atualizado Por</label>
-                </div>
-            </div>
-
-            <div id="filtrosAvancados" class="painel-expansivel">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-light); padding-bottom: 10px;">
-                    <span style="font-weight: bold; color: var(--claro-red);">Filtros Avançados</span>
-                    <button type="button" class="btn-cancelar" style="padding: 6px 12px; font-size: 13px; flex: none; width: auto;" onclick="limparFiltros()">Limpar Filtros</button>
-                </div>
-                
-                <div class="linha-formulario">
-                    <div class="campo">
-                        <label for="buscaCategoria">Categoria</label>
-                        <select id="buscaCategoria">
-                            <option value="">Todas</option>
-                            <option value="Gol Revolution">Gol Revolution</option>
-                            <option value="Portabilidade">Portabilidade</option>
-                            <option value="Suporte à Sistemas - OMS/CRM">Suporte à Sistemas - OMS/CRM</option>
-                            <option value="Outros">Outros</option>
-                        </select>
-                    </div>
-                    <div class="campo">
-                        <label for="filtroStatus">Status</label>
-                        <select id="filtroStatus">
-                            <option value="todos">Todos</option>
-                            <option value="abertos">Em Aberto (Sem data definida)</option>
-                            <option value="fechados">Encaminhados / Fechados</option>
-                        </select>
-                    </div>
-                    <div class="campo">
-                        <label for="filtroSLA">Status do SLA</label>
-                        <select id="filtroSLA">
-                            <option value="todos">Todos</option>
-                            <option value="vencidos">Vencidos (<= Agora)</option>
-                            <option value="hoje">Para Hoje</option>
-                            <option value="noprazo">No Prazo (> Agora)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="linha-formulario">
-                    <div class="campo">
-                        <label for="buscaNumero">Número do Chamado</label>
-                        <input type="text" id="buscaNumero" placeholder="Ex: INC1234567">
-                    </div>
-                    <div class="campo">
-                        <label for="filtroAnalista">Analista</label>
-                        <select id="filtroAnalista">
-                            <option value="">Todos</option>
-                        </select>
-                    </div>
-                    <div class="campo">
-                        <label for="buscaData">Data de Fechamento</label>
-                        <select id="buscaData">
-                            <option value="">Todas</option>
-                            <option value="aberto">Em aberto (data não preenchida)</option>
-                            <option value="hoje">Hoje</option>
-                            <option value="ontem">Ontem</option>
-                            <option value="ultimos3">Últimos 3 dias</option>
-                            <option value="ultimos7">Últimos 7 dias</option>
-                            <option value="estemes">Este mês</option>
-                            <option value="personalizado">Período Específico</option>
-                        </select>
-                        <div id="containerCustomFechamento" class="container-custom-date">
-                            <input type="date" id="customInicioFechamento" title="Data Inicial">
-                            <span>até</span>
-                            <input type="date" id="customFimFechamento" title="Data Final">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="linha-formulario">
-                    <div class="campo">
-                        <label for="buscaProblema">Problema / Cenário</label>
-                        <input type="text" id="buscaProblema" placeholder="Termos do cenário">
-                    </div>
-                    <div class="campo">
-                        <label for="buscaFila">Fila de Encaminhamento</label>
-                        <input type="text" id="buscaFila" placeholder="Nome da fila">
-                    </div>
-                    <div class="campo">
-                        <label for="buscaAssunto">Assunto do E-mail</label>
-                        <input type="text" id="buscaAssunto" placeholder="Termos do assunto">
-                    </div>
-                    <div class="campo">
-                        <label for="buscaDataQuestionamento">Data de Questionamento</label>
-                        <select id="buscaDataQuestionamento">
-                            <option value="">Todas</option>
-                            <option value="hoje">Hoje</option>
-                            <option value="ontem">Ontem</option>
-                            <option value="ultimos3">Últimos 3 dias</option>
-                            <option value="ultimos7">Últimos 7 dias</option>
-                            <option value="estemes">Este mês</option>
-                            <option value="personalizado">Período Específico</option>
-                        </select>
-                        <div id="containerCustomQuestionamento" class="container-custom-date">
-                            <input type="date" id="customInicioQuestionamento" title="Data Inicial">
-                            <span>até</span>
-                            <input type="date" id="customFimQuestionamento" title="Data Final">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="linha-formulario">
-                    <div class="campo">
-                        <label for="filtroDataCriacao">Data de Criação do Chamado</label>
-                        <select id="filtroDataCriacao">
-                            <option value="">Todas</option>
-                            <option value="hoje">Hoje</option>
-                            <option value="ontem">Ontem</option>
-                            <option value="ultimos3">Últimos 3 dias</option>
-                            <option value="ultimos7">Últimos 7 dias</option>
-                            <option value="estemes">Este mês</option>
-                            <option value="personalizado">Período Específico</option>
-                        </select>
-                        <div id="containerCustomCriacao" class="container-custom-date">
-                            <input type="date" id="customInicioCriacao" title="Data Inicial">
-                            <span>até</span>
-                            <input type="date" id="customFimCriacao" title="Data Final">
-                        </div>
-                    </div>
-                    <div class="campo" id="campoFiltroCriadoPor">
-                        <label for="filtroCriadoPor">Usuário de Criação</label>
-                        <select id="filtroCriadoPor">
-                            <option value="">Todos</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div id="areaResumo" style="display: none; margin-top: 20px;">
-                <table class="tabela-resumo">
-                    <thead>
-                        <tr>
-                            <th style="background-color: var(--claro-red); color: white;">Categoria do Chamado</th>
-                            <th>Em Aberto</th>
-                            <th>Encaminhados / Fechados</th>
-                            <th>Volume Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaResumoCorpo"></tbody>
+            <div class="tabela-container" style="margin-bottom: 30px;">
+                <table>
+                    <thead><tr><th>Analista</th><th>E-mail</th><th>Equipe</th><th>Plantões Feitos</th><th>Ação</th></tr></thead>
+                    <tbody id="tabelaAnalistasCadastrados"></tbody>
                 </table>
             </div>
 
-            <div id="areaTabela" style="margin-top: 20px;">
-                <div class="tabela-container">
-                    <table id="tabelaPrincipal">
-                        <thead>
-                            <tr id="cabecalhoTabela"></tr>
-                        </thead>
-                        <tbody id="tabelaCorpo"></tbody>
-                    </table>
+            <h3 style="font-size: 16px;">Bloqueio de Dias para Folga</h3>
+            <div class="linha-formulario">
+                <div class="campo">
+                    <label>Bloquear Dias da Semana Permanentes:</label>
+                    <div class="grid-dias-bloqueados" id="checkboxesDias">
+                        <label><input type="checkbox" value="1" class="chk-dia"> Seg</label>
+                        <label><input type="checkbox" value="2" class="chk-dia"> Ter</label>
+                        <label><input type="checkbox" value="3" class="chk-dia"> Qua</label>
+                        <label><input type="checkbox" value="4" class="chk-dia"> Qui</label>
+                        <label><input type="checkbox" value="5" class="chk-dia"> Sex</label>
+                        <label><input type="checkbox" value="6" class="chk-dia"> Sáb</label>
+                        <label><input type="checkbox" value="0" class="chk-dia"> Dom</label>
+                    </div>
+                    <button class="btn-secundario" style="margin-top: 10px; width: fit-content;" onclick="salvarConfigDias()">Salvar Dias Regra</button>
                 </div>
-                
-                <div class="paginacao-container" id="controlePaginacao">
-                    <div class="itens-por-pagina">
-                        <label for="selectItensPagina">Exibir:</label>
-                        <select id="selectItensPagina">
-                            <option value="5">5</option>
-                            <option value="10" selected>10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
-                            <option value="todos">Todos</option>
-                        </select>
+                <div class="campo">
+                    <label>Bloquear Data Específica ou Período:</label>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="date" id="dataBloqueioInicio" style="flex: 1; min-width: 130px;" title="Data Inicial">
+                        <span style="display:flex; align-items:center; color: var(--text-muted);">até</span>
+                        <input type="date" id="dataBloqueioFim" style="flex: 1; min-width: 130px;" title="Data Final (Opcional)">
+                        <button class="btn-secundario" onclick="adicionarDataBloqueada()" style="height: 42px; flex: none;">Bloquear</button>
                     </div>
-                    <div class="botoes-paginacao">
-                        <span class="info-paginacao" id="infoPaginacao">Página 1 de 1</span>
-                        <button type="button" class="btn-pagina" id="btnPaginaAnt">Anterior</button>
-                        <button type="button" class="btn-pagina" id="btnPaginaProx">Próxima</button>
-                    </div>
+                    <small style="color: var(--text-muted); margin-top: 5px;">* Deixe a segunda data em branco para bloquear apenas um dia específico.</small>
+                    <div id="listaDatasBloqueadas" style="margin-top: 15px; display: flex; gap: 5px; flex-wrap: wrap;"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script type="module">
-        // -----------------------------------------------------------
-        // CONFIGURAÇÕES
-        // -----------------------------------------------------------
-        const ADMIN_EMAIL = "ThiagoFelipeND@gmail.com"; 
-        const BUG_REPORT_EMAIL = "thiago.nascimento@sysmap.com.br";
+        // --- CONFIGURAÇÃO ---
+        const ADMIN_EMAILS = ["thiagofelipend@gmail.com", "thiago.nascimento@sysmap.com.br"];
         
-        // Lista de e-mails que podem editar/excluir chamados (SUPER_USERS)
-        const SUPER_USERS = [
-            "thiagofelipend@gmail.com",
-            "valentiminaiara@gmail.com",
-            "gomescarol0705@gmail.com"
-        ];
-        // -----------------------------------------------------------
-
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, query, where, getDocs, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3ZVyXVY2YrKAWGCPduipasPsQN-6xHGI",
             authDomain: "sincronismo-cpc-x-sixbell.firebaseapp.com",
-            projectId: "sincronismo-cpc-x-sixbell",
-            storageBucket: "sincronismo-cpc-x-sixbell.firebasestorage.app",
-            messagingSenderId: "289059675889",
-            appId: "1:289059675889:web:5bd2e0c04f6d2717035350"
+            projectId: "sincronismo-cpc-x-sixbell"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const chamadosCollection = collection(db, "chamados");
-        const logsCollection = collection(db, "logs_chamados"); 
         const provider = new GoogleAuthProvider();
 
-        let listaChamados = [];
-        let chamadosFiltradosAtuais = [];
-        let idChamadoEmEdicao = null;
-        let visaoAtual = 'tabela'; 
-        let paginaAtual = 1;
-        let itensPorPagina = 10;
-        let userEmail = '';
-        
-        let estadoFiltroSalvo = null;
-        let filtroRapidoAtivo = null;
-        let colunaOrdenacao = ''; 
-        let direcaoOrdenacao = ''; 
+        const dbAnalistas = collection(db, "escala_analistas");
+        const dbPlantao = collection(db, "escala_plantoes");
+        const dbFolgas = collection(db, "escala_folgas");
+        const dbConfig = collection(db, "escala_configuracoes");
 
-        // --- Elementos DOM ---
+        let userEmail = '';
+        let userName = '';
+        let isAdmin = false;
+        
+        // Dados em memória
+        let analistas = [];
+        let plantoes = [];
+        let folgas = [];
+        let configSistema = { diasBloqueados: [], datasBloqueadas: [] };
+        let meuAnalistaId = null;
+        let emailsVisiveis = false; // Controle de privacidade de e-mails
+
+        // UI Elements
+        const loading = document.getElementById('loading');
         const telaLogin = document.getElementById('telaLogin');
         const appContent = document.getElementById('appContent');
-        const btnLoginGoogle = document.getElementById('btnLoginGoogle');
-        const btnLogout = document.getElementById('btnLogout');
-        const userName = document.getElementById('userName');
-        const userAvatar = document.getElementById('userAvatar');
-        const loading = document.getElementById('loading');
-        
-        const campoFiltroCriadoPor = document.getElementById('campoFiltroCriadoPor');
-        const lblDtCriacao = document.getElementById('lbl-dtCriacao');
-        const lblDtAtualizacao = document.getElementById('lbl-dtAtualizacao');
-        const lblUsrAtualizacao = document.getElementById('lbl-usrAtualizacao');
 
-        // --- Funções de Máscara e Validação de Data ---
-        
-        // Aplica a formatação de data e hora enquanto o usuário digita e já faz validação visual
-        function mascaraDataHora(e) {
-            let v = e.target.value.replace(/\D/g, "");
-            if (v.length > 12) v = v.substring(0, 12);
+        window.solicitarFolga = solicitarFolga;
+        window.vincularAnalista = vincularAnalista;
+        window.removerAnalista = removerAnalista;
+        window.gerarEscalaAutomatica = gerarEscalaAutomatica;
+        window.removerPlantao = removerPlantao;
+        window.aprovarFolga = aprovarFolga;
+        window.recusarFolga = recusarFolga;
+        window.salvarConfigDias = salvarConfigDias;
+        window.adicionarDataBloqueada = adicionarDataBloqueada;
+        window.removerDataBloqueada = removerDataBloqueada;
+        window.atualizarTabelaEscala = atualizarTabelaEscala;
+        window.toggleEmailsVisibilidade = toggleEmailsVisibilidade;
 
-            if (v.length > 8) {
-                v = v.replace(/(\d{2})(\d{2})(\d{4})(\d{2})(\d{0,2})/, "$1/$2/$3 $4:$5");
-            } else if (v.length > 4) {
-                v = v.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
-            } else if (v.length > 2) {
-                v = v.replace(/(\d{2})(\d{0,2})/, "$1/$2");
-            }
-            e.target.value = v;
-
-            // Validação visual em tempo real
-            if (v.length === 10 || v.length === 16) {
-                if (!validarDataBR(v)) {
-                    e.target.style.borderColor = "var(--danger-color)";
-                    e.target.style.color = "var(--danger-color)";
-                } else {
-                    e.target.style.borderColor = "var(--border-color)";
-                    e.target.style.color = "var(--text-color)";
-                }
-            } else if (v.length < 10) {
-                // Se a pessoa estiver apagando, volta ao normal
-                e.target.style.borderColor = "var(--border-color)";
-                e.target.style.color = "var(--text-color)";
-            }
-        }
-
-        // Alerta na tela caso saia do campo com a data errada
-        function avisarDataInvalida(e) {
-            const v = e.target.value;
-            if (v.length > 0 && !validarDataBR(v)) {
-                alert("A data ou hora digitada não é válida.\n\nVerifique se os dias, meses e a hora estão corretos.");
-            }
-        }
-
-        // Valida se a data digitada realmente existe no calendário e no relógio
-        function validarDataBR(dataStr) {
-            if (!dataStr || dataStr.trim() === '') return true; 
-
-            const regex = /^(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}))?$/;
-            const match = dataStr.match(regex);
-
-            if (!match) return false;
-
-            const dia = parseInt(match[1], 10);
-            const mes = parseInt(match[2], 10);
-            const ano = parseInt(match[3], 10);
-
-            // Validação de dia, mês e ano
-            if (mes < 1 || mes > 12) return false;
-            const diasNoMes = new Date(ano, mes, 0).getDate();
-            if (dia < 1 || dia > diasNoMes) return false;
-            if (ano < 1900 || ano > 2100) return false; 
-
-            // Validação de hora e minuto
-            if (match[4] && match[5]) {
-                const hora = parseInt(match[4], 10);
-                const minuto = parseInt(match[5], 10);
-                if (hora < 0 || hora > 23) return false;
-                if (minuto < 0 || minuto > 59) return false;
-            } else if (dataStr.length > 10) {
-                return false;
-            }
-
-            return true;
-        }
-
-        function converterParaISO(dataBR) {
-            if (!dataBR) return '';
-            const partes = dataBR.trim().split(' ');
-            const dataPartes = partes[0].split('/');
-            if (dataPartes.length !== 3) return dataBR; 
-            const dataISO = `${dataPartes[2]}-${dataPartes[1]}-${dataPartes[0]}`;
-            if (partes[1]) {
-                return `${dataISO}T${partes[1]}`;
-            }
-            return dataISO;
-        }
-
-        function converterParaBR(dataISO) {
-            if (!dataISO) return '';
-            if (dataISO.includes('T')) {
-                const [data, hora] = dataISO.split('T');
-                const [ano, mes, dia] = data.split('-');
-                return `${dia}/${mes}/${ano} ${hora}`;
-            } else {
-                const [ano, mes, dia] = dataISO.split('-');
-                return `${dia}/${mes}/${ano}`;
-            }
-        }
-
-        // Aplicando os ouvintes para aplicar a máscara ao digitar (input) e alertar ao sair (blur)
-        const camposData = ['sla', 'dataQuestionamento', 'dataFechamento'];
-        camposData.forEach(id => {
-            const el = document.getElementById(id);
-            el.addEventListener('input', mascaraDataHora);
-            el.addEventListener('blur', avisarDataInvalida);
-        });
-
-        function ehSuperUsuario() {
-            return SUPER_USERS.includes(userEmail.toLowerCase());
-        }
-
-        function soThiagoPodeVer() {
-            return userEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-        }
-
-        // --- Autenticação ---
-        onAuthStateChanged(auth, (user) => {
+        // --- AUTH ---
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                userEmail = user.email;
-                userName.textContent = user.displayName;
-                userAvatar.src = user.photoURL;
+                userEmail = user.email.toLowerCase();
+                userName = user.displayName;
+                isAdmin = ADMIN_EMAILS.includes(userEmail);
+                
+                document.getElementById('userName').textContent = userName;
+                document.getElementById('userAvatar').src = user.photoURL;
+                
                 telaLogin.style.display = 'none';
                 appContent.style.display = 'block';
-                loading.style.display = 'flex'; 
+                loading.style.display = 'flex';
                 
-                aplicarRegrasVisibilidade();
-                iniciarFirestoreListener();
+                if (isAdmin) {
+                    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+                }
+
+                iniciarListeners();
             } else {
                 telaLogin.style.display = 'flex';
                 appContent.style.display = 'none';
@@ -1275,1106 +410,418 @@
             }
         });
 
-        btnLoginGoogle.addEventListener('click', () => {
-            signInWithPopup(auth, provider).catch((error) => alert("Erro no login: " + error.message));
-        });
+        document.getElementById('btnLoginGoogle').addEventListener('click', () => signInWithPopup(auth, provider));
+        document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
 
-        btnLogout.addEventListener('click', () => { signOut(auth); });
-
-        function aplicarRegrasVisibilidade() {
-            const isAdmin = soThiagoPodeVer();
-            
-            if (isAdmin) {
-                campoFiltroCriadoPor.style.display = 'flex';
-            } else {
-                campoFiltroCriadoPor.style.display = 'none';
-                document.getElementById('filtroCriadoPor').value = '';
-            }
-
-            if (isAdmin) {
-                lblDtCriacao.style.display = 'flex';
-                lblDtAtualizacao.style.display = 'flex';
-                lblUsrAtualizacao.style.display = 'flex';
-            } else {
-                lblDtCriacao.style.display = 'none';
-                lblDtAtualizacao.style.display = 'none';
-                lblUsrAtualizacao.style.display = 'none';
-                
-                document.querySelector('.chk-coluna[value="dtCriacao"]').checked = false;
-                document.querySelector('.chk-coluna[value="dtAtualizacao"]').checked = false;
-                document.querySelector('.chk-coluna[value="usrAtualizacao"]').checked = false;
-            }
-        }
-
-        // --- FIRESTORE LISTENER ---
-        let unsubscribe = null;
-        function iniciarFirestoreListener() {
-            if (unsubscribe) unsubscribe();
-            unsubscribe = onSnapshot(chamadosCollection, (snapshot) => {
-                listaChamados = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                loading.style.display = 'none';
-                
-                atualizarListasFiltros();
-                atualizarContadoresSLA();
-                processarVisualizacao(false);
-            }, (error) => {
-                console.error("Erro ao buscar dados:", error);
-                loading.style.display = 'none';
-                if (error.code === 'permission-denied') alert("Sem permissão para ver os dados.");
-            });
-        }
-
-        function atualizarContadoresSLA() {
-            const agora = new Date();
-            const hojeInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
-            const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59, 999);
-
-            let qtdHoje = 0;
-            let qtdVencido = 0;
-            let qtdPendente = 0;
-
-            listaChamados.forEach(c => {
-                if (!c.dataFechamento) {
-                    qtdPendente++;
-                    if (c.sla) {
-                        const slaDate = new Date(c.sla);
-                        if (slaDate >= hojeInicio && slaDate <= hojeFim) {
-                            qtdHoje++;
-                        }
-                        if (slaDate <= agora) {
-                            qtdVencido++;
-                        }
-                    }
+        // --- LISTENERS FIRESTORE ---
+        function iniciarListeners() {
+            // Escutar Configurações
+            onSnapshot(doc(db, "escala_configuracoes", "geral"), (docSnap) => {
+                if (docSnap.exists()) {
+                    configSistema = docSnap.data();
+                    if(!configSistema.diasBloqueados) configSistema.diasBloqueados = [];
+                    if(!configSistema.datasBloqueadas) configSistema.datasBloqueadas = [];
                 }
+                atualizarUIConfig();
             });
 
-            document.getElementById('countPendentes').textContent = qtdPendente;
-            document.getElementById('countSlaHoje').textContent = qtdHoje;
-            document.getElementById('countSlaVencido').textContent = qtdVencido;
-        }
-
-        function atualizarListasFiltros() {
-            const selectCriadoPor = document.getElementById('filtroCriadoPor');
-            const valorAtualCriadoPor = selectCriadoPor.value; 
-
-            const usuariosUnicos = [...new Set(listaChamados.map(c => c.criadoPor).filter(Boolean))].sort();
-            let optionsHtmlCriadoPor = '<option value="">Todos</option>';
-            usuariosUnicos.forEach(user => {
-                optionsHtmlCriadoPor += `<option value="${user}">${user}</option>`;
-            });
-            selectCriadoPor.innerHTML = optionsHtmlCriadoPor;
-
-            if (usuariosUnicos.includes(valorAtualCriadoPor)) {
-                selectCriadoPor.value = valorAtualCriadoPor;
-            }
-
-            const selectAnalista = document.getElementById('filtroAnalista');
-            const valorAtualAnalista = selectAnalista.value;
-
-            const analistasUnicos = [...new Set(listaChamados.map(c => c.analista ? c.analista.trim() : null).filter(Boolean))].sort();
-            let optionsHtmlAnalista = '<option value="">Todos</option>';
-            analistasUnicos.forEach(analista => {
-                optionsHtmlAnalista += `<option value="${analista}">${analista}</option>`;
-            });
-            selectAnalista.innerHTML = optionsHtmlAnalista;
-
-            if (analistasUnicos.includes(valorAtualAnalista)) {
-                selectAnalista.value = valorAtualAnalista;
-            }
-        }
-
-        window.reportarBug = function() {
-            const subject = "Report de Bug - Controle de Chamados";
-            const body = "Descreva o problema aqui:%0D%0A%0D%0A";
-            window.location.href = `mailto:${BUG_REPORT_EMAIL}?subject=${subject}&body=${body}`;
-        };
-
-        async function registrarLog(acao, id, dados, usuario) {
-            try {
-                await addDoc(logsCollection, {
-                    dataHora: new Date().toISOString(),
-                    acao: acao,
-                    chamadoId: id,
-                    usuario: usuario,
-                    dadosSnapshot: dados 
-                });
-            } catch (e) {
-                console.error("Erro ao gravar log:", e);
-            }
-        }
-
-        // --- Lógica de UI ---
-        const btnTema = document.getElementById('btnTema');
-        const painelFormulario = document.getElementById('painelFormulario');
-        const formChamado = document.getElementById('formChamado');
-        const tituloFormulario = document.getElementById('tituloFormulario');
-        const btnSalvar = document.getElementById('btnSalvar');
-        const btnVisaoResumo = document.getElementById('btnVisaoResumo');
-        const btnVisaoTabela = document.getElementById('btnVisaoTabela');
-        const areaResumo = document.getElementById('areaResumo');
-        const tabelaResumoCorpo = document.getElementById('tabelaResumoCorpo');
-        const areaTabela = document.getElementById('areaTabela');
-        const cabecalhoTabela = document.getElementById('cabecalhoTabela');
-        const tabelaCorpo = document.getElementById('tabelaCorpo');
-        const selectItensPagina = document.getElementById('selectItensPagina');
-        const controlePaginacao = document.getElementById('controlePaginacao');
-        const btnPaginaAnt = document.getElementById('btnPaginaAnt');
-        const btnPaginaProx = document.getElementById('btnPaginaProx');
-        const infoPaginacao = document.getElementById('infoPaginacao');
-        const btnMaisFiltros = document.getElementById('btnMaisFiltros');
-        const iconeFiltroSvg = document.getElementById('iconeFiltroSvg');
-        const filtrosAvancados = document.getElementById('filtrosAvancados');
-        const btnGerenciarColunas = document.getElementById('btnGerenciarColunas');
-        const iconeColunasSvg = document.getElementById('iconeColunasSvg');
-        const painelColunas = document.getElementById('painelColunas');
-
-        const inputFiltros = {
-            categoria: document.getElementById('buscaCategoria'),
-            status: document.getElementById('filtroStatus'),
-            sla: document.getElementById('filtroSLA'),
-            data: document.getElementById('buscaData'), 
-            numero: document.getElementById('buscaNumero'),
-            analista: document.getElementById('filtroAnalista'), 
-            problema: document.getElementById('buscaProblema'),
-            fila: document.getElementById('buscaFila'),
-            assunto: document.getElementById('buscaAssunto'),
-            dataQuest: document.getElementById('buscaDataQuestionamento'), 
-            dataCriacaoRange: document.getElementById('filtroDataCriacao'), 
-            criadoPor: document.getElementById('filtroCriadoPor')
-        };
-
-        window.fecharFormulario = fecharFormulario;
-        window.abrirFormulario = abrirFormulario;
-        window.limparFiltros = limparFiltros;
-        window.exportarCSV = exportarCSV;
-        window.copiarParaTeams = copiarParaTeams;
-        window.alterarVisao = alterarVisao;
-        window.prepararEdicao = prepararEdicao;
-        window.removerChamado = removerChamado;
-
-        const temaSalvo = localStorage.getItem('tema_chamados');
-        if (temaSalvo === 'claro') { document.body.classList.remove('dark-mode'); btnTema.textContent = '🌙 Tema'; } 
-        else { document.body.classList.add('dark-mode'); btnTema.textContent = '☀️ Tema'; }
-
-        btnTema.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            if (document.body.classList.contains('dark-mode')) { localStorage.setItem('tema_chamados', 'escuro'); btnTema.textContent = '☀️ Tema'; } 
-            else { localStorage.setItem('tema_chamados', 'claro'); btnTema.textContent = '🌙 Tema'; }
-        });
-
-        const svgFunil = '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>';
-        const svgColunas = '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line>';
-
-        function alternarPainel(painelAtivo, btnAtivo, iconeAtivo, svgOriginal, painelInativo, btnInativo, iconeInativo, svgOriginalInativo) {
-            if (painelAtivo.style.display === 'none') {
-                painelAtivo.style.display = 'block'; btnAtivo.classList.add('ativo'); iconeAtivo.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
-                painelInativo.style.display = 'none'; btnInativo.classList.remove('ativo'); iconeInativo.innerHTML = svgOriginalInativo;
-            } else {
-                painelAtivo.style.display = 'none'; btnAtivo.classList.remove('ativo'); iconeAtivo.innerHTML = svgOriginal;
-            }
-        }
-
-        btnMaisFiltros.addEventListener('click', () => { alternarPainel(filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil, painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas); });
-        btnGerenciarColunas.addEventListener('click', () => { alternarPainel(painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas, filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil); });
-
-        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: true, fila: true, assunto: true, sla: true, dtQuest: true, dtFecham: true, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false };
-        
-        document.querySelectorAll('.chk-coluna').forEach(chk => {
-            chk.checked = colunasSalvas[chk.value];
-            chk.addEventListener('change', (e) => {
-                colunasSalvas[e.target.value] = e.target.checked;
-                localStorage.setItem('pref_colunas', JSON.stringify(colunasSalvas));
-                if (visaoAtual === 'tabela') atualizarTabelaHtml();
-            });
-        });
-
-        btnVisaoResumo.addEventListener('click', () => alterarVisao('resumo'));
-        btnVisaoTabela.addEventListener('click', () => alterarVisao('tabela'));
-
-        function alterarVisao(novaVisao) {
-            visaoAtual = novaVisao;
-            if (visaoAtual === 'resumo') { btnVisaoResumo.classList.add('ativo'); btnVisaoTabela.classList.remove('ativo'); areaResumo.style.display = 'block'; areaTabela.style.display = 'none'; atualizarPainelResumo(); } 
-            else { btnVisaoTabela.classList.add('ativo'); btnVisaoResumo.classList.remove('ativo'); areaResumo.style.display = 'none'; areaTabela.style.display = 'block'; atualizarTabelaHtml(); }
-        }
-
-        function salvarEstadoFiltro() {
-            estadoFiltroSalvo = {};
-            Object.keys(inputFiltros).forEach(key => {
-                estadoFiltroSalvo[key] = inputFiltros[key].value;
-            });
-            ['customInicioFechamento', 'customFimFechamento', 'customInicioQuestionamento', 'customFimQuestionamento', 'customInicioCriacao', 'customFimCriacao'].forEach(id => {
-                estadoFiltroSalvo[id] = document.getElementById(id).value;
-            });
-        }
-
-        function restaurarEstadoFiltro() {
-            if (!estadoFiltroSalvo) return;
-            Object.keys(inputFiltros).forEach(key => {
-                inputFiltros[key].value = estadoFiltroSalvo[key] || '';
-            });
-            ['customInicioFechamento', 'customFimFechamento', 'customInicioQuestionamento', 'customFimQuestionamento', 'customInicioCriacao', 'customFimCriacao'].forEach(id => {
-                document.getElementById(id).value = estadoFiltroSalvo[id] || '';
-            });
-            
-            alternarInputsPersonalizados('buscaData', 'containerCustomFechamento');
-            alternarInputsPersonalizados('buscaDataQuestionamento', 'containerCustomQuestionamento');
-            alternarInputsPersonalizados('filtroDataCriacao', 'containerCustomCriacao');
-        }
-
-        window.filtrarSLA = function(tipo) {
-            const itemPendente = document.getElementById('countPendentes').parentElement;
-            const itemHoje = document.getElementById('countSlaHoje').parentElement;
-            const itemVencido = document.getElementById('countSlaVencido').parentElement;
-
-            if (filtroRapidoAtivo === tipo) {
-                restaurarEstadoFiltro();
-                filtroRapidoAtivo = null;
-                itemPendente.classList.remove('ativo');
-                itemHoje.classList.remove('ativo');
-                itemVencido.classList.remove('ativo');
-            } else {
-                if (!filtroRapidoAtivo) {
-                    salvarEstadoFiltro();
-                }
+            // Escutar Analistas
+            onSnapshot(dbAnalistas, (snap) => {
+                analistas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const meuRegistro = analistas.find(a => a.email === userEmail);
+                meuAnalistaId = meuRegistro ? meuRegistro.id : null;
                 
-                filtroRapidoAtivo = tipo;
-                
-                Object.values(inputFiltros).forEach(input => {
-                    if(input.tagName === 'SELECT') {
-                        if(input.id === 'filtroStatus' || input.id === 'filtroSLA') input.value = 'todos';
-                        else input.value = '';
-                    } else { input.value = ''; }
-                });
-                ['customInicioFechamento', 'customFimFechamento', 'customInicioQuestionamento', 'customFimQuestionamento', 'customInicioCriacao', 'customFimCriacao'].forEach(id => {
-                    document.getElementById(id).value = '';
-                });
-
-                document.getElementById('filtroStatus').value = 'abertos';
-                
-                if (tipo === 'pendente') {
-                    document.getElementById('filtroSLA').value = 'todos';
-                    itemPendente.classList.add('ativo');
-                    itemHoje.classList.remove('ativo');
-                    itemVencido.classList.remove('ativo');
-                } else if (tipo === 'hoje') {
-                    document.getElementById('filtroSLA').value = 'hoje';
-                    itemHoje.classList.add('ativo');
-                    itemPendente.classList.remove('ativo');
-                    itemVencido.classList.remove('ativo');
-                } else if (tipo === 'vencido') {
-                    document.getElementById('filtroSLA').value = 'vencidos';
-                    itemVencido.classList.add('ativo');
-                    itemPendente.classList.remove('ativo');
-                    itemHoje.classList.remove('ativo');
-                }
-            }
-            
-            processarVisualizacao(true);
-            alterarVisao('tabela');
-            document.getElementById('areaTabela').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function abrirFormulario() { 
-            idChamadoEmEdicao = null; 
-            formChamado.reset(); 
-            // Resetar as bordas de erro ao abrir
-            camposData.forEach(id => {
-                const el = document.getElementById(id);
-                el.style.borderColor = "var(--border-color)";
-                el.style.color = "var(--text-color)";
+                atualizarSelectsEquipe();
+                atualizarTabelaAnalistas();
+                calcularSaldos();
             });
-            tituloFormulario.textContent = 'Registrar Novo Chamado'; 
-            btnSalvar.textContent = 'Salvar Chamado'; 
-            painelFormulario.style.display = 'block'; 
-            window.scrollTo({ top: 0, behavior: 'smooth' }); 
-        }
 
-        function fecharFormulario() { 
-            painelFormulario.style.display = 'none'; 
-            idChamadoEmEdicao = null; 
-            formChamado.reset(); 
-        }
-
-        function prepararEdicao(id) { 
-            const chamado = listaChamados.find(c => c.id === id);
-            if (!chamado) return;
-            idChamadoEmEdicao = id;
-            document.getElementById('numero').value = chamado.numero || '';
-            document.getElementById('analista').value = chamado.analista || '';
-            document.getElementById('categoria').value = chamado.categoria || '';
-            document.getElementById('problema').value = chamado.problema || '';
-            document.getElementById('fila').value = chamado.fila || '';
-            document.getElementById('assuntoEmail').value = chamado.assuntoEmail || '';
-            
-            document.getElementById('sla').value = converterParaBR(chamado.sla);
-            document.getElementById('dataQuestionamento').value = converterParaBR(chamado.dataQuestionamento);
-            document.getElementById('dataFechamento').value = converterParaBR(chamado.dataFechamento);
-
-            // Garantir que os campos voltem com cor normal ao editar
-            camposData.forEach(id => {
-                const el = document.getElementById(id);
-                el.style.borderColor = "var(--border-color)";
-                el.style.color = "var(--text-color)";
+            // Escutar Plantões (Escala)
+            onSnapshot(query(dbPlantao), (snap) => {
+                plantoes = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(a.data) - new Date(b.data));
+                atualizarTabelaEscala();
+                calcularSaldos();
             });
-            
-            tituloFormulario.textContent = 'Editar Chamado';
-            btnSalvar.textContent = 'Atualizar Chamado';
-            painelFormulario.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
 
-        formChamado.addEventListener('submit', async function(evento) {
-            evento.preventDefault(); 
-            loading.style.display = 'flex';
-
-            const valSla = document.getElementById('sla').value;
-            const valQuest = document.getElementById('dataQuestionamento').value;
-            const valFecham = document.getElementById('dataFechamento').value;
-
-            // Bloqueia o envio se tiver formato de data/hora errados
-            if (!validarDataBR(valSla) || !validarDataBR(valQuest) || !validarDataBR(valFecham)) {
-                alert("Atenção: Uma ou mais datas foram preenchidas de forma incorreta.\n\nVerifique se não há dias inexistentes no mês ou horas inválidas.");
+            // Escutar Folgas
+            onSnapshot(query(dbFolgas), (snap) => {
+                folgas = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
+                atualizarTabelasFolgas();
+                calcularSaldos();
                 loading.style.display = 'none';
-                return;
+            });
+        }
+
+        // --- LÓGICA DE NEGÓCIO ---
+        function calcularSaldos() {
+            if (!meuAnalistaId && !isAdmin) return;
+
+            analistas.forEach(analista => {
+                const qtdPlantoes = plantoes.filter(p => p.analistaId === analista.id).length;
+                const qtdFolgasAprovadas = folgas.filter(f => f.analistaId === analista.id && f.status === 'aprovada').length;
+                
+                analista.saldo = qtdPlantoes - qtdFolgasAprovadas;
+                analista.totalPlantoes = qtdPlantoes;
+            });
+
+            if (meuAnalistaId) {
+                const meuDoc = analistas.find(a => a.id === meuAnalistaId);
+                document.getElementById('saldoFolgasUser').textContent = meuDoc ? meuDoc.saldo : 0;
             }
+            
+            if (isAdmin) atualizarTabelaAnalistas();
+        }
 
-            const numeroInput = document.getElementById('numero').value.trim();
-            const agora = new Date().toISOString();
+        function atualizarSelectsEquipe() {
+            const equipesUnicas = [...new Set(analistas.map(a => a.equipe).filter(Boolean))].sort();
+            
+            const selectGerar = document.getElementById('equipeAlvoEscala');
+            selectGerar.innerHTML = equipesUnicas.length > 0 
+                ? equipesUnicas.map(eq => `<option value="${eq}">${eq}</option>`).join('')
+                : '<option value="">Sem equipes</option>';
 
-            const dadosFormulario = {
-                numero: numeroInput,
-                analista: document.getElementById('analista').value,
-                categoria: document.getElementById('categoria').value,
-                problema: document.getElementById('problema').value,
-                fila: document.getElementById('fila').value,
-                assuntoEmail: document.getElementById('assuntoEmail').value,
-                sla: converterParaISO(valSla),
-                dataQuestionamento: converterParaISO(valQuest),
-                dataFechamento: converterParaISO(valFecham),
-                usuarioAtualizacao: userEmail,
-                dataAtualizacao: agora
-            };
+            const selectFiltro = document.getElementById('filtroVisaoEquipe');
+            const valorAtual = selectFiltro.value;
+            selectFiltro.innerHTML = '<option value="todas">Todas as Equipes</option>' + 
+                equipesUnicas.map(eq => `<option value="${eq}">${eq}</option>`).join('');
+            
+            if (equipesUnicas.includes(valorAtual)) selectFiltro.value = valorAtual;
+        }
+
+        // --- GESTÃO DE PRIVACIDADE E ANALISTAS ---
+        function toggleEmailsVisibilidade() {
+            emailsVisiveis = !emailsVisiveis;
+            const btn = document.getElementById('btnToggleEmails');
+            btn.innerHTML = emailsVisiveis ? '👁️ Ocultar E-mails' : '👁️ Mostrar E-mails';
+            atualizarTabelaAnalistas();
+        }
+
+        async function vincularAnalista() {
+            const nome = document.getElementById('novoNomeAnalista').value.trim();
+            const email = document.getElementById('novoEmailAnalista').value.trim().toLowerCase();
+            const equipe = document.getElementById('novaEquipeAnalista').value.trim();
+            
+            if (!nome || !email || !equipe) return alert("Preencha nome, e-mail e equipe.");
             
             try {
-                if (idChamadoEmEdicao) {
-                    const original = listaChamados.find(c => c.id === idChamadoEmEdicao);
-                    if (original.numero !== numeroInput) {
-                        const q = query(chamadosCollection, where("numero", "==", numeroInput));
-                        const querySnapshot = await getDocs(q);
-                        if (!querySnapshot.empty) {
-                            alert("Este número de chamado já está registrado!");
-                            loading.style.display = 'none';
-                            return;
-                        }
-                    }
-                    const docRef = doc(db, "chamados", idChamadoEmEdicao);
-                    await updateDoc(docRef, dadosFormulario);
-                    await registrarLog('ATUALIZACAO', idChamadoEmEdicao, dadosFormulario, userEmail);
-                } else {
-                    const q = query(chamadosCollection, where("numero", "==", numeroInput));
-                    const querySnapshot = await getDocs(q);
-                    if (!querySnapshot.empty) {
-                        alert("Este número de chamado já está registrado!");
-                        loading.style.display = 'none';
-                        return;
-                    }
-                    const docRef = await addDoc(chamadosCollection, { 
-                        createdAt: new Date(), 
-                        criadoPor: userEmail,
-                        dataCriacao: agora,
-                        ...dadosFormulario 
-                    });
-                    await registrarLog('CRIACAO', docRef.id, dadosFormulario, userEmail);
-                }
-                fecharFormulario();
-            } catch (e) {
-                console.error("Erro ao salvar: ", e);
-                alert("Erro ao salvar. Verifique permissões.");
-            } finally {
-                loading.style.display = 'none';
-            }
-        });
+                await addDoc(dbAnalistas, { nome, email, equipe, dataCadastro: new Date().toISOString() });
+                document.getElementById('novoNomeAnalista').value = '';
+                document.getElementById('novoEmailAnalista').value = '';
+                document.getElementById('novaEquipeAnalista').value = '';
+            } catch(e) { alert("Erro ao salvar analista."); }
+        }
 
-        async function removerChamado(id) {
-            if(confirm("Confirma a exclusão permanente deste registro no sistema?")) {
-                loading.style.display = 'flex';
-                try {
-                    const chamadoDeletado = listaChamados.find(c => c.id === id);
-                    await deleteDoc(doc(db, "chamados", id));
-                    await registrarLog('EXCLUSAO', id, { numero: chamadoDeletado.numero }, userEmail);
-                    if (idChamadoEmEdicao === id) fecharFormulario();
-                } catch (e) {
-                    console.error("Erro ao excluir: ", e);
-                    alert("Erro ao excluir. Verifique permissões.");
-                } finally {
-                    loading.style.display = 'none';
-                }
+        async function removerAnalista(id) {
+            if(confirm("Remover este analista do controle de escala?")) {
+                await deleteDoc(doc(db, "escala_analistas", id));
             }
         }
 
-        function alternarInputsPersonalizados(selectId, containerId) {
-            const select = document.getElementById(selectId);
-            const container = document.getElementById(containerId);
-            if (select.value === 'personalizado') {
-                container.style.display = 'flex';
-            } else {
-                container.style.display = 'none';
-            }
-            processarVisualizacao(true);
-        }
-
-        document.getElementById('buscaData').addEventListener('change', () => alternarInputsPersonalizados('buscaData', 'containerCustomFechamento'));
-        document.getElementById('buscaDataQuestionamento').addEventListener('change', () => alternarInputsPersonalizados('buscaDataQuestionamento', 'containerCustomQuestionamento'));
-        document.getElementById('filtroDataCriacao').addEventListener('change', () => alternarInputsPersonalizados('filtroDataCriacao', 'containerCustomCriacao'));
-
-        function limparFiltros() {
-            filtroRapidoAtivo = null;
-            document.getElementById('countPendentes').parentElement.classList.remove('ativo');
-            document.getElementById('countSlaHoje').parentElement.classList.remove('ativo');
-            document.getElementById('countSlaVencido').parentElement.classList.remove('ativo');
-
-            Object.values(inputFiltros).forEach(input => {
-                if(input.tagName === 'SELECT') {
-                    if(input.id === 'filtroStatus' || input.id === 'filtroSLA') input.value = 'todos';
-                    else input.value = '';
-                } else { input.value = ''; }
-            });
-            
-            document.getElementById('containerCustomFechamento').style.display = 'none';
-            document.getElementById('containerCustomQuestionamento').style.display = 'none';
-            document.getElementById('containerCustomCriacao').style.display = 'none';
-            
-            ['customInicioFechamento', 'customFimFechamento', 
-             'customInicioQuestionamento', 'customFimQuestionamento', 
-             'customInicioCriacao', 'customFimCriacao'].forEach(id => {
-                document.getElementById(id).value = '';
-            });
-
-            processarVisualizacao(true);
-        }
-
-        function dataEstaNoRange(dataIso, range, idInicioCustom, idFimCustom) {
-            if (!range || range === '') return true; 
-            if (range === 'aberto') return !dataIso || dataIso.trim() === '';
-            if (!dataIso) return false;
-
-            let dataChamado;
-            if (dataIso.length === 10) {
-                const [ano, mes, dia] = dataIso.split('-');
-                dataChamado = new Date(ano, mes - 1, dia);
-            } else {
-                dataChamado = new Date(dataIso);
-            }
-
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0); 
-            dataChamado.setHours(0, 0, 0, 0);
-
-            if (range === 'hoje') {
-                return dataChamado.getTime() === hoje.getTime();
-            } else if (range === 'ontem') {
-                const ontem = new Date(hoje);
-                ontem.setDate(ontem.getDate() - 1);
-                return dataChamado.getTime() === ontem.getTime();
-            } else if (range === 'ultimos3') {
-                const tresDiasAtras = new Date(hoje);
-                tresDiasAtras.setDate(tresDiasAtras.getDate() - 2); 
-                return dataChamado >= tresDiasAtras && dataChamado <= hoje;
-            } else if (range === 'ultimos7') {
-                const seteDiasAtras = new Date(hoje);
-                seteDiasAtras.setDate(seteDiasAtras.getDate() - 6);
-                return dataChamado >= seteDiasAtras && dataChamado <= hoje;
-            } else if (range === 'estemes') {
-                return dataChamado.getMonth() === hoje.getMonth() && dataChamado.getFullYear() === hoje.getFullYear();
-            } else if (range === 'personalizado') {
-                const valInicio = document.getElementById(idInicioCustom).value;
-                const valFim = document.getElementById(idFimCustom).value;
-                
-                if (!valInicio && !valFim) return true;
-                
-                let okInicio = true;
-                let okFim = true;
-                
-                if (valInicio) {
-                    const [anoI, mesI, diaI] = valInicio.split('-');
-                    const dtInicio = new Date(anoI, mesI - 1, diaI);
-                    dtInicio.setHours(0,0,0,0);
-                    okInicio = dataChamado >= dtInicio;
-                }
-                if (valFim) {
-                    const [anoF, mesF, diaF] = valFim.split('-');
-                    const dtFim = new Date(anoF, mesF - 1, diaF);
-                    dtFim.setHours(0,0,0,0);
-                    okFim = dataChamado <= dtFim;
-                }
-                
-                return okInicio && okFim;
-            }
-            return true;
-        }
-
-        window.ordenarTabela = function(colunaClicada) {
-            if (colunaOrdenacao === colunaClicada) {
-                if (direcaoOrdenacao === 'asc') {
-                    direcaoOrdenacao = 'desc';
-                } else if (direcaoOrdenacao === 'desc') {
-                    colunaOrdenacao = ''; 
-                    direcaoOrdenacao = '';
-                } else {
-                    direcaoOrdenacao = 'asc';
-                }
-            } else {
-                colunaOrdenacao = colunaClicada; 
-                direcaoOrdenacao = 'asc'; 
-            }
-            
-            processarVisualizacao(true);
-        };
-
-        function executarOrdenacao() {
-            if (!colunaOrdenacao || !direcaoOrdenacao) return;
-
-            chamadosFiltradosAtuais.sort((a, b) => {
-                let valA = a[colunaOrdenacao];
-                let valB = b[colunaOrdenacao];
-
-                if (valA === undefined || valA === null) valA = '';
-                if (valB === undefined || valB === null) valB = '';
-
-                if (typeof valA === 'string') valA = valA.toLowerCase();
-                if (typeof valB === 'string') valB = valB.toLowerCase();
-
-                if (valA < valB) return direcaoOrdenacao === 'asc' ? -1 : 1;
-                if (valA > valB) return direcaoOrdenacao === 'asc' ? 1 : -1;
-                return 0;
-            });
-        }
-
-        function processarVisualizacao(resetarPagina = true) {
-            if (resetarPagina) paginaAtual = 1; 
-            const vCategoria = inputFiltros.categoria.value;
-            const vStatus = inputFiltros.status.value;
-            const vSLA = inputFiltros.sla.value;
-            const vData = inputFiltros.data.value; 
-            const vNumero = inputFiltros.numero.value.trim().toLowerCase();
-            const vAnalista = inputFiltros.analista.value; 
-            const vProblema = inputFiltros.problema.value.trim().toLowerCase();
-            const vFila = inputFiltros.fila.value.trim().toLowerCase();
-            const vAssunto = inputFiltros.assunto.value.trim().toLowerCase();
-            const vDataQuest = inputFiltros.dataQuest.value; 
-            const vDataCriacaoRange = inputFiltros.dataCriacaoRange.value; 
-            const vCriadoPor = inputFiltros.criadoPor.value;
-
-            const agora = new Date();
-
-            chamadosFiltradosAtuais = listaChamados.filter(chamado => {
-                const num = (chamado.numero || '').toLowerCase();
-                const prob = (chamado.problema || '').toLowerCase();
-                const fila = (chamado.fila || '').toLowerCase();
-                const ass = (chamado.assuntoEmail || '').toLowerCase();
-                
-                const atendeCategoria = vCategoria === '' || chamado.categoria === vCategoria;
-                
-                let atendeStatus = true;
-                if (vStatus === 'abertos') atendeStatus = !chamado.dataFechamento; 
-                else if (vStatus === 'fechados') atendeStatus = !!chamado.dataFechamento; 
-
-                let atendeSLA = true;
-                if (vSLA !== 'todos') {
-                    if (!chamado.sla) atendeSLA = false; 
-                    else {
-                        const slaDate = new Date(chamado.sla);
-                        if (vSLA === 'vencidos') {
-                            atendeSLA = slaDate <= agora;
-                        } else if (vSLA === 'noprazo') {
-                            atendeSLA = slaDate > agora;
-                        } else if (vSLA === 'hoje') {
-                            const hojeInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
-                            const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59, 999);
-                            atendeSLA = slaDate >= hojeInicio && slaDate <= hojeFim;
-                        }
-                    }
-                }
-
-                const atendeDataFechamento = dataEstaNoRange(chamado.dataFechamento, vData, 'customInicioFechamento', 'customFimFechamento');
-                const dataQuestPura = chamado.dataQuestionamento ? chamado.dataQuestionamento.split('T')[0] : null;
-                const atendeDataQuest = dataEstaNoRange(dataQuestPura, vDataQuest, 'customInicioQuestionamento', 'customFimQuestionamento');
-                const atendeDataCriacaoRange = dataEstaNoRange(chamado.dataCriacao, vDataCriacaoRange, 'customInicioCriacao', 'customFimCriacao');
-
-                const atendeNumero = vNumero === '' || num.includes(vNumero);
-                const atendeAnalista = vAnalista === '' || (chamado.analista && chamado.analista.trim() === vAnalista);
-                const atendeProblema = vProblema === '' || prob.includes(vProblema);
-                const atendeFila = vFila === '' || fila.includes(vFila);
-                const atendeAssunto = vAssunto === '' || ass.includes(vAssunto);
-                const atendeCriadoPor = !soThiagoPodeVer() || vCriadoPor === '' || chamado.criadoPor === vCriadoPor;
-
-                return atendeCategoria && atendeStatus && atendeSLA && atendeDataFechamento && atendeDataQuest &&
-                       atendeNumero && atendeAnalista && atendeProblema && 
-                       atendeFila && atendeAssunto && atendeDataCriacaoRange && atendeCriadoPor;
-            });
-
-            executarOrdenacao();
-
-            if (visaoAtual === 'resumo') atualizarPainelResumo();
-            else atualizarTabelaHtml();
-        }
-
-        const iconeLapis = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-editar"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-        const iconeLixeira = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
-
-        function formatarDataHoraSimples(dataISO) {
-            if (!dataISO) return '-';
-            if (dataISO.includes('T')) {
-                const [data, hora] = dataISO.split('T');
-                const partes = data.split('-');
-                return `${partes[2]}/${partes[1]}/${partes[0]} ${hora}`;
-            }
-            return dataISO; 
-        }
-
-        function formatarDataTela(dataISO) {
-            if (!dataISO) return '<span class="status-aberto">Em aberto</span>';
-            const partes = dataISO.split('-');
-            if(partes.length < 3) return dataISO;
-            return `${partes[2]}/${partes[1]}/${partes[0]}`;
-        }
-
-        function formatarSLA(dataISO, dataFechamento) {
-            if (!dataISO) return '-';
-            let dataFormatada = formatarDataHoraSimples(dataISO);
-            if (!dataFechamento) {
-                const agora = new Date();
-                const slaDate = new Date(dataISO);
-                if (slaDate <= agora) return `<span class="sla-vencido">${dataFormatada} (Vencido)</span>`;
-            }
-            return dataFormatada;
-        }
-
-        function formatarDataParaTeams(dataISO) {
-            if (!dataISO) return '-';
-            if (dataISO.includes('T')) {
-                const [data, hora] = dataISO.split('T');
-                const partes = data.split('-');
-                return `E-mail enviado em ${partes[2]}/${partes[1]} às ${hora}`;
-            } else {
-                const partes = dataISO.split('-');
-                if(partes.length < 3) return dataISO;
-                return `E-mail enviado em ${partes[2]}/${partes[1]}`;
-            }
-        }
-
-        function formatarDataExportacao(dataISO) {
-            if (!dataISO) return 'Em aberto';
-            const partes = dataISO.split('-');
-            return `${partes[2]}/${partes[1]}/${partes[0]}`;
-        }
-
-        function atualizarPainelResumo() {
-            tabelaResumoCorpo.innerHTML = '';
-            if (chamadosFiltradosAtuais.length === 0) {
-                tabelaResumoCorpo.innerHTML = '<tr><td colspan="4" class="mensagem-vazia">Nenhum registro encontrado para os filtros atuais.</td></tr>';
-                return;
-            }
-
-            const regrasOriginais = [
-                { nome: 'Gol Revolution', temAberto: false },
-                { nome: 'Portabilidade', temAberto: false },
-                { nome: 'Suporte à Sistemas - OMS/CRM', temAberto: true },
-                { nome: 'Outros', temAberto: true }
-            ];
-
-            const categoriaSelecionada = inputFiltros.categoria.value;
-            let regrasParaExibir = regrasOriginais;
-
-            if (categoriaSelecionada && categoriaSelecionada !== "") {
-                regrasParaExibir = regrasOriginais.filter(r => r.nome === categoriaSelecionada);
-            }
-
-            regrasParaExibir.forEach(regra => {
-                const filtrados = chamadosFiltradosAtuais.filter(c => c.categoria === regra.nome);
-                const abertos = filtrados.filter(c => !c.dataFechamento).length;
-                const concluidos = filtrados.filter(c => c.dataFechamento).length;
-                const total = filtrados.length;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td><strong>${regra.nome}</strong></td><td>${regra.temAberto ? `<span class="status-aberto">${abertos}</span>` : '-'}</td><td><strong>${concluidos}</strong></td><td style="background-color: var(--bg-color);"><strong>${total}</strong></td>`;
-                tabelaResumoCorpo.appendChild(tr);
-            });
-        }
-
-        function getCabecalhoHtml(label, campoOrigem) {
-            let icone = '↕'; 
-            let classeAtiva = '';
-            
-            if (colunaOrdenacao === campoOrigem) {
-                if (direcaoOrdenacao === 'asc') {
-                    icone = '▲';
-                    classeAtiva = 'active';
-                } else if (direcaoOrdenacao === 'desc') {
-                    icone = '▼';
-                    classeAtiva = 'active';
-                }
-            }
-            
-            return `<th class="sortable" onclick="ordenarTabela('${campoOrigem}')" title="Clique para ordenar">
-                        ${label} <span class="sort-icon ${classeAtiva}">${icone}</span>
-                    </th>`;
-        }
-
-        function atualizarTabelaHtml() {
-            const ehDonoOuAdmin = ehSuperUsuario(); 
-            const podeVerColunasOcultas = soThiagoPodeVer(); 
-
-            let htmlCabecalho = getCabecalhoHtml('Chamado', 'numero');
-            if(colunasSalvas.analista) htmlCabecalho += getCabecalhoHtml('Analista', 'analista');
-            if(colunasSalvas.categoria) htmlCabecalho += getCabecalhoHtml('Categoria', 'categoria');
-            if(colunasSalvas.problema) htmlCabecalho += getCabecalhoHtml('Cenário / Problema', 'problema');
-            if(colunasSalvas.fila) htmlCabecalho += getCabecalhoHtml('Fila', 'fila');
-            if(colunasSalvas.assunto) htmlCabecalho += getCabecalhoHtml('Assunto do E-mail', 'assuntoEmail');
-            if(colunasSalvas.sla) htmlCabecalho += getCabecalhoHtml('SLA', 'sla');
-            if(colunasSalvas.dtQuest) htmlCabecalho += getCabecalhoHtml('Dt. Quest.', 'dataQuestionamento');
-            if(colunasSalvas.dtFecham) htmlCabecalho += getCabecalhoHtml('Dt. Enc. Fech.', 'dataFechamento');
-            
-            if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlCabecalho += getCabecalhoHtml('Data Criação', 'dataCriacao');
-            if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlCabecalho += getCabecalhoHtml('Data Atualização', 'dataAtualizacao');
-            if(podeVerColunasOcultas && colunasSalvas.usrAtualizacao) htmlCabecalho += getCabecalhoHtml('Atualizado Por', 'usuarioAtualizacao');
-
-            htmlCabecalho += `<th style="text-align: center;">Ações</th>`;
-            
-            cabecalhoTabela.innerHTML = htmlCabecalho;
-            tabelaCorpo.innerHTML = ''; 
-
-            if (chamadosFiltradosAtuais.length === 0) {
-                const totalColunas = document.querySelectorAll('#cabecalhoTabela th').length;
-                tabelaCorpo.innerHTML = `<tr><td colspan="${totalColunas}" class="mensagem-vazia">Nenhum registro retornado com os critérios fornecidos.</td></tr>`;
-                controlePaginacao.style.display = 'none';
-                return;
-            }
-
-            controlePaginacao.style.display = 'flex';
-            let chamadosParaExibir = chamadosFiltradosAtuais;
-            let totalPaginas = 1;
-            let textoInfo = '';
-
-            if (itensPorPagina !== 'todos') {
-                totalPaginas = Math.ceil(chamadosFiltradosAtuais.length / itensPorPagina);
-                if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
-                if (paginaAtual < 1) paginaAtual = 1;
-                const inicio = (paginaAtual - 1) * itensPorPagina;
-                const fim = Math.min(inicio + itensPorPagina, chamadosFiltradosAtuais.length);
-                chamadosParaExibir = chamadosFiltradosAtuais.slice(inicio, fim);
-                
-                const inicialExibido = chamadosFiltradosAtuais.length === 0 ? 0 : inicio + 1;
-                textoInfo = `${inicialExibido} - ${fim} de ${chamadosFiltradosAtuais.length} (Pág ${paginaAtual} / ${totalPaginas})`;
-            } else {
-                textoInfo = `Exibindo todos os ${chamadosFiltradosAtuais.length} registros`;
-            }
-
-            infoPaginacao.textContent = textoInfo;
-            btnPaginaAnt.disabled = paginaAtual === 1 || itensPorPagina === 'todos';
-            btnPaginaProx.disabled = paginaAtual === totalPaginas || itensPorPagina === 'todos';
-
-            chamadosParaExibir.forEach((chamado) => {
-                const tr = document.createElement('tr');
-                const linkChamado = `https://clarobr.atlassian.net/browse/${chamado.numero}`; 
-
-                let htmlLinha = `<td><strong><a href="${linkChamado}" target="_blank" class="link-chamado">${chamado.numero}</a></strong></td>`;
-                if(colunasSalvas.analista) htmlLinha += `<td>${chamado.analista || '-'}</td>`;
-                if(colunasSalvas.categoria) htmlLinha += `<td>${chamado.categoria || '-'}</td>`;
-                if(colunasSalvas.problema) htmlLinha += `<td>${chamado.problema || '-'}</td>`;
-                if(colunasSalvas.fila) htmlLinha += `<td>${chamado.fila || '-'}</td>`;
-                if(colunasSalvas.assunto) htmlLinha += `<td>${chamado.assuntoEmail || '-'}</td>`;
-                if(colunasSalvas.sla) htmlLinha += `<td>${formatarSLA(chamado.sla, chamado.dataFechamento)}</td>`;
-                if(colunasSalvas.dtQuest) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataQuestionamento)}</td>`;
-                if(colunasSalvas.dtFecham) htmlLinha += `<td>${formatarDataTela(chamado.dataFechamento)}</td>`;
-                
-                if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataCriacao)}</td>`;
-                if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataAtualizacao)}</td>`;
-                if(podeVerColunasOcultas && colunasSalvas.usrAtualizacao) htmlLinha += `<td>${chamado.usuarioAtualizacao || '-'}</td>`;
-                
-                const ehDono = chamado.criadoPor === userEmail;
-                let botoesAcao = '';
-
-                if (ehDono || ehDonoOuAdmin) {
-                    botoesAcao = `<button class="btn-icone" onclick="prepararEdicao('${chamado.id}')" title="Editar Chamado">${iconeLapis}</button><button class="btn-icone" onclick="removerChamado('${chamado.id}')" title="Excluir Chamado">${iconeLixeira}</button>`;
-                } else {
-                    botoesAcao = '<span class="sem-permissao">Sem permissão</span>';
-                }
-
-                htmlLinha += `<td><div class="acoes-container">${botoesAcao}</div></td>`;
-                tr.innerHTML = htmlLinha;
-                tabelaCorpo.appendChild(tr);
-            });
-        }
-
-        selectItensPagina.addEventListener('change', (e) => {
-            itensPorPagina = e.target.value === 'todos' ? 'todos' : parseInt(e.target.value);
-            paginaAtual = 1;
-            atualizarTabelaHtml();
-        });
-        btnPaginaAnt.addEventListener('click', () => { if (paginaAtual > 1) { paginaAtual--; atualizarTabelaHtml(); } });
-        btnPaginaProx.addEventListener('click', () => {
-            const totalPaginas = Math.ceil(chamadosFiltradosAtuais.length / itensPorPagina);
-            if (paginaAtual < totalPaginas) { paginaAtual++; atualizarTabelaHtml(); }
-        });
-
-        // Listeners selects principais
-        Object.values(inputFiltros).forEach(input => {
-            input.addEventListener('input', () => processarVisualizacao(true));
-            input.addEventListener('change', () => processarVisualizacao(true));
-        });
-
-        // Listeners campos de data personalizados
-        ['customInicioFechamento', 'customFimFechamento', 
-         'customInicioQuestionamento', 'customFimQuestionamento', 
-         'customInicioCriacao', 'customFimCriacao'].forEach(id => {
-            document.getElementById(id).addEventListener('change', () => processarVisualizacao(true));
-        });
-
-        // --- TEAMS ---
-        function copiarParaTeams() {
-            if (chamadosFiltradosAtuais.length === 0) {
-                alert("Sem dados para copiar.");
-                return;
-            }
-            
-            const grupos = {};
-            const semAssunto = [];
-            
-            // 1. Agrupa os chamados
-            chamadosFiltradosAtuais.forEach(c => {
-                const assunto = c.assuntoEmail ? c.assuntoEmail.trim() : "";
-                
-                if (!assunto) {
-                    semAssunto.push(c);
-                } else {
-                    const chave = assunto.toLowerCase();
-                    
-                    if (!grupos[chave]) {
-                        grupos[chave] = {
-                            numeros: [],
-                            slas: [],
-                            assuntoOriginal: assunto,
-                            dataQuestionamento: c.dataQuestionamento
-                        };
-                    }
-                    
-                    grupos[chave].numeros.push(c.numero);
-                    grupos[chave].slas.push(formatarDataHoraSimples(c.sla)); 
-                }
-            });
-
-            // 2. Transforma os grupos em uma lista (array) para podermos ordenar
-            let listaGrupos = Object.values(grupos);
-
-            // 3. Função auxiliar para comparar as datas (Crescente: mais antigo primeiro)
-            const compararDatas = (a, b) => {
-                const dataA = a.dataQuestionamento ? new Date(a.dataQuestionamento).getTime() : 0;
-                const dataB = b.dataQuestionamento ? new Date(b.dataQuestionamento).getTime() : 0;
-                return dataA - dataB; 
-            };
-
-            // 4. Aplica a ordenação nos grupos e nos chamados sem assunto
-            listaGrupos.sort(compararDatas);
-            semAssunto.sort(compararDatas);
-
-            // 5. Monta o HTML da tabela
-            let html = `<table style="border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #d1d1d1;">
-                        <thead style="background-color: #f3f2f1;">
-                            <tr style="text-align: left;">
-                                <th style="border: 1px solid #edebe9; padding: 8px;">Chamado</th>
-                                <th style="border: 1px solid #edebe9; padding: 8px;">Assunto do E-mail</th>
-                                <th style="border: 1px solid #edebe9; padding: 8px;">SLA</th>
-                                <th style="border: 1px solid #edebe9; padding: 8px;">Data do Questionamento</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-
-            // 6. Preenche a tabela com os grupos já ordenados
-            listaGrupos.forEach(g => {
-                const chamadosConcatenados = g.numeros.join("<br>"); 
-                const slasConcatenados = g.slas.join("<br>"); 
-                
-                html += `<tr>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${chamadosConcatenados}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${g.assuntoOriginal}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${slasConcatenados}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(g.dataQuestionamento)}</td>
+        function atualizarTabelaAnalistas() {
+            const tbody = document.getElementById('tabelaAnalistasCadastrados');
+            tbody.innerHTML = '';
+            analistas.forEach(a => {
+                const emailExibido = emailsVisiveis ? a.email : '•••••••••••••••••';
+                tbody.innerHTML += `<tr>
+                    <td>${a.nome}</td>
+                    <td>${emailExibido}</td>
+                    <td><strong>${a.equipe || '-'}</strong></td>
+                    <td>${a.totalPlantoes || 0}</td>
+                    <td><button class="btn-secundario" style="padding: 4px 8px; color: var(--danger-color); border-color: var(--danger-color);" onclick="removerAnalista('${a.id}')">Excluir</button></td>
                 </tr>`;
             });
-
-            // 7. Preenche a tabela com os chamados sem assunto já ordenados
-            semAssunto.forEach(c => {
-                html += `<tr>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${c.numero || '-'}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${c.assuntoEmail || '-'}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataHoraSimples(c.sla)}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(c.dataQuestionamento)}</td>
-                </tr>`;
-            });
-
-            html += `</tbody></table>`;
-
-            // 8. Copia para a área de transferência
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = html;
-            tempDiv.style.position = "absolute";
-            tempDiv.style.left = "-9999px";
-            document.body.appendChild(tempDiv);
-            
-            const range = document.createRange();
-            range.selectNodeContents(tempDiv);
-            const selecao = window.getSelection();
-            selecao.removeAllRanges();
-            selecao.addRange(range);
-            
-            try {
-                document.execCommand("copy");
-                alert("Tabela copiada para envio via Teams");
-            } catch (err) { alert("Erro ao copiar."); }
-            document.body.removeChild(tempDiv);
         }
 
-        // --- CSV Exportação ---
-        function exportarCSV() {
-            if (chamadosFiltradosAtuais.length === 0) {
-                alert("Sem dados para exportar.");
-                return;
-            }
+        // --- ESCALA AUTOMÁTICA INTELIGENTE ---
+        async function gerarEscalaAutomatica() {
+            const mesInput = document.getElementById('mesEscala').value;
+            const frequencia = document.getElementById('frequenciaEscala').value;
+            const diaAlvo = parseInt(document.getElementById('diaAlvoEscala').value);
+            const equipeAlvo = document.getElementById('equipeAlvoEscala').value;
             
-            const podeVerColunasOcultas = soThiagoPodeVer();
-            
-            let cabecalhoCSV = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Enc. Fech.";
-            if(podeVerColunasOcultas) cabecalhoCSV += ";Data Criação;Data Atualização;Atualizado Por";
-            cabecalhoCSV += "\n";
-            
-            let csv = cabecalhoCSV;
+            if (!mesInput) return alert("Selecione o mês de referência.");
+            if (!equipeAlvo) return alert("Selecione uma equipe.");
 
-            chamadosFiltradosAtuais.forEach(c => {
-                const sla = formatarDataHoraSimples(c.sla);
-                const dtq = formatarDataHoraSimples(c.dataQuestionamento);
-                const dtf = c.dataFechamento ? formatarDataTela(c.dataFechamento) : 'Em aberto';
-                
-                const clean = (txt) => (txt || '').replace(/"/g, '""').replace(/(\r\n|\n|\r)/gm, " ");
-                
-                let linhaCSV = `"${clean(c.numero)}";"${clean(c.analista)}";"${clean(c.categoria)}";"${clean(c.problema)}";"${clean(c.fila)}";"${clean(c.assuntoEmail)}";"${sla}";"${dtq}";"${dtf}"`;
-                
-                if (podeVerColunasOcultas) {
-                    const dtCri = formatarDataHoraSimples(c.dataCriacao);
-                    const dtAtu = formatarDataHoraSimples(c.dataAtualizacao);
-                    const usrAtu = c.usuarioAtualizacao || '';
-                    linhaCSV += `;"${dtCri}";"${dtAtu}";"${usrAtu}"`;
-                }
-                
-                csv += linhaCSV + "\n";
-            });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Relatorio_Chamados_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // --- CSV Importação ---
-        window.baixarModeloCSV = function() {
-            const cabecalho = "Chamado;Analista;Categoria;Problema;Fila;AssuntoEmail;SLA(YYYY-MM-DDTHH:MM);DataQuestionamento(YYYY-MM-DDTHH:MM);DataFechamento(YYYY-MM-DD)\n";
-            const exemplo = "INC1234567;João Silva;Outros;Falha na fila;N2;Erro de acesso;2026-03-10T14:00;2026-03-05T10:00;2026-03-06\n";
-            const blob = new Blob(["\uFEFF" + cabecalho + exemplo], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", "Modelo_Importacao_Chamados.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        };
-
-        const inputImportarCSV = document.getElementById('inputImportarCSV');
-        document.getElementById('btnImportarCSV').addEventListener('click', () => {
-            inputImportarCSV.click();
-        });
-
-        inputImportarCSV.addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+            let analistasSorteio = analistas.filter(a => a.equipe === equipeAlvo);
+            if (analistasSorteio.length === 0) return alert("Nenhum analista cadastrado nesta equipe.");
 
             loading.style.display = 'flex';
-            const reader = new FileReader();
-            reader.onload = async function(event) {
-                const text = event.target.result;
-                await processarImportacaoCSV(text);
-                inputImportarCSV.value = ''; 
-            };
-            reader.readAsText(file);
-        });
-
-        async function processarImportacaoCSV(csvText) {
-            const linhas = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+            const [ano, mes] = mesInput.split('-');
+            const datasEncontradas = [];
             
-            if (linhas.length <= 1) {
-                alert("O arquivo está vazio ou contém apenas o cabeçalho.");
-                loading.style.display = 'none';
-                return;
+            // 1. Descobre todos os dias do mês que caem no Dia da Semana escolhido
+            let dataCursor = new Date(ano, parseInt(mes) - 1, 1);
+            while (dataCursor.getMonth() === parseInt(mes) - 1) {
+                if (dataCursor.getDay() === diaAlvo) {
+                    const diaF = String(dataCursor.getDate()).padStart(2, '0');
+                    datasEncontradas.push(`${ano}-${mes}-${diaF}`);
+                }
+                dataCursor.setDate(dataCursor.getDate() + 1);
             }
 
-            let sucessos = 0;
-            let erros = 0;
+            // 2. Aplica o filtro de "Frequência" (Todos, 1º, 2º, etc)
+            let datasParaEscalar = [];
+            if (frequencia === 'all') {
+                datasParaEscalar = datasEncontradas;
+            } else if (frequencia === 'last') {
+                if(datasEncontradas.length > 0) datasParaEscalar.push(datasEncontradas[datasEncontradas.length - 1]);
+            } else {
+                const index = parseInt(frequencia) - 1;
+                if(datasEncontradas.length > index) {
+                    datasParaEscalar.push(datasEncontradas[index]);
+                }
+            }
+
+            // 3. Remove datas que já tem algum plantão salvo 
+            const datasSemEscala = datasParaEscalar.filter(d => !plantoes.some(p => p.data === d && p.equipe === equipeAlvo));
             
-            for (let i = 1; i < linhas.length; i++) {
-                const colunas = linhas[i].split(';');
-                
-                if (colunas.length < 4) { erros++; continue; } 
+            if (datasSemEscala.length === 0) {
+                loading.style.display = 'none';
+                return alert("A(s) data(s) selecionada(s) com essa regra não existe(m) ou a equipe já possui plantão gerado neste dia.");
+            }
 
-                const numeroInput = colunas[0]?.trim();
-                const analista = colunas[1]?.trim();
-                const categoria = colunas[2]?.trim();
-                const problema = colunas[3]?.trim();
-                
-                if (!numeroInput || !analista || !categoria || !problema) {
-                    erros++; continue;
-                }
-
-                const q = query(chamadosCollection, where("numero", "==", numeroInput));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    erros++; continue; 
-                }
-
-                const agora = new Date().toISOString();
-                
-                const dadosFormulario = {
-                    numero: numeroInput,
-                    analista: analista,
-                    categoria: categoria,
-                    problema: problema,
-                    fila: colunas[4]?.trim() || '',
-                    assuntoEmail: colunas[5]?.trim() || '',
-                    sla: colunas[6]?.trim() || '',
-                    dataQuestionamento: colunas[7]?.trim() || '',
-                    dataFechamento: colunas[8]?.trim() || '',
-                    usuarioAtualizacao: userEmail,
-                    dataAtualizacao: agora
-                };
+            for (const dataPlantao of datasSemEscala) {
+                // Algoritmo de Justiça: Analista da Equipe com MENOS plantões vai para o topo
+                analistasSorteio.sort((a, b) => (a.totalPlantoes || 0) - (b.totalPlantoes || 0));
+                const analistaEscolhido = analistasSorteio[0];
 
                 try {
-                    const docRef = await addDoc(chamadosCollection, { 
-                        createdAt: new Date(), 
-                        criadoPor: userEmail,
-                        dataCriacao: agora,
-                        ...dadosFormulario 
+                    await addDoc(dbPlantao, {
+                        data: dataPlantao,
+                        analistaId: analistaEscolhido.id,
+                        nomeAnalista: analistaEscolhido.nome,
+                        equipe: equipeAlvo,
+                        geradoAutomaticamente: true,
+                        criadoPor: userEmail
                     });
-                    await registrarLog('CRIACAO_EM_MASSA', docRef.id, dadosFormulario, userEmail);
-                    sucessos++;
-                } catch(err) {
-                    erros++;
-                }
+                    analistaEscolhido.totalPlantoes = (analistaEscolhido.totalPlantoes || 0) + 1;
+                } catch(e) { console.error("Erro ao inserir plantão:", e); }
             }
-            
+
             loading.style.display = 'none';
-            alert(`Importação concluída!\n\nChamados inseridos: ${sucessos}\nIgnorados (Duplicados ou com erro): ${erros}`);
+            alert(`Sucesso! Foram gerados ${datasSemEscala.length} plantão(ões) para a equipe ${equipeAlvo}.`);
         }
+
+        async function removerPlantao(id) {
+            if(confirm("Remover este plantão da escala? (O saldo do analista será corrigido automaticamente)")) {
+                await deleteDoc(doc(db, "escala_plantoes", id));
+            }
+        }
+
+        function formatarDataBR(dataISO) {
+            const [ano, mes, dia] = dataISO.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function pegarNomeDiaSemana(dataISO) {
+            const dias = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+            const [ano, mes, dia] = dataISO.split('-');
+            const dateObj = new Date(ano, mes - 1, dia);
+            return dias[dateObj.getDay()];
+        }
+
+        function atualizarTabelaEscala() {
+            const tbody = document.getElementById('tabelaEscalaGeral');
+            tbody.innerHTML = '';
+            
+            const hojeISO = new Date().toISOString().split('T')[0];
+            const filtroEquipe = document.getElementById('filtroVisaoEquipe').value;
+
+            // Filtra por data e pela equipe selecionada no Dropdown do título
+            const plantoesFiltrados = plantoes.filter(p => p.data >= hojeISO && (filtroEquipe === 'todas' || p.equipe === filtroEquipe));
+
+            if (plantoesFiltrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma escala encontrada.</td></tr>';
+                return;
+            }
+
+            plantoesFiltrados.forEach(p => {
+                const btnRemover = isAdmin ? `<button class="btn-secundario" style="padding: 4px; font-size: 12px; color: var(--danger-color); border-color: var(--danger-color);" onclick="removerPlantao('${p.id}')">Excluir</button>` : '';
+                tbody.innerHTML += `<tr>
+                    <td><strong>${formatarDataBR(p.data)}</strong></td>
+                    <td>${pegarNomeDiaSemana(p.data)}</td>
+                    <td style="color: var(--text-muted); font-weight: bold;">${p.equipe || '-'}</td>
+                    <td style="color: var(--claro-red); font-weight: bold;">${p.nomeAnalista}</td>
+                    <td class="admin-only">${btnRemover}</td>
+                </tr>`;
+            });
+
+            if(isAdmin) document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'table-cell');
+        }
+
+        // --- FOLGAS ---
+        async function solicitarFolga() {
+            if (!meuAnalistaId) return alert("Seu e-mail não está vinculado a um analista. Fale com o Administrador.");
+            
+            const meuRegistro = analistas.find(a => a.id === meuAnalistaId);
+            if (meuRegistro.saldo <= 0) return alert("Você não possui saldo de folgas disponível.");
+
+            const dataInput = document.getElementById('inputPedirFolga').value;
+            if (!dataInput) return alert("Selecione a data.");
+
+            const [ano, mes, dia] = dataInput.split('-');
+            const dateObj = new Date(ano, mes - 1, dia);
+            const diaSemana = dateObj.getDay().toString();
+
+            if (configSistema.diasBloqueados.includes(diaSemana)) {
+                return alert("Este dia da semana está bloqueado para folgas pelo administrador.");
+            }
+            if (configSistema.datasBloqueadas.includes(dataInput)) {
+                return alert("Esta data específica foi bloqueada para folgas pelo administrador.");
+            }
+
+            const jaPediu = folgas.find(f => f.analistaId === meuAnalistaId && f.dataSolicitada === dataInput && f.status !== 'recusada');
+            if (jaPediu) return alert("Você já tem uma solicitação pendente ou aprovada para esta data.");
+
+            loading.style.display = 'flex';
+            try {
+                await addDoc(dbFolgas, {
+                    analistaId: meuAnalistaId,
+                    nomeAnalista: meuRegistro.nome,
+                    equipe: meuRegistro.equipe,
+                    dataSolicitada: dataInput,
+                    status: 'pendente',
+                    dataSolicitacao: new Date().toISOString()
+                });
+                document.getElementById('inputPedirFolga').value = '';
+                alert("Solicitação enviada para aprovação!");
+            } catch(e) { alert("Erro ao solicitar folga."); }
+            loading.style.display = 'none';
+        }
+
+        function atualizarTabelasFolgas() {
+            const tbodyMinhas = document.getElementById('tabelaMinhasFolgas');
+            tbodyMinhas.innerHTML = '';
+            const minhasFolgas = folgas.filter(f => f.analistaId === meuAnalistaId);
+            
+            if (minhasFolgas.length === 0) {
+                tbodyMinhas.innerHTML = '<tr><td colspan="3" style="text-align:center;">Nenhuma solicitação feita.</td></tr>';
+            } else {
+                minhasFolgas.forEach(f => {
+                    let badgeClass = f.status === 'pendente' ? 'bg-pendente' : (f.status === 'aprovada' ? 'bg-aprovado' : 'bg-recusado');
+                    const dataPed = f.dataSolicitacao.split('T')[0];
+                    tbodyMinhas.innerHTML += `<tr>
+                        <td><strong>${formatarDataBR(f.dataSolicitada)}</strong></td>
+                        <td><span class="badge ${badgeClass}">${f.status.toUpperCase()}</span></td>
+                        <td style="font-size:12px; color: var(--text-muted);">${formatarDataBR(dataPed)}</td>
+                    </tr>`;
+                });
+            }
+
+            if (isAdmin) {
+                const tbodyPendentes = document.getElementById('tabelaFolgasPendentes');
+                tbodyPendentes.innerHTML = '';
+                const pendentes = folgas.filter(f => f.status === 'pendente');
+                
+                if (pendentes.length === 0) {
+                    tbodyPendentes.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma pendência.</td></tr>';
+                } else {
+                    pendentes.forEach(f => {
+                        const analista = analistas.find(a => a.id === f.analistaId);
+                        const saldo = analista ? analista.saldo : '?';
+                        
+                        tbodyPendentes.innerHTML += `<tr>
+                            <td><strong>${f.equipe || '-'}</strong></td>
+                            <td><strong>${f.nomeAnalista}</strong></td>
+                            <td>${formatarDataBR(f.dataSolicitada)} (${pegarNomeDiaSemana(f.dataSolicitada)})</td>
+                            <td>${saldo} folgas disp.</td>
+                            <td>
+                                <button class="badge bg-aprovado" style="border:none; cursor:pointer; margin-right: 5px;" onclick="aprovarFolga('${f.id}')">Aprovar</button>
+                                <button class="badge bg-recusado" style="border:none; cursor:pointer;" onclick="recusarFolga('${f.id}')">Recusar</button>
+                            </td>
+                        </tr>`;
+                    });
+                }
+            }
+        }
+
+        async function aprovarFolga(idFolga) {
+            if(confirm("Confirma a aprovação desta folga? O saldo do analista será descontado.")) {
+                await updateDoc(doc(db, "escala_folgas", idFolga), { status: 'aprovada', avaliadoPor: userEmail, dataAvaliacao: new Date().toISOString() });
+            }
+        }
+
+        async function recusarFolga(idFolga) {
+            if(confirm("Deseja recusar esta folga? O saldo do analista retornará.")) {
+                await updateDoc(doc(db, "escala_folgas", idFolga), { status: 'recusada', avaliadoPor: userEmail, dataAvaliacao: new Date().toISOString() });
+            }
+        }
+
+        // --- CONFIGURAÇÕES DE BLOQUEIO ---
+        function atualizarUIConfig() {
+            document.querySelectorAll('.chk-dia').forEach(chk => {
+                chk.checked = configSistema.diasBloqueados.includes(chk.value);
+            });
+
+            const divDatas = document.getElementById('listaDatasBloqueadas');
+            divDatas.innerHTML = '';
+            if(configSistema.datasBloqueadas) {
+                configSistema.datasBloqueadas.sort().forEach(d => {
+                    divDatas.innerHTML += `<span style="background: var(--border-color); padding: 6px 10px; border-radius: 12px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                        ${formatarDataBR(d)}
+                        <span style="cursor:pointer; color: var(--danger-color); font-weight: bold; font-size: 14px;" onclick="removerDataBloqueada('${d}')" title="Desbloquear data">✕</span>
+                    </span>`;
+                });
+            }
+        }
+
+        async function salvarConfigFirestore(novoConfig) {
+            try {
+                await setDoc(doc(db, "escala_configuracoes", "geral"), novoConfig, { merge: true });
+                alert("Regras atualizadas!");
+            } catch(e) { alert("Erro ao salvar regras."); }
+        }
+
+        function salvarConfigDias() {
+            const selecionados = Array.from(document.querySelectorAll('.chk-dia:checked')).map(chk => chk.value);
+            configSistema.diasBloqueados = selecionados;
+            salvarConfigFirestore(configSistema);
+        }
+
+        function adicionarDataBloqueada() {
+            const dtInicio = document.getElementById('dataBloqueioInicio').value;
+            const dtFim = document.getElementById('dataBloqueioFim').value;
+            
+            if(!dtInicio) return alert("Selecione pelo menos a primeira data.");
+
+            let datasParaAdicionar = [];
+            
+            if (dtFim && dtFim >= dtInicio) {
+                let dataCursor = new Date(dtInicio + 'T12:00:00');
+                let dataFinal = new Date(dtFim + 'T12:00:00');
+                
+                while(dataCursor <= dataFinal) {
+                    const iso = dataCursor.toISOString().split('T')[0];
+                    datasParaAdicionar.push(iso);
+                    dataCursor.setDate(dataCursor.getDate() + 1);
+                }
+            } else {
+                datasParaAdicionar.push(dtInicio);
+            }
+
+            let adicionouAlguma = false;
+            datasParaAdicionar.forEach(dt => {
+                if(!configSistema.datasBloqueadas.includes(dt)) {
+                    configSistema.datasBloqueadas.push(dt);
+                    adicionouAlguma = true;
+                }
+            });
+            
+            if(adicionouAlguma) {
+                salvarConfigFirestore(configSistema);
+            } else {
+                alert("Esta(s) data(s) já estava(m) na lista de bloqueio.");
+            }
+            
+            document.getElementById('dataBloqueioInicio').value = '';
+            document.getElementById('dataBloqueioFim').value = '';
+        }
+
+        function removerDataBloqueada(dt) {
+            configSistema.datasBloqueadas = configSistema.datasBloqueadas.filter(d => d !== dt);
+            salvarConfigFirestore(configSistema);
+        }
+
     </script>
 </body>
 </html>
