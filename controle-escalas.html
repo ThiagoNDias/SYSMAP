@@ -364,13 +364,25 @@
                 </div>
 
                 <div id="aba-admin-config" class="aba-admin-content">
-                    <h3 style="font-size: 15px; color: var(--text-color); margin-top: 0;">Vincular E-mail ao Analista</h3>
+                    <h3 style="font-size: 15px; color: var(--text-color); margin-top: 0;">Vincular / Editar Analista</h3>
+                    
                     <div class="campo" style="margin-bottom: 20px;">
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="hidden" id="editAnalistaId">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
                             <input type="text" id="novoNomeAnalista" placeholder="Nome (Ex: João)" style="flex: 1; min-width: 140px;">
                             <input type="email" id="novoEmailAnalista" placeholder="E-mail Google" style="flex: 1; min-width: 160px;">
                             <input type="text" id="novaEquipeAnalista" placeholder="Equipe (Ex: N1, Infra)" style="flex: 1; min-width: 140px;">
-                            <button class="btn-secundario" onclick="vincularAnalista()" style="height: 42px; flex: none;">Adicionar</button>
+                            
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <label style="margin: 0; font-size: 13px;">Na Escala?</label>
+                                <select id="novoParticipaEscala" style="width: auto; padding: 10px;">
+                                    <option value="sim">Sim</option>
+                                    <option value="nao">Não</option>
+                                </select>
+                            </div>
+
+                            <button class="btn-secundario" id="btnSalvarAnalista" onclick="salvarAnalista()" style="height: 42px; flex: none;">Adicionar</button>
+                            <button class="btn-secundario" id="btnCancelarEdicaoAnalista" onclick="cancelarEdicaoAnalista()" style="height: 42px; flex: none; display: none;">Cancelar</button>
                         </div>
                     </div>
                     
@@ -380,7 +392,7 @@
                     </div>
                     <div class="tabela-container" style="margin-bottom: 30px;">
                         <table>
-                            <thead><tr><th>Analista</th><th>E-mail</th><th>Equipe</th><th>Plantões Feitos</th><th>Ação</th></tr></thead>
+                            <thead><tr><th>Analista</th><th>E-mail</th><th>Equipe</th><th>Na Escala?</th><th>Plantões Feitos</th><th>Ação</th></tr></thead>
                             <tbody id="tabelaAnalistasCadastrados"></tbody>
                         </table>
                     </div>
@@ -471,7 +483,9 @@
         window.solicitarFolga = solicitarFolga;
         window.prepararTrocaFolga = prepararTrocaFolga;
         window.cancelarTrocaFolga = cancelarTrocaFolga;
-        window.vincularAnalista = vincularAnalista;
+        window.salvarAnalista = salvarAnalista;
+        window.prepararEdicaoAnalista = prepararEdicaoAnalista;
+        window.cancelarEdicaoAnalista = cancelarEdicaoAnalista;
         window.removerAnalista = removerAnalista;
         window.gerarEscalaAutomatica = gerarEscalaAutomatica;
         window.removerPlantao = removerPlantao;
@@ -641,19 +655,54 @@
             atualizarTabelaAnalistas();
         }
 
-        async function vincularAnalista() {
+        function prepararEdicaoAnalista(id) {
+            const a = analistas.find(x => x.id === id);
+            if(!a) return;
+            document.getElementById('editAnalistaId').value = a.id;
+            document.getElementById('novoNomeAnalista').value = a.nome || '';
+            document.getElementById('novoEmailAnalista').value = a.email || '';
+            document.getElementById('novaEquipeAnalista').value = a.equipe || '';
+            document.getElementById('novoParticipaEscala').value = (a.participaEscala === false) ? 'nao' : 'sim';
+
+            document.getElementById('btnSalvarAnalista').textContent = 'Atualizar';
+            document.getElementById('btnSalvarAnalista').classList.add('btn-acao');
+            document.getElementById('btnSalvarAnalista').classList.remove('btn-secundario');
+            document.getElementById('btnCancelarEdicaoAnalista').style.display = 'inline-block';
+            window.scrollTo({ top: document.getElementById('aba-admin-config').offsetTop, behavior: 'smooth' });
+        }
+
+        function cancelarEdicaoAnalista() {
+            document.getElementById('editAnalistaId').value = '';
+            document.getElementById('novoNomeAnalista').value = '';
+            document.getElementById('novoEmailAnalista').value = '';
+            document.getElementById('novaEquipeAnalista').value = '';
+            document.getElementById('novoParticipaEscala').value = 'sim';
+
+            document.getElementById('btnSalvarAnalista').textContent = 'Adicionar';
+            document.getElementById('btnSalvarAnalista').classList.remove('btn-acao');
+            document.getElementById('btnSalvarAnalista').classList.add('btn-secundario');
+            document.getElementById('btnCancelarEdicaoAnalista').style.display = 'none';
+        }
+
+        async function salvarAnalista() {
+            const id = document.getElementById('editAnalistaId').value;
             const nome = document.getElementById('novoNomeAnalista').value.trim();
             const email = document.getElementById('novoEmailAnalista').value.trim().toLowerCase();
             const equipe = document.getElementById('novaEquipeAnalista').value.trim();
+            const participa = document.getElementById('novoParticipaEscala').value === 'sim';
             
             if (!nome || !email || !equipe) return alert("Preencha nome, e-mail e equipe.");
             
+            loading.style.display = 'flex';
             try {
-                await addDoc(dbAnalistas, { nome, email, equipe, dataCadastro: new Date().toISOString() });
-                document.getElementById('novoNomeAnalista').value = '';
-                document.getElementById('novoEmailAnalista').value = '';
-                document.getElementById('novaEquipeAnalista').value = '';
+                if (id) {
+                    await updateDoc(doc(db, "escala_analistas", id), { nome, email, equipe, participaEscala: participa });
+                } else {
+                    await addDoc(dbAnalistas, { nome, email, equipe, participaEscala: participa, dataCadastro: new Date().toISOString() });
+                }
+                cancelarEdicaoAnalista();
             } catch(e) { alert("Erro ao salvar analista."); }
+            loading.style.display = 'none';
         }
 
         async function removerAnalista(id) {
@@ -667,13 +716,17 @@
             tbody.innerHTML = '';
             analistas.forEach(a => {
                 const emailExibido = emailsVisiveis ? a.email : '•••••••••••••••••';
+                const naEscala = a.participaEscala !== false ? '<span style="color: var(--success-color); font-weight: bold;">Sim</span>' : '<span style="color: var(--danger-color); font-weight: bold;">Não</span>';
+
                 tbody.innerHTML += `<tr>
                     <td>${a.nome}</td>
                     <td>${emailExibido}</td>
                     <td><strong>${a.equipe || '-'}</strong></td>
+                    <td>${naEscala}</td>
                     <td>${a.totalPlantoes || 0}</td>
                     <td>
                         <div class="acoes-container">
+                            <button class="btn-icone" onclick="prepararEdicaoAnalista('${a.id}')" title="Editar Analista">${iconeEditar}</button>
                             <button class="btn-icone" onclick="removerAnalista('${a.id}')" title="Excluir Analista">${iconeExcluir}</button>
                         </div>
                     </td>
@@ -691,8 +744,10 @@
             if (!mesInput) return alert("Selecione o mês de referência.");
             if (!equipeAlvo) return alert("Selecione uma equipe.");
 
-            let analistasSorteio = analistas.filter(a => a.equipe === equipeAlvo);
-            if (analistasSorteio.length === 0) return alert("Nenhum analista cadastrado nesta equipe.");
+            // Filtra pela equipe e IGNORA quem estiver marcado como Não na escala
+            let analistasSorteio = analistas.filter(a => a.equipe === equipeAlvo && a.participaEscala !== false);
+            
+            if (analistasSorteio.length === 0) return alert("Nenhum analista participando da escala nesta equipe.");
 
             loading.style.display = 'flex';
             const [ano, mes] = mesInput.split('-');
@@ -765,7 +820,7 @@
             const selectAnalista = document.getElementById('editPlantaoAnalista');
             selectAnalista.innerHTML = '';
             
-            const analistasDaEquipe = analistas.filter(a => a.equipe === plantao.equipe);
+            const analistasDaEquipe = analistas.filter(a => a.equipe === plantao.equipe && a.participaEscala !== false);
             analistasDaEquipe.forEach(a => {
                 const selected = a.id === plantao.analistaId ? 'selected' : '';
                 selectAnalista.innerHTML += `<option value="${a.id}" ${selected}>${a.nome}</option>`;
