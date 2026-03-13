@@ -21,6 +21,7 @@
             --success-color: #28a745;
             --warning-color: #ffc107;
             --edit-color: #0056b3;
+            --done-color: #6c757d;
         }
 
         body.dark-mode {
@@ -34,6 +35,7 @@
             --edit-color: #4da3ff;
             --success-color: #21a555;
             --warning-color: #ffb400;
+            --done-color: #adb5bd;
         }
 
         /* Estilos Gerais */
@@ -129,14 +131,15 @@
         .tabela-container { overflow-x: auto; margin-top: 15px; }
         table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--border-light); border-radius: 8px; }
         th { background-color: var(--claro-red); color: #fff; padding: 12px 15px; text-align: left; font-size: 13px; text-transform: uppercase; }
-        td { padding: 12px 15px; border-bottom: 1px solid var(--border-light); font-size: 14px; }
+        td { padding: 12px 15px; border-bottom: 1px solid var(--border-light); font-size: 14px; vertical-align: middle; }
         tr:last-child td { border-bottom: none; }
 
         /* Badges de Status */
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; color: white; text-align: center; display: inline-block;}
+        .badge { padding: 6px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; color: white; text-align: center; display: inline-block; letter-spacing: 0.5px;}
         .bg-pendente { background-color: var(--warning-color); color: #000; }
         .bg-aprovado { background-color: var(--success-color); }
-        .bg-recusado { background-color: var(--danger-color); }
+        .bg-recusada { background-color: var(--danger-color); }
+        .bg-usufruida { background-color: var(--done-color); }
 
         /* Controle de Visibilidade */
         .admin-only { display: none; }
@@ -202,21 +205,22 @@
                 <span id="saldoFolgasUser">0</span>
             </div>
 
-            <div class="form-inline-container">
+            <div class="form-inline-container" style="align-items: flex-end;">
                 <div class="campo" style="flex: 1; min-width: 200px;">
                     <label>Solicitar Nova Folga</label>
                     <input type="date" id="inputPedirFolga">
-                    <small id="avisoRegraFolga" style="color: var(--danger-color); margin-top: 5px;"></small>
+                    <small id="avisoRegraFolga" style="color: var(--danger-color); margin-top: 5px; display: none;"></small>
                 </div>
-                <div style="padding-top: 26px;">
-                    <button class="btn-acao" onclick="solicitarFolga()" style="height: 42px; white-space: nowrap;">Enviar Solicitação</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-acao" id="btnSubmitFolga" onclick="solicitarFolga()" style="height: 42px; white-space: nowrap;">Enviar Solicitação</button>
+                    <button class="btn-secundario" id="btnCancelarTroca" onclick="cancelarTrocaFolga()" style="height: 42px; display: none;">Cancelar</button>
                 </div>
             </div>
 
             <h2 style="margin-top: 30px;">Minhas Solicitações</h2>
             <div class="tabela-container">
                 <table>
-                    <thead><tr><th>Data Solicitada</th><th>Status</th><th>Data do Pedido</th></tr></thead>
+                    <thead><tr><th>Data Solicitada</th><th>Status</th><th>Data do Pedido</th><th>Ações</th></tr></thead>
                     <tbody id="tabelaMinhasFolgas"></tbody>
                 </table>
             </div>
@@ -279,10 +283,17 @@
                 </div>
             </div>
 
-            <h3 style="margin-top: 20px; font-size: 16px;">Aprovação de Folgas Pendentes</h3>
+            <h3 style="margin-top: 20px; font-size: 16px; display: flex; justify-content: space-between; align-items: center;">
+                Gestão de Folgas
+                <select id="filtroStatusFolgasAdmin" style="width: auto; font-size: 13px; padding: 4px 8px; font-weight: normal;" onchange="atualizarTabelasFolgas()">
+                    <option value="pendente">Apenas Pendentes</option>
+                    <option value="aprovada">Aprovadas (Aguardando Retorno)</option>
+                    <option value="todas">Histórico Completo (Todas)</option>
+                </select>
+            </h3>
             <div class="tabela-container">
                 <table>
-                    <thead><tr><th>Equipe</th><th>Analista</th><th>Data Solicitada</th><th>Saldo Atual</th><th>Ação</th></tr></thead>
+                    <thead><tr><th>Equipe</th><th>Analista</th><th>Data Solicitada</th><th>Status</th><th>Ação</th></tr></thead>
                     <tbody id="tabelaFolgasPendentes"></tbody>
                 </table>
             </div>
@@ -377,6 +388,7 @@
         let configSistema = { diasBloqueados: [], datasBloqueadas: [] };
         let meuAnalistaId = null;
         let emailsVisiveis = false;
+        let idFolgaEmEdicao = null; // Controle para edição/troca de data
 
         // UI Elements
         const loading = document.getElementById('loading');
@@ -384,16 +396,20 @@
         const appContent = document.getElementById('appContent');
 
         window.solicitarFolga = solicitarFolga;
+        window.prepararTrocaFolga = prepararTrocaFolga;
+        window.cancelarTrocaFolga = cancelarTrocaFolga;
         window.vincularAnalista = vincularAnalista;
         window.removerAnalista = removerAnalista;
         window.gerarEscalaAutomatica = gerarEscalaAutomatica;
         window.removerPlantao = removerPlantao;
         window.aprovarFolga = aprovarFolga;
         window.recusarFolga = recusarFolga;
+        window.marcarFolgaTirada = marcarFolgaTirada;
         window.salvarConfigDias = salvarConfigDias;
         window.adicionarDataBloqueada = adicionarDataBloqueada;
         window.removerDataBloqueada = removerDataBloqueada;
         window.atualizarTabelaEscala = atualizarTabelaEscala;
+        window.atualizarTabelasFolgas = atualizarTabelasFolgas;
         window.toggleEmailsVisibilidade = toggleEmailsVisibilidade;
 
         // --- AUTH ---
@@ -427,7 +443,6 @@
 
         // --- LISTENERS FIRESTORE ---
         function iniciarListeners() {
-            // Escutar Configurações
             onSnapshot(doc(db, "escala_configuracoes", "geral"), (docSnap) => {
                 if (docSnap.exists()) {
                     configSistema = docSnap.data();
@@ -437,7 +452,6 @@
                 atualizarUIConfig();
             });
 
-            // Escutar Analistas
             onSnapshot(dbAnalistas, (snap) => {
                 analistas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 const meuRegistro = analistas.find(a => a.email === userEmail);
@@ -448,14 +462,12 @@
                 calcularSaldos();
             });
 
-            // Escutar Plantões (Escala)
             onSnapshot(query(dbPlantao), (snap) => {
                 plantoes = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(a.data) - new Date(b.data));
                 atualizarTabelaEscala();
                 calcularSaldos();
             });
 
-            // Escutar Folgas
             onSnapshot(query(dbFolgas), (snap) => {
                 folgas = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
                 atualizarTabelasFolgas();
@@ -470,9 +482,10 @@
 
             analistas.forEach(analista => {
                 const qtdPlantoes = plantoes.filter(p => p.analistaId === analista.id).length;
-                const qtdFolgasAprovadas = folgas.filter(f => f.analistaId === analista.id && f.status === 'aprovada').length;
+                // Folgas aprovadas ou usufruídas abatem o saldo
+                const folgasConsumidas = folgas.filter(f => f.analistaId === analista.id && ['aprovada', 'usufruida'].includes(f.status)).length;
                 
-                analista.saldo = qtdPlantoes - qtdFolgasAprovadas;
+                analista.saldo = qtdPlantoes - folgasConsumidas;
                 analista.totalPlantoes = qtdPlantoes;
             });
 
@@ -561,7 +574,6 @@
             const [ano, mes] = mesInput.split('-');
             const datasEncontradas = [];
             
-            // 1. Descobre todos os dias do mês que caem no Dia da Semana escolhido
             let dataCursor = new Date(ano, parseInt(mes) - 1, 1);
             while (dataCursor.getMonth() === parseInt(mes) - 1) {
                 if (dataCursor.getDay() === diaAlvo) {
@@ -571,7 +583,6 @@
                 dataCursor.setDate(dataCursor.getDate() + 1);
             }
 
-            // 2. Aplica o filtro de "Frequência" (Todos, 1º, 2º, etc)
             let datasParaEscalar = [];
             if (frequencia === 'all') {
                 datasParaEscalar = datasEncontradas;
@@ -584,7 +595,6 @@
                 }
             }
 
-            // 3. Remove datas que já tem algum plantão salvo 
             const datasSemEscala = datasParaEscalar.filter(d => !plantoes.some(p => p.data === d && p.equipe === equipeAlvo));
             
             if (datasSemEscala.length === 0) {
@@ -593,7 +603,6 @@
             }
 
             for (const dataPlantao of datasSemEscala) {
-                // Algoritmo de Justiça: Analista da Equipe com MENOS plantões vai para o topo
                 analistasSorteio.sort((a, b) => (a.totalPlantoes || 0) - (b.totalPlantoes || 0));
                 const analistaEscolhido = analistasSorteio[0];
 
@@ -621,11 +630,13 @@
         }
 
         function formatarDataBR(dataISO) {
+            if(!dataISO) return '-';
             const [ano, mes, dia] = dataISO.split('-');
             return `${dia}/${mes}/${ano}`;
         }
 
         function pegarNomeDiaSemana(dataISO) {
+            if(!dataISO) return '-';
             const dias = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
             const [ano, mes, dia] = dataISO.split('-');
             const dateObj = new Date(ano, mes - 1, dia);
@@ -639,7 +650,6 @@
             const hojeISO = new Date().toISOString().split('T')[0];
             const filtroEquipe = document.getElementById('filtroVisaoEquipe').value;
 
-            // Filtra por data e pela equipe selecionada no Dropdown do título
             const plantoesFiltrados = plantoes.filter(p => p.data >= hojeISO && (filtroEquipe === 'todas' || p.equipe === filtroEquipe));
 
             if (plantoesFiltrados.length === 0) {
@@ -662,11 +672,38 @@
         }
 
         // --- FOLGAS ---
+        function getStatusBadge(status) {
+            if(status === 'pendente') return '<span class="badge bg-pendente">PENDENTE</span>';
+            if(status === 'aprovada') return '<span class="badge bg-aprovado">APROVADA</span>';
+            if(status === 'recusada') return '<span class="badge bg-recusada">RECUSADA</span>';
+            if(status === 'usufruida') return '<span class="badge bg-usufruida">CONCLUÍDA</span>';
+            return `<span class="badge">${status}</span>`;
+        }
+
+        function prepararTrocaFolga(idFolga) {
+            const folgaTarget = folgas.find(f => f.id === idFolga);
+            if(!folgaTarget) return;
+
+            idFolgaEmEdicao = idFolga;
+            document.getElementById('inputPedirFolga').value = folgaTarget.dataSolicitada;
+            document.getElementById('btnSubmitFolga').textContent = "Confirmar Troca de Data";
+            document.getElementById('btnCancelarTroca').style.display = "inline-block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelarTrocaFolga() {
+            idFolgaEmEdicao = null;
+            document.getElementById('inputPedirFolga').value = '';
+            document.getElementById('btnSubmitFolga').textContent = "Enviar Solicitação";
+            document.getElementById('btnCancelarTroca').style.display = "none";
+        }
+
         async function solicitarFolga() {
             if (!meuAnalistaId) return alert("Seu e-mail não está vinculado a um analista. Fale com o Administrador.");
             
             const meuRegistro = analistas.find(a => a.id === meuAnalistaId);
-            if (meuRegistro.saldo <= 0) return alert("Você não possui saldo de folgas disponível.");
+            // Se estiver editando, não barra saldo zero porque a pessoa já gastou aquele saldo.
+            if (!idFolgaEmEdicao && meuRegistro.saldo <= 0) return alert("Você não possui saldo de folgas disponível.");
 
             const dataInput = document.getElementById('inputPedirFolga').value;
             if (!dataInput) return alert("Selecione a data.");
@@ -682,76 +719,111 @@
                 return alert("Esta data específica foi bloqueada para folgas pelo administrador.");
             }
 
-            const jaPediu = folgas.find(f => f.analistaId === meuAnalistaId && f.dataSolicitada === dataInput && f.status !== 'recusada');
-            if (jaPediu) return alert("Você já tem uma solicitação pendente ou aprovada para esta data.");
+            const jaPediu = folgas.find(f => f.analistaId === meuAnalistaId && f.dataSolicitada === dataInput && f.status !== 'recusada' && f.id !== idFolgaEmEdicao);
+            if (jaPediu) return alert("Você já tem uma solicitação pendente ou aprovada para esta mesma data.");
 
-            // NOVA VALIDAÇÃO: Limite de 1 folga por equipe por dia (somente para folgas já aprovadas)
+            // REGRA DE OURO: Não permitir que 2 analistas da mesma equipe tirem folga no mesmo dia.
             const folgaAprovadaMesmaEquipe = folgas.find(f => 
                 f.dataSolicitada === dataInput && 
                 f.equipe === meuRegistro.equipe && 
-                f.status === 'aprovada'
+                ['aprovada', 'usufruida'].includes(f.status) &&
+                f.id !== idFolgaEmEdicao
             );
 
             if (folgaAprovadaMesmaEquipe) {
-                return alert(`Atenção: O analista ${folgaAprovadaMesmaEquipe.nomeAnalista} (da sua equipe) já possui uma folga aprovada para este dia. Não é permitido sobrepor folgas na mesma equipe.`);
+                return alert(`Atenção: ${folgaAprovadaMesmaEquipe.nomeAnalista} (da sua equipe) já possui uma folga garantida neste dia. Não é permitido sobrepor folgas na mesma equipe.`);
             }
 
             loading.style.display = 'flex';
             try {
-                await addDoc(dbFolgas, {
-                    analistaId: meuAnalistaId,
-                    nomeAnalista: meuRegistro.nome,
-                    equipe: meuRegistro.equipe,
-                    dataSolicitada: dataInput,
-                    status: 'pendente',
-                    dataSolicitacao: new Date().toISOString()
-                });
-                document.getElementById('inputPedirFolga').value = '';
-                alert("Solicitação enviada para aprovação!");
+                if (idFolgaEmEdicao) {
+                    // Update existente
+                    await updateDoc(doc(db, "escala_folgas", idFolgaEmEdicao), {
+                        dataSolicitada: dataInput,
+                        status: 'pendente', // Retorna pra pendente para o adm avaliar a nova data
+                        dataAtualizacao: new Date().toISOString()
+                    });
+                    alert("A data foi alterada e enviada para nova aprovação pelo gestor!");
+                    cancelarTrocaFolga();
+                } else {
+                    // Cria nova
+                    await addDoc(dbFolgas, {
+                        analistaId: meuAnalistaId,
+                        nomeAnalista: meuRegistro.nome,
+                        equipe: meuRegistro.equipe,
+                        dataSolicitada: dataInput,
+                        status: 'pendente',
+                        dataSolicitacao: new Date().toISOString()
+                    });
+                    document.getElementById('inputPedirFolga').value = '';
+                    alert("Solicitação enviada para aprovação!");
+                }
             } catch(e) { alert("Erro ao solicitar folga."); }
             loading.style.display = 'none';
         }
 
         function atualizarTabelasFolgas() {
+            // Tabela do Usuário (Minhas Folgas)
             const tbodyMinhas = document.getElementById('tabelaMinhasFolgas');
             tbodyMinhas.innerHTML = '';
             const minhasFolgas = folgas.filter(f => f.analistaId === meuAnalistaId);
             
             if (minhasFolgas.length === 0) {
-                tbodyMinhas.innerHTML = '<tr><td colspan="3" style="text-align:center;">Nenhuma solicitação feita.</td></tr>';
+                tbodyMinhas.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhuma solicitação feita.</td></tr>';
             } else {
                 minhasFolgas.forEach(f => {
-                    let badgeClass = f.status === 'pendente' ? 'bg-pendente' : (f.status === 'aprovada' ? 'bg-aprovado' : 'bg-recusado');
                     const dataPed = f.dataSolicitacao.split('T')[0];
+                    let btnTrocar = '';
+                    if (f.status === 'pendente' || f.status === 'aprovada') {
+                        btnTrocar = `<button class="btn-secundario" style="padding: 4px 8px; font-size: 12px;" onclick="prepararTrocaFolga('${f.id}')">🔄 Trocar</button>`;
+                    }
+
                     tbodyMinhas.innerHTML += `<tr>
                         <td><strong>${formatarDataBR(f.dataSolicitada)}</strong></td>
-                        <td><span class="badge ${badgeClass}">${f.status.toUpperCase()}</span></td>
+                        <td>${getStatusBadge(f.status)}</td>
                         <td style="font-size:12px; color: var(--text-muted);">${formatarDataBR(dataPed)}</td>
+                        <td>${btnTrocar}</td>
                     </tr>`;
                 });
             }
 
+            // Tabela Admin (Gestão de Folgas)
             if (isAdmin) {
+                const filtroStatusAdmin = document.getElementById('filtroStatusFolgasAdmin').value;
                 const tbodyPendentes = document.getElementById('tabelaFolgasPendentes');
                 tbodyPendentes.innerHTML = '';
-                const pendentes = folgas.filter(f => f.status === 'pendente');
                 
-                if (pendentes.length === 0) {
-                    tbodyPendentes.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma pendência.</td></tr>';
+                let folgasAdmin = folgas;
+                if (filtroStatusAdmin !== 'todas') {
+                    folgasAdmin = folgas.filter(f => f.status === filtroStatusAdmin);
+                }
+                
+                if (folgasAdmin.length === 0) {
+                    tbodyPendentes.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
                 } else {
-                    pendentes.forEach(f => {
+                    folgasAdmin.forEach(f => {
                         const analista = analistas.find(a => a.id === f.analistaId);
                         const saldo = analista ? analista.saldo : '?';
+                        
+                        let botoesAcao = '-';
+                        if (f.status === 'pendente') {
+                            botoesAcao = `
+                                <button class="badge bg-aprovado" style="border:none; cursor:pointer; margin-right: 5px;" onclick="aprovarFolga('${f.id}')">Aprovar</button>
+                                <button class="badge bg-recusada" style="border:none; cursor:pointer;" onclick="recusarFolga('${f.id}')">Recusar</button>
+                            `;
+                        } else if (f.status === 'aprovada') {
+                            botoesAcao = `
+                                <button class="badge bg-usufruida" style="border:none; cursor:pointer; margin-right: 5px;" onclick="marcarFolgaTirada('${f.id}')" title="Confirmar que o analista gozou desta folga">✅ Tirada</button>
+                                <button class="badge bg-recusada" style="border:none; cursor:pointer;" onclick="recusarFolga('${f.id}')" title="Cancelar esta folga e devolver saldo">Cancelar</button>
+                            `;
+                        }
                         
                         tbodyPendentes.innerHTML += `<tr>
                             <td><strong>${f.equipe || '-'}</strong></td>
                             <td><strong>${f.nomeAnalista}</strong></td>
-                            <td>${formatarDataBR(f.dataSolicitada)} (${pegarNomeDiaSemana(f.dataSolicitada)})</td>
-                            <td>${saldo} folgas disp.</td>
-                            <td>
-                                <button class="badge bg-aprovado" style="border:none; cursor:pointer; margin-right: 5px;" onclick="aprovarFolga('${f.id}')">Aprovar</button>
-                                <button class="badge bg-recusado" style="border:none; cursor:pointer;" onclick="recusarFolga('${f.id}')">Recusar</button>
-                            </td>
+                            <td>${formatarDataBR(f.dataSolicitada)} <span style="font-size: 11px; color: var(--text-muted);">(${pegarNomeDiaSemana(f.dataSolicitada)})</span></td>
+                            <td>${getStatusBadge(f.status)}</td>
+                            <td>${botoesAcao}</td>
                         </tr>`;
                     });
                 }
@@ -759,14 +831,20 @@
         }
 
         async function aprovarFolga(idFolga) {
-            if(confirm("Confirma a aprovação desta folga? O saldo do analista será descontado.")) {
+            if(confirm("Confirma a aprovação desta folga? O saldo do analista será bloqueado.")) {
                 await updateDoc(doc(db, "escala_folgas", idFolga), { status: 'aprovada', avaliadoPor: userEmail, dataAvaliacao: new Date().toISOString() });
             }
         }
 
         async function recusarFolga(idFolga) {
-            if(confirm("Deseja recusar esta folga? O saldo do analista retornará.")) {
+            if(confirm("Deseja recusar/cancelar esta folga? O saldo do analista retornará para ele.")) {
                 await updateDoc(doc(db, "escala_folgas", idFolga), { status: 'recusada', avaliadoPor: userEmail, dataAvaliacao: new Date().toISOString() });
+            }
+        }
+
+        async function marcarFolgaTirada(idFolga) {
+            if(confirm("Confirmar que a folga foi tirada e concluída?")) {
+                await updateDoc(doc(db, "escala_folgas", idFolga), { status: 'usufruida', dataConclusao: new Date().toISOString() });
             }
         }
 
