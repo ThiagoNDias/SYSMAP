@@ -127,7 +127,7 @@
         }
         button.btn-secundario:hover { background-color: var(--border-light); }
 
-        /* Botões de Ícones (Novos) */
+        /* Botões de Ícones */
         .btn-icone {
             background: transparent;
             border: none;
@@ -249,11 +249,18 @@
         </div>
 
         <div class="painel">
-            <h2 style="display: flex; justify-content: space-between; align-items: center;">
-                Próximos Plantões
-                <select id="filtroVisaoEquipe" style="width: auto; font-size: 14px; padding: 6px 10px; font-weight: normal;" onchange="atualizarTabelaEscala()">
-                    <option value="todas">Todas as Equipes</option>
-                </select>
+            <h2 style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                Escala de Plantões
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="filtroPeriodoEscala" style="width: auto; font-size: 14px; padding: 6px 10px; font-weight: normal;" onchange="atualizarTabelaEscala()">
+                        <option value="futuros" selected>Próximos Plantões</option>
+                        <option value="passados">Plantões Anteriores</option>
+                        <option value="todos">Todos</option>
+                    </select>
+                    <select id="filtroVisaoEquipe" style="width: auto; font-size: 14px; padding: 6px 10px; font-weight: normal;" onchange="atualizarTabelaEscala()">
+                        <option value="todas">Todas as Equipes</option>
+                    </select>
+                </div>
             </h2>
             <div class="tabela-container">
                 <table>
@@ -340,7 +347,7 @@
             </h3>
             <div class="tabela-container">
                 <table>
-                    <thead><tr><th>Equipe</th><th>Analista</th><th>Data Solicitada</th><th>Status</th><th>Ações</th></tr></thead>
+                    <thead><tr><th>Equipe</th><th>Analista</th><th>Data Solicitada</th><th>Status</th><th>Ação</th></tr></thead>
                     <tbody id="tabelaFolgasPendentes"></tbody>
                 </table>
             </div>
@@ -520,7 +527,7 @@
             });
 
             onSnapshot(query(dbPlantao), (snap) => {
-                plantoes = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(a.data) - new Date(b.data));
+                plantoes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 atualizarTabelaEscala();
                 calcularSaldos();
             });
@@ -762,11 +769,33 @@
             
             const hojeISO = new Date().toISOString().split('T')[0];
             const filtroEquipe = document.getElementById('filtroVisaoEquipe').value;
+            const filtroPeriodo = document.getElementById('filtroPeriodoEscala').value;
 
-            const plantoesFiltrados = plantoes.filter(p => p.data >= hojeISO && (filtroEquipe === 'todas' || p.equipe === filtroEquipe));
+            // Filtra o array base
+            let plantoesFiltrados = plantoes.filter(p => {
+                const atendeEquipe = (filtroEquipe === 'todas' || p.equipe === filtroEquipe);
+                let atendePeriodo = true;
+                
+                if (filtroPeriodo === 'futuros') {
+                    atendePeriodo = p.data >= hojeISO;
+                } else if (filtroPeriodo === 'passados') {
+                    atendePeriodo = p.data < hojeISO;
+                }
+                
+                return atendeEquipe && atendePeriodo;
+            });
+
+            // Ajusta a ordenação dependendo do que o usuário quer ver
+            if (filtroPeriodo === 'passados') {
+                // Do mais recente para o mais antigo (Decrescente)
+                plantoesFiltrados.sort((a,b) => new Date(b.data) - new Date(a.data));
+            } else {
+                // Do mais próximo para o mais distante (Crescente)
+                plantoesFiltrados.sort((a,b) => new Date(a.data) - new Date(b.data));
+            }
 
             if (plantoesFiltrados.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma escala encontrada.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma escala encontrada para este período.</td></tr>';
                 return;
             }
 
