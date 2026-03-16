@@ -1963,6 +1963,28 @@
             }
         }
 
+        // --- NOVA FUNÇÃO PARA APLICAR AS CORES NO TEAMS ---
+        function formatarSLAParaTeams(dataISO, dataFechamento) {
+            if (!dataISO) return '-';
+            let dataFormatada = formatarDataHoraSimples(dataISO);
+            if (!dataFechamento) {
+                const agora = new Date();
+                const slaDate = new Date(dataISO);
+                const hojeInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+                const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59, 999);
+
+                if (slaDate < agora) {
+                    // SLA Vencido = Fundo vermelho e texto branco (com arredondamento de bordas para ficar elegante)
+                    return `<span style="color: #fff; background-color: #dc3545; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 12px;">${dataFormatada} (Vencido)</span>`;
+                } else if (slaDate >= hojeInicio && slaDate <= hojeFim) {
+                    // SLA para Hoje = Fundo amarelo e texto preto
+                    return `<span style="color: #000; background-color: #ffc107; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 12px;">${dataFormatada} (Hoje)</span>`;
+                }
+            }
+            // Se já foi fechado ou se o SLA está no prazo (para o futuro), retorna normal
+            return dataFormatada;
+        }
+
         function formatarDataExportacao(dataISO) {
             if (!dataISO) return 'Em aberto';
             const partes = dataISO.split('-');
@@ -2159,7 +2181,8 @@
                     }
                     
                     grupos[chave].numeros.push(c.numero);
-                    grupos[chave].slas.push(formatarDataHoraSimples(c.sla)); 
+                    // AQUI CHAMAMOS A NOVA FUNÇÃO PARA FORMATAR AS CORES
+                    grupos[chave].slas.push(formatarSLAParaTeams(c.sla, c.dataFechamento)); 
                 }
             });
 
@@ -2207,7 +2230,7 @@
                 html += `<tr>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${c.numero || '-'}</td>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${c.assuntoEmail || '-'}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataHoraSimples(c.sla)}</td>
+                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarSLAParaTeams(c.sla, c.dataFechamento)}</td>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(c.dataQuestionamento)}</td>
                 </tr>`;
             });
