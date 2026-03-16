@@ -1963,7 +1963,7 @@
             }
         }
 
-        // --- NOVA FUNÇÃO PARA APLICAR AS CORES NO TEAMS ---
+        // --- FUNÇÃO PARA APLICAR AS CORES NO TEAMS ---
         function formatarSLAParaTeams(dataISO, dataFechamento) {
             if (!dataISO) return '-';
             let dataFormatada = formatarDataHoraSimples(dataISO);
@@ -1974,14 +1974,13 @@
                 const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59, 999);
 
                 if (slaDate < agora) {
-                    // SLA Vencido = Fundo vermelho e texto branco (com arredondamento de bordas para ficar elegante)
-                    return `<span style="color: #fff; background-color: #dc3545; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 12px;">${dataFormatada} (Vencido)</span>`;
+                    // SLA Vencido = Fundo vermelho claro, texto vermelho escuro
+                    return `<span style="background-color: #ffc7ce; color: #9c0006;">${dataFormatada}</span>`;
                 } else if (slaDate >= hojeInicio && slaDate <= hojeFim) {
-                    // SLA para Hoje = Fundo amarelo e texto preto
-                    return `<span style="color: #000; background-color: #ffc107; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 12px;">${dataFormatada} (Hoje)</span>`;
+                    // SLA para Hoje = Fundo amarelo claro, texto amarelo escuro
+                    return `<span style="background-color: #ffeb9c; color: #9c6500;">${dataFormatada}</span>`;
                 }
             }
-            // Se já foi fechado ou se o SLA está no prazo (para o futuro), retorna normal
             return dataFormatada;
         }
 
@@ -2181,7 +2180,7 @@
                     }
                     
                     grupos[chave].numeros.push(c.numero);
-                    // AQUI CHAMAMOS A NOVA FUNÇÃO PARA FORMATAR AS CORES
+                    // Aqui usamos a função sem as tags "(Hoje)" e "(Vencido)"
                     grupos[chave].slas.push(formatarSLAParaTeams(c.sla, c.dataFechamento)); 
                 }
             });
