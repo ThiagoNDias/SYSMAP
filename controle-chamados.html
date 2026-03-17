@@ -2131,7 +2131,7 @@
         });
 
         // --- TEAMS ---
-        function copiarParaTeams() {
+        function copiarParaTeams() {function copiarParaTeams() {
             if (chamadosFiltradosAtuais.length === 0) {
                 alert("Sem dados para copiar.");
                 return;
@@ -2177,8 +2177,12 @@
             listaGrupos.sort(compararDatas);
             semAssunto.sort(compararDatas);
 
-            // 5. Monta o HTML da tabela
-            let html = `<table style="border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #d1d1d1;">
+            // 5. Monta o HTML da tabela com a saudação inicial adicionada
+            let html = `<div style="font-family: 'Segoe UI', Arial, sans-serif; margin-bottom: 15px; color: #242424;">
+                            Pessoal, bom dia,<br><br>
+                            Seguem as pendências para hoje:
+                        </div>
+                        <table style="border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Arial, sans-serif; border: 1px solid #d1d1d1;">
                         <thead style="background-color: #f3f2f1;">
                             <tr style="text-align: left;">
                                 <th style="border: 1px solid #edebe9; padding: 8px;">Chamado</th>
