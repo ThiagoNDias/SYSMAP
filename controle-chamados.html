@@ -1963,27 +1963,6 @@
             }
         }
 
-        // --- FUNÇÃO PARA APLICAR AS CORES NO TEAMS ---
-        function formatarSLAParaTeams(dataISO, dataFechamento) {
-            if (!dataISO) return '-';
-            let dataFormatada = formatarDataHoraSimples(dataISO);
-            if (!dataFechamento) {
-                const agora = new Date();
-                const slaDate = new Date(dataISO);
-                const hojeInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
-                const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59, 999);
-
-                if (slaDate < agora) {
-                    // SLA Vencido = Fundo vermelho claro, texto vermelho escuro
-                    return `<span style="background-color: #ffc7ce; color: #9c0006;">${dataFormatada}</span>`;
-                } else if (slaDate >= hojeInicio && slaDate <= hojeFim) {
-                    // SLA para Hoje = Fundo amarelo claro, texto amarelo escuro
-                    return `<span style="background-color: #ffeb9c; color: #9c6500;">${dataFormatada}</span>`;
-                }
-            }
-            return dataFormatada;
-        }
-
         function formatarDataExportacao(dataISO) {
             if (!dataISO) return 'Em aberto';
             const partes = dataISO.split('-');
@@ -2180,8 +2159,7 @@
                     }
                     
                     grupos[chave].numeros.push(c.numero);
-                    // Aqui usamos a função sem as tags "(Hoje)" e "(Vencido)"
-                    grupos[chave].slas.push(formatarSLAParaTeams(c.sla, c.dataFechamento)); 
+                    grupos[chave].slas.push(formatarDataHoraSimples(c.sla)); 
                 }
             });
 
@@ -2229,7 +2207,7 @@
                 html += `<tr>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${c.numero || '-'}</td>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${c.assuntoEmail || '-'}</td>
-                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarSLAParaTeams(c.sla, c.dataFechamento)}</td>
+                    <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataHoraSimples(c.sla)}</td>
                     <td style="border: 1px solid #edebe9; padding: 8px;">${formatarDataParaTeams(c.dataQuestionamento)}</td>
                 </tr>`;
             });
