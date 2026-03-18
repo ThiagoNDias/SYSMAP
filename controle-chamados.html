@@ -24,6 +24,7 @@
             --bug-color: #6c757d;
             --import-color: #fd7e14;
             --template-color: #17a2b8;
+            --verde-claro: #28a745;
         }
 
         body.dark-mode {
@@ -40,6 +41,7 @@
             --bug-color: #adb5bd;
             --import-color: #ff983f;
             --template-color: #3bc8dd;
+            --verde-claro: #75c58a;
         }
 
         /* Estilos Gerais */
@@ -66,7 +68,7 @@
             padding: 12px 20px;
             z-index: 4000;
             box-sizing: border-box;
-            display: none; /* Inicia oculto, o JS decide se mostra */
+            display: none; 
             justify-content: center;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
@@ -154,7 +156,7 @@
             border-top: 4px solid var(--claro-red);
             flex-wrap: wrap;
             gap: 15px;
-            margin-top: 30px; /* Espaço para o banner LGPD não cobrir */
+            margin-top: 30px; 
         }
 
         .navbar-brand {
@@ -342,7 +344,7 @@
 
         .campo {
             flex: 1;
-            min-width: 200px;
+            min-width: 250px; /* Aumentado para evitar sobreposição excessiva */
             display: flex;
             flex-direction: column;
         }
@@ -449,65 +451,23 @@
             flex-shrink: 0;
         }
 
-        .btn-filtro {
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-        }
+        .btn-filtro { color: var(--text-color); border: 1px solid var(--border-color); }
+        .btn-filtro:hover, .btn-filtro.ativo { background-color: var(--border-light); border-color: var(--text-color); }
 
-        .btn-filtro:hover, .btn-filtro.ativo {
-            background-color: var(--border-light);
-            border-color: var(--text-color);
-        }
+        .btn-colunas { color: var(--edit-color); border: 1px solid var(--edit-color); }
+        .btn-colunas:hover, .btn-colunas.ativo { background-color: var(--edit-color); color: #fff; }
 
-        .btn-colunas {
-            color: var(--edit-color);
-            border: 1px solid var(--edit-color);
-        }
+        .btn-exportar { color: var(--excel-color); border: 1px solid var(--excel-color); }
+        .btn-exportar:hover { background-color: var(--excel-color); color: #fff; }
 
-        .btn-colunas:hover, .btn-colunas.ativo {
-            background-color: var(--edit-color);
-            color: #fff;
-        }
-
-        .btn-exportar {
-            color: var(--excel-color);
-            border: 1px solid var(--excel-color);
-        }
-
-        .btn-exportar:hover {
-            background-color: var(--excel-color);
-            color: #fff;
-        }
-
-        .btn-teams {
-            color: var(--teams-color);
-            border: 1px solid var(--teams-color);
-        }
-
-        .btn-teams:hover {
-            background-color: var(--teams-color);
-            color: #fff;
-        }
+        .btn-teams { color: var(--teams-color); border: 1px solid var(--teams-color); }
+        .btn-teams:hover { background-color: var(--teams-color); color: #fff; }
         
-        .btn-importar {
-            color: var(--import-color);
-            border: 1px solid var(--import-color);
-        }
+        .btn-importar { color: var(--import-color); border: 1px solid var(--import-color); }
+        .btn-importar:hover { background-color: var(--import-color); color: #fff; }
 
-        .btn-importar:hover {
-            background-color: var(--import-color);
-            color: #fff;
-        }
-
-        .btn-modelo {
-            color: var(--template-color);
-            border: 1px solid var(--template-color);
-        }
-
-        .btn-modelo:hover {
-            background-color: var(--template-color);
-            color: #fff;
-        }
+        .btn-modelo { color: var(--template-color); border: 1px solid var(--template-color); }
+        .btn-modelo:hover { background-color: var(--template-color); color: #fff; }
 
         .painel-expansivel {
             background-color: var(--bg-color);
@@ -551,13 +511,9 @@
             text-align: center;
         }
 
-        .tabela-resumo td:first-child {
-            text-align: left;
-        }
+        .tabela-resumo td:first-child { text-align: left; }
 
-        body.dark-mode .tabela-resumo th {
-            background-color: #2c2c2c;
-        }
+        body.dark-mode .tabela-resumo th { background-color: #2c2c2c; }
 
         .btn-icone {
             background: transparent;
@@ -600,6 +556,8 @@
         .sla-vencido { color: var(--claro-red); font-weight: bold; }
         body.dark-mode .sla-vencido { color: #ff6b6b; }
 
+        .resp-no-prazo { color: var(--verde-claro); font-weight: bold; }
+
         .tabela-container { overflow-x: auto; }
 
         table {
@@ -636,9 +594,7 @@
             padding-right: 25px;
         }
 
-        th.sortable:hover {
-            background-color: var(--claro-red-dark);
-        }
+        th.sortable:hover { background-color: var(--claro-red-dark); }
 
         .sort-icon {
             font-size: 10px;
@@ -670,11 +626,7 @@
             padding: 30px;
         }
 
-        .sem-permissao {
-            color: var(--text-muted);
-            font-size: 12px;
-            font-style: italic;
-        }
+        .sem-permissao { color: var(--text-muted); font-size: 12px; font-style: italic; }
 
         .paginacao-container {
             display: flex;
@@ -685,23 +637,9 @@
             border-top: 1px solid var(--border-light);
         }
 
-        .itens-por-pagina {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-        }
-
-        .itens-por-pagina select {
-            width: auto;
-            padding: 6px 10px;
-        }
-
-        .botoes-paginacao {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
+        .itens-por-pagina { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .itens-por-pagina select { width: auto; padding: 6px 10px; }
+        .botoes-paginacao { display: flex; gap: 8px; align-items: center; }
 
         .btn-pagina {
             background-color: var(--panel-bg);
@@ -714,20 +652,10 @@
             transition: all 0.2s;
         }
 
-        .btn-pagina:hover:not(:disabled) {
-            background-color: var(--border-light);
-        }
+        .btn-pagina:hover:not(:disabled) { background-color: var(--border-light); }
+        .btn-pagina:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .btn-pagina:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .info-paginacao {
-            font-size: 14px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
+        .info-paginacao { font-size: 14px; color: var(--text-muted); font-weight: 600; }
 
         #loading {
             position: fixed;
@@ -765,9 +693,7 @@
             border: 1px solid transparent;
         }
         
-        .contador-item:hover {
-            transform: scale(1.05);
-        }
+        .contador-item:hover { transform: scale(1.05); }
 
         .contador-item.ativo {
             background-color: rgba(218, 41, 28, 0.1);
@@ -883,9 +809,16 @@
                     <label for="dataQuestionamento">Data e Hora de Questionamento *</label>
                         <input type="text" id="dataQuestionamento" placeholder="DD/MM/AAAA HH:MM" maxlength="16" required>
                     </div>
+                </div>
+                
+                <div class="linha-formulario">
+                    <div class="campo">
+                        <label for="dataPrimeiraResposta">Data da Primeira Resposta</label>
+                        <input type="text" id="dataPrimeiraResposta" placeholder="DD/MM/AAAA HH:MM" maxlength="16">
+                    </div>
                     <div class="campo">
                         <label for="dataFechamento">Data de Encaminhamento / Fechamento</label>
-                        <input type="text" id="dataFechamento" placeholder="DD/MM/AAAA" maxlength="16">
+                        <input type="text" id="dataFechamento" placeholder="DD/MM/AAAA HH:MM" maxlength="16">
                     </div>
                 </div>
 
@@ -962,6 +895,7 @@
                     <label><input type="checkbox" class="chk-coluna" value="assunto" checked> Assunto do E-mail</label>
                     <label><input type="checkbox" class="chk-coluna" value="sla" checked> SLA</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtQuest" checked> Dt. Quest.</label>
+                    <label><input type="checkbox" class="chk-coluna" value="dtPrimResp" checked> Dt. Prim. Resp.</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtFecham" checked> Dt. Enc. Fech.</label>
                     
                     <label id="lbl-dtCriacao"><input type="checkbox" class="chk-coluna" value="dtCriacao"> Data Criação</label>
@@ -1222,7 +1156,8 @@
         function mascaraDataHora(e) {
             let v = e.target.value.replace(/\D/g, "");
             
-            const exigeHoraMinuto = e.target.id === 'sla' || e.target.id === 'dataQuestionamento';
+            // Todos esses campos exigem hora/minuto ao preencher
+            const exigeHoraMinuto = ['sla', 'dataQuestionamento', 'dataPrimeiraResposta', 'dataFechamento'].includes(e.target.id);
             if (v.length > 12) v = v.substring(0, 12);
 
             if (v.length > 8) {
@@ -1254,7 +1189,7 @@
         // Alerta na tela caso saia do campo com a data errada
         function avisarDataInvalida(e) {
             const v = e.target.value;
-            const exigeHoraMinuto = e.target.id === 'sla' || e.target.id === 'dataQuestionamento';
+            const exigeHoraMinuto = ['sla', 'dataQuestionamento', 'dataPrimeiraResposta', 'dataFechamento'].includes(e.target.id);
             if (v.length > 0 && !validarDataBR(v, exigeHoraMinuto)) {
                 alert("A data ou hora digitada não é válida.\n\nVerifique se o formato está completo e correto (DD/MM/AAAA" + (exigeHoraMinuto ? " HH:MM" : "") + ").");
             }
@@ -1317,11 +1252,13 @@
         }
 
         // Aplicando os ouvintes para aplicar a máscara ao digitar (input) e alertar ao sair (blur)
-        const camposData = ['sla', 'dataQuestionamento', 'dataFechamento'];
+        const camposData = ['sla', 'dataQuestionamento', 'dataPrimeiraResposta', 'dataFechamento'];
         camposData.forEach(id => {
             const el = document.getElementById(id);
-            el.addEventListener('input', mascaraDataHora);
-            el.addEventListener('blur', avisarDataInvalida);
+            if (el) {
+                el.addEventListener('input', mascaraDataHora);
+                el.addEventListener('blur', avisarDataInvalida);
+            }
         });
 
         function ehSuperUsuario() {
@@ -1429,12 +1366,13 @@
                         }
                     }
                 } else {
-                    // Verificação para o filtro Expurgo (fechados após o SLA)
-                    if (c.sla) {
+                    // Expurgo: N3 + Data Quest < SLA + Data Fechamento > SLA
+                    if (c.sla && c.dataQuestionamento && c.dataFechamento && c.categoria === 'Suporte à Sistemas - OMS/CRM') {
                         const slaDate = new Date(c.sla);
-                        // Garante a comparação correta do fuso caso a data de fechamento não tenha hora
-                        const fechamentoDate = c.dataFechamento.length === 10 ? new Date(c.dataFechamento + 'T00:00:00') : new Date(c.dataFechamento);
-                        if (slaDate < fechamentoDate) {
+                        const questDate = new Date(c.dataQuestionamento);
+                        const fechamentoDate = new Date(c.dataFechamento);
+
+                        if (questDate < slaDate && fechamentoDate > slaDate) {
                             qtdExpurgo++;
                         }
                     }
@@ -1572,10 +1510,13 @@
         btnMaisFiltros.addEventListener('click', () => { alternarPainel(filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil, painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas); });
         btnGerenciarColunas.addEventListener('click', () => { alternarPainel(painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas, filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil); });
 
-        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: true, fila: true, assunto: true, sla: true, dtQuest: true, dtFecham: true, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false };
+        // Adicionado: Configuração para coluna dtPrimResp salva no cache do usuário
+        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: true, fila: true, assunto: true, sla: true, dtQuest: true, dtPrimResp: true, dtFecham: true, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false };
         
         document.querySelectorAll('.chk-coluna').forEach(chk => {
-            chk.checked = colunasSalvas[chk.value];
+            if(colunasSalvas[chk.value] !== undefined) {
+                chk.checked = colunasSalvas[chk.value];
+            }
             chk.addEventListener('change', (e) => {
                 colunasSalvas[e.target.value] = e.target.checked;
                 localStorage.setItem('pref_colunas', JSON.stringify(colunasSalvas));
@@ -1687,8 +1628,10 @@
             // Resetar as bordas de erro ao abrir
             camposData.forEach(id => {
                 const el = document.getElementById(id);
-                el.style.borderColor = "var(--border-color)";
-                el.style.color = "var(--text-color)";
+                if (el) {
+                    el.style.borderColor = "var(--border-color)";
+                    el.style.color = "var(--text-color)";
+                }
             });
             tituloFormulario.textContent = 'Registrar Novo Chamado'; 
             btnSalvar.textContent = 'Salvar Chamado'; 
@@ -1715,13 +1658,16 @@
             
             document.getElementById('sla').value = converterParaBR(chamado.sla);
             document.getElementById('dataQuestionamento').value = converterParaBR(chamado.dataQuestionamento);
+            document.getElementById('dataPrimeiraResposta').value = converterParaBR(chamado.dataPrimeiraResposta);
             document.getElementById('dataFechamento').value = converterParaBR(chamado.dataFechamento);
 
             // Garantir que os campos voltem com cor normal ao editar
             camposData.forEach(id => {
                 const el = document.getElementById(id);
-                el.style.borderColor = "var(--border-color)";
-                el.style.color = "var(--text-color)";
+                if (el) {
+                    el.style.borderColor = "var(--border-color)";
+                    el.style.color = "var(--text-color)";
+                }
             });
             
             tituloFormulario.textContent = 'Editar Chamado';
@@ -1736,11 +1682,22 @@
 
             const valSla = document.getElementById('sla').value;
             const valQuest = document.getElementById('dataQuestionamento').value;
+            const valPrimResp = document.getElementById('dataPrimeiraResposta').value;
             const valFecham = document.getElementById('dataFechamento').value;
 
-            // Bloqueia o envio se tiver formato errado ou faltando os minutos obrigatórios
-            if (!validarDataBR(valSla, true) || !validarDataBR(valQuest, true) || !validarDataBR(valFecham, false)) {
-                alert("Atenção: Os campos 'SLA' e 'Data de Questionamento' exigem a data e hora completas (DD/MM/AAAA HH:MM).\n\nVerifique também a data de fechamento.");
+            // Bloqueia o envio se tiver formato errado ou faltando os minutos
+            if (!validarDataBR(valSla, true) || !validarDataBR(valQuest, true)) {
+                alert("Atenção: Os campos 'SLA' e 'Data de Questionamento' exigem a data e hora completas (DD/MM/AAAA HH:MM).");
+                loading.style.display = 'none';
+                return;
+            }
+            if (valPrimResp && !validarDataBR(valPrimResp, true)) {
+                alert("Atenção: A 'Data da Primeira Resposta' exige a data e hora completas (DD/MM/AAAA HH:MM) se preenchida.");
+                loading.style.display = 'none';
+                return;
+            }
+            if (valFecham && !validarDataBR(valFecham, true)) {
+                alert("Atenção: A 'Data de Fechamento' exige a data e hora completas (DD/MM/AAAA HH:MM) se preenchida.");
                 loading.style.display = 'none';
                 return;
             }
@@ -1757,6 +1714,7 @@
                 assuntoEmail: document.getElementById('assuntoEmail').value,
                 sla: converterParaISO(valSla),
                 dataQuestionamento: converterParaISO(valQuest),
+                dataPrimeiraResposta: converterParaISO(valPrimResp),
                 dataFechamento: converterParaISO(valFecham),
                 usuarioAtualizacao: userEmail,
                 dataAtualizacao: agora
@@ -2002,11 +1960,13 @@
                             const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59, 999);
                             atendeSLA = slaDate >= hojeInicio && slaDate <= hojeFim;
                         } else if (vSLA === 'expurgo') {
-                            if (!chamado.dataFechamento) {
+                            // Regra corrigida para Expurgo: N3 + Data Quest < SLA + Data Fechamento > SLA
+                            if (!chamado.dataFechamento || !chamado.dataQuestionamento || chamado.categoria !== 'Suporte à Sistemas - OMS/CRM') {
                                 atendeSLA = false;
                             } else {
-                                const fechamentoDate = chamado.dataFechamento.length === 10 ? new Date(chamado.dataFechamento + 'T00:00:00') : new Date(chamado.dataFechamento);
-                                atendeSLA = slaDate < fechamentoDate;
+                                const fechamentoDate = new Date(chamado.dataFechamento);
+                                const questDate = new Date(chamado.dataQuestionamento);
+                                atendeSLA = (questDate < slaDate) && (fechamentoDate > slaDate);
                             }
                         }
                     }
@@ -2048,13 +2008,6 @@
             return dataISO; 
         }
 
-        function formatarDataTela(dataISO) {
-            if (!dataISO) return '<span class="status-aberto">Em aberto</span>';
-            const partes = dataISO.split('-');
-            if(partes.length < 3) return dataISO;
-            return `${partes[2]}/${partes[1]}/${partes[0]}`;
-        }
-
         function formatarSLA(dataISO, dataFechamento) {
             if (!dataISO) return '-';
             let dataFormatada = formatarDataHoraSimples(dataISO);
@@ -2077,12 +2030,6 @@
                 if(partes.length < 3) return dataISO;
                 return `E-mail enviado em ${partes[2]}/${partes[1]}`;
             }
-        }
-
-        function formatarDataExportacao(dataISO) {
-            if (!dataISO) return 'Em aberto';
-            const partes = dataISO.split('-');
-            return `${partes[2]}/${partes[1]}/${partes[0]}`;
         }
 
         function atualizarPainelResumo() {
@@ -2148,6 +2095,7 @@
             if(colunasSalvas.assunto) htmlCabecalho += getCabecalhoHtml('Assunto do E-mail', 'assuntoEmail');
             if(colunasSalvas.sla) htmlCabecalho += getCabecalhoHtml('SLA', 'sla');
             if(colunasSalvas.dtQuest) htmlCabecalho += getCabecalhoHtml('Dt. Quest.', 'dataQuestionamento');
+            if(colunasSalvas.dtPrimResp) htmlCabecalho += getCabecalhoHtml('Dt. Prim. Resp.', 'dataPrimeiraResposta');
             if(colunasSalvas.dtFecham) htmlCabecalho += getCabecalhoHtml('Dt. Enc. Fech.', 'dataFechamento');
             
             if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlCabecalho += getCabecalhoHtml('Data Criação', 'dataCriacao');
@@ -2193,6 +2141,15 @@
                 const tr = document.createElement('tr');
                 const linkChamado = `https://clarobr.atlassian.net/browse/${chamado.numero}`; 
 
+                let classeResp = '';
+                if (chamado.dataPrimeiraResposta && chamado.sla) {
+                    const respDate = new Date(chamado.dataPrimeiraResposta);
+                    const slaDate = new Date(chamado.sla);
+                    if (respDate < slaDate) {
+                        classeResp = 'resp-no-prazo';
+                    }
+                }
+
                 let htmlLinha = `<td><strong><a href="${linkChamado}" target="_blank" class="link-chamado">${chamado.numero}</a></strong></td>`;
                 if(colunasSalvas.analista) htmlLinha += `<td>${chamado.analista || '-'}</td>`;
                 if(colunasSalvas.categoria) htmlLinha += `<td>${chamado.categoria || '-'}</td>`;
@@ -2201,7 +2158,8 @@
                 if(colunasSalvas.assunto) htmlLinha += `<td>${chamado.assuntoEmail || '-'}</td>`;
                 if(colunasSalvas.sla) htmlLinha += `<td>${formatarSLA(chamado.sla, chamado.dataFechamento)}</td>`;
                 if(colunasSalvas.dtQuest) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataQuestionamento)}</td>`;
-                if(colunasSalvas.dtFecham) htmlLinha += `<td>${formatarDataTela(chamado.dataFechamento)}</td>`;
+                if(colunasSalvas.dtPrimResp) htmlLinha += `<td class="${classeResp}">${formatarDataHoraSimples(chamado.dataPrimeiraResposta)}</td>`;
+                if(colunasSalvas.dtFecham) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataFechamento)}</td>`;
                 
                 if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataCriacao)}</td>`;
                 if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataAtualizacao)}</td>`;
@@ -2363,7 +2321,7 @@
             
             const podeVerColunasOcultas = soThiagoPodeVer();
             
-            let cabecalhoCSV = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Enc. Fech.";
+            let cabecalhoCSV = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Prim. Resp.;Dt. Enc. Fech.";
             if(podeVerColunasOcultas) cabecalhoCSV += ";Data Criação;Data Atualização;Atualizado Por";
             cabecalhoCSV += "\n";
             
@@ -2372,11 +2330,12 @@
             chamadosFiltradosAtuais.forEach(c => {
                 const sla = formatarDataHoraSimples(c.sla);
                 const dtq = formatarDataHoraSimples(c.dataQuestionamento);
-                const dtf = c.dataFechamento ? formatarDataTela(c.dataFechamento) : 'Em aberto';
+                const dtpr = formatarDataHoraSimples(c.dataPrimeiraResposta);
+                const dtf = formatarDataHoraSimples(c.dataFechamento);
                 
                 const clean = (txt) => (txt || '').replace(/"/g, '""').replace(/(\r\n|\n|\r)/gm, " ");
                 
-                let linhaCSV = `"${clean(c.numero)}";"${clean(c.analista)}";"${clean(c.categoria)}";"${clean(c.problema)}";"${clean(c.fila)}";"${clean(c.assuntoEmail)}";"${sla}";"${dtq}";"${dtf}"`;
+                let linhaCSV = `"${clean(c.numero)}";"${clean(c.analista)}";"${clean(c.categoria)}";"${clean(c.problema)}";"${clean(c.fila)}";"${clean(c.assuntoEmail)}";"${sla}";"${dtq}";"${dtpr}";"${dtf}"`;
                 
                 if (podeVerColunasOcultas) {
                     const dtCri = formatarDataHoraSimples(c.dataCriacao);
@@ -2399,8 +2358,8 @@
 
         // --- CSV Importação ---
         window.baixarModeloCSV = function() {
-            const cabecalho = "Chamado;Analista;Categoria;Problema;Fila;AssuntoEmail;SLA(YYYY-MM-DDTHH:MM);DataQuestionamento(YYYY-MM-DDTHH:MM);DataFechamento(YYYY-MM-DD)\n";
-            const exemplo = "INC1234567;João Silva;Outros;Falha na fila;N2;Erro de acesso;2026-03-10T14:00;2026-03-05T10:00;2026-03-06\n";
+            const cabecalho = "Chamado;Analista;Categoria;Problema;Fila;AssuntoEmail;SLA(YYYY-MM-DDTHH:MM);DataQuestionamento(YYYY-MM-DDTHH:MM);DataPrimeiraResposta(YYYY-MM-DDTHH:MM);DataFechamento(YYYY-MM-DDTHH:MM)\n";
+            const exemplo = "INC1234567;João Silva;Outros;Falha na fila;N2;Erro de acesso;2026-03-10T14:00;2026-03-05T10:00;2026-03-05T11:00;2026-03-06T12:00\n";
             const blob = new Blob(["\uFEFF" + cabecalho + exemplo], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
@@ -2473,7 +2432,8 @@
                     assuntoEmail: colunas[5]?.trim() || '',
                     sla: colunas[6]?.trim() || '',
                     dataQuestionamento: colunas[7]?.trim() || '',
-                    dataFechamento: colunas[8]?.trim() || '',
+                    dataPrimeiraResposta: colunas[8]?.trim() || '',
+                    dataFechamento: colunas[9]?.trim() || '',
                     usuarioAtualizacao: userEmail,
                     dataAtualizacao: agora
                 };
