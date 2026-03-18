@@ -866,6 +866,9 @@
                     <div class="contador-item" onclick="filtrarSLA('n3')" title="Filtrar chamados N3 (Suporte à Sistemas - OMS/CRM em aberto)">
                         <strong>N3:</strong> <span id="countN3" style="font-size: 16px; color: var(--template-color); font-weight: bold;">0</span>
                     </div>
+                    <div class="contador-item" onclick="filtrarSLA('expurgo')" title="Filtrar chamados em que o SLA foi descumprido (Expurgo)">
+                        <strong>Expurgo:</strong> <span id="countExpurgo" style="font-size: 16px; color: var(--import-color); font-weight: bold;">0</span>
+                    </div>
                 </div>
 
                 <div style="display: flex; gap: 10px; align-items: center;">
@@ -947,6 +950,7 @@
                             <option value="vencidos">Vencidos (<= Agora)</option>
                             <option value="hoje">Para Hoje</option>
                             <option value="noprazo">No Prazo (> Agora)</option>
+                            <option value="expurgo">Expurgo (Fechados após SLA)</option>
                         </select>
                     </div>
                 </div>
@@ -1340,6 +1344,7 @@
             let qtdVencido = 0;
             let qtdPendente = 0;
             let qtdN3 = 0;
+            let qtdExpurgo = 0;
 
             listaChamados.forEach(c => {
                 if (!c.dataFechamento) {
@@ -1358,6 +1363,16 @@
                             qtdVencido++;
                         }
                     }
+                } else {
+                    // Verificação para o filtro Expurgo (fechados após o SLA)
+                    if (c.sla) {
+                        const slaDate = new Date(c.sla);
+                        // Garante a comparação correta do fuso caso a data de fechamento não tenha hora
+                        const fechamentoDate = c.dataFechamento.length === 10 ? new Date(c.dataFechamento + 'T00:00:00') : new Date(c.dataFechamento);
+                        if (slaDate < fechamentoDate) {
+                            qtdExpurgo++;
+                        }
+                    }
                 }
             });
 
@@ -1365,6 +1380,7 @@
             document.getElementById('countSlaHoje').textContent = qtdHoje;
             document.getElementById('countSlaVencido').textContent = qtdVencido;
             document.getElementById('countN3').textContent = qtdN3;
+            document.getElementById('countExpurgo').textContent = qtdExpurgo;
         }
 
         function atualizarListasFiltros() {
@@ -1540,6 +1556,7 @@
             const itemHoje = document.getElementById('countSlaHoje').parentElement;
             const itemVencido = document.getElementById('countSlaVencido').parentElement;
             const itemN3 = document.getElementById('countN3').parentElement;
+            const itemExpurgo = document.getElementById('countExpurgo').parentElement;
 
             if (filtroRapidoAtivo === tipo) {
                 restaurarEstadoFiltro();
@@ -1548,6 +1565,7 @@
                 itemHoje.classList.remove('ativo');
                 itemVencido.classList.remove('ativo');
                 itemN3.classList.remove('ativo');
+                itemExpurgo.classList.remove('ativo');
             } else {
                 if (!filtroRapidoAtivo) {
                     salvarEstadoFiltro();
@@ -1567,31 +1585,29 @@
 
                 document.getElementById('filtroStatus').value = 'abertos';
                 
+                itemPendente.classList.remove('ativo');
+                itemHoje.classList.remove('ativo');
+                itemVencido.classList.remove('ativo');
+                itemN3.classList.remove('ativo');
+                itemExpurgo.classList.remove('ativo');
+                
                 if (tipo === 'pendente') {
                     document.getElementById('filtroSLA').value = 'todos';
                     itemPendente.classList.add('ativo');
-                    itemHoje.classList.remove('ativo');
-                    itemVencido.classList.remove('ativo');
-                    itemN3.classList.remove('ativo');
                 } else if (tipo === 'hoje') {
                     document.getElementById('filtroSLA').value = 'hoje';
                     itemHoje.classList.add('ativo');
-                    itemPendente.classList.remove('ativo');
-                    itemVencido.classList.remove('ativo');
-                    itemN3.classList.remove('ativo');
                 } else if (tipo === 'vencido') {
                     document.getElementById('filtroSLA').value = 'vencidos';
                     itemVencido.classList.add('ativo');
-                    itemPendente.classList.remove('ativo');
-                    itemHoje.classList.remove('ativo');
-                    itemN3.classList.remove('ativo');
                 } else if (tipo === 'n3') {
                     document.getElementById('filtroSLA').value = 'todos';
                     document.getElementById('buscaCategoria').value = 'Suporte à Sistemas - OMS/CRM';
                     itemN3.classList.add('ativo');
-                    itemPendente.classList.remove('ativo');
-                    itemHoje.classList.remove('ativo');
-                    itemVencido.classList.remove('ativo');
+                } else if (tipo === 'expurgo') {
+                    document.getElementById('filtroStatus').value = 'fechados';
+                    document.getElementById('filtroSLA').value = 'expurgo';
+                    itemExpurgo.classList.add('ativo');
                 }
             }
             
@@ -1759,6 +1775,7 @@
             document.getElementById('countSlaHoje').parentElement.classList.remove('ativo');
             document.getElementById('countSlaVencido').parentElement.classList.remove('ativo');
             document.getElementById('countN3').parentElement.classList.remove('ativo');
+            document.getElementById('countExpurgo').parentElement.classList.remove('ativo');
 
             Object.values(inputFiltros).forEach(input => {
                 if(input.tagName === 'SELECT') {
@@ -1919,6 +1936,13 @@
                             const hojeInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
                             const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59, 999);
                             atendeSLA = slaDate >= hojeInicio && slaDate <= hojeFim;
+                        } else if (vSLA === 'expurgo') {
+                            if (!chamado.dataFechamento) {
+                                atendeSLA = false;
+                            } else {
+                                const fechamentoDate = chamado.dataFechamento.length === 10 ? new Date(chamado.dataFechamento + 'T00:00:00') : new Date(chamado.dataFechamento);
+                                atendeSLA = slaDate < fechamentoDate;
+                            }
                         }
                     }
                 }
