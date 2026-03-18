@@ -54,6 +54,50 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
+        /* Banner LGPD */
+        .banner-lgpd {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--claro-red);
+            color: #fff;
+            text-align: center;
+            padding: 12px 20px;
+            z-index: 4000;
+            box-sizing: border-box;
+            display: none; /* Inicia oculto, o JS decide se mostra */
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .banner-lgpd p {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .btn-fechar-lgpd {
+            background-color: #fff;
+            color: var(--claro-red);
+            border: none;
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-fechar-lgpd:hover {
+            background-color: #f4f4f4;
+        }
+
         /* Tela de Login */
         #telaLogin {
             position: fixed;
@@ -110,6 +154,7 @@
             border-top: 4px solid var(--claro-red);
             flex-wrap: wrap;
             gap: 15px;
+            margin-top: 30px; /* Espaço para o banner LGPD não cobrir */
         }
 
         .navbar-brand {
@@ -736,6 +781,13 @@
 </head>
 <body class="dark-mode"> 
 
+    <div id="bannerLGPD" class="banner-lgpd">
+        <p>
+            <strong>Aviso de Privacidade:</strong> Este sistema registra seu nome e e-mail do Google para controle de acesso e auditoria, conforme a LGPD. 
+            <button id="btnFecharLGPD" class="btn-fechar-lgpd">Entendi</button>
+        </p>
+    </div>
+
     <div id="loading">Conectando...</div>
 
     <button id="btnTema" class="btn-flutuante">☀️ Tema</button>
@@ -1091,7 +1143,7 @@
 
     <script type="module">
         // -----------------------------------------------------------
-        // CONFIGURAÇÕES
+        // CONFIGURAÇÕES E LGPD
         // -----------------------------------------------------------
         const ADMIN_EMAIL = "ThiagoFelipeND@gmail.com"; 
         const BUG_REPORT_EMAIL = "thiago.nascimento@sysmap.com.br";
@@ -1102,6 +1154,19 @@
             "valentiminaiara@gmail.com",
             "gomescarol0705@gmail.com"
         ];
+
+        // Lógica do Banner LGPD
+        const bannerLGPD = document.getElementById('bannerLGPD');
+        const btnFecharLGPD = document.getElementById('btnFecharLGPD');
+
+        if (!localStorage.getItem('lgpd_aceito')) {
+            bannerLGPD.style.display = 'flex';
+        }
+
+        btnFecharLGPD.addEventListener('click', () => {
+            localStorage.setItem('lgpd_aceito', 'true');
+            bannerLGPD.style.display = 'none';
+        });
         // -----------------------------------------------------------
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
