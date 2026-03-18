@@ -863,6 +863,9 @@
                     <div class="contador-item" onclick="filtrarSLA('vencido')" title="Filtrar chamados em aberto com SLA vencido">
                         <strong>SLA Vencido:</strong> <span id="countSlaVencido" class="sla-vencido" style="font-size: 16px; color: var(--danger-color);">0</span>
                     </div>
+                    <div class="contador-item" onclick="filtrarSLA('n3')" title="Filtrar chamados N3 (Suporte à Sistemas - OMS/CRM em aberto)">
+                        <strong>N3:</strong> <span id="countN3" style="font-size: 16px; color: var(--template-color); font-weight: bold;">0</span>
+                    </div>
                 </div>
 
                 <div style="display: flex; gap: 10px; align-items: center;">
@@ -1336,10 +1339,16 @@
             let qtdHoje = 0;
             let qtdVencido = 0;
             let qtdPendente = 0;
+            let qtdN3 = 0;
 
             listaChamados.forEach(c => {
                 if (!c.dataFechamento) {
                     qtdPendente++;
+                    
+                    if (c.categoria === 'Suporte à Sistemas - OMS/CRM') {
+                        qtdN3++;
+                    }
+
                     if (c.sla) {
                         const slaDate = new Date(c.sla);
                         if (slaDate >= hojeInicio && slaDate <= hojeFim) {
@@ -1355,6 +1364,7 @@
             document.getElementById('countPendentes').textContent = qtdPendente;
             document.getElementById('countSlaHoje').textContent = qtdHoje;
             document.getElementById('countSlaVencido').textContent = qtdVencido;
+            document.getElementById('countN3').textContent = qtdN3;
         }
 
         function atualizarListasFiltros() {
@@ -1529,6 +1539,7 @@
             const itemPendente = document.getElementById('countPendentes').parentElement;
             const itemHoje = document.getElementById('countSlaHoje').parentElement;
             const itemVencido = document.getElementById('countSlaVencido').parentElement;
+            const itemN3 = document.getElementById('countN3').parentElement;
 
             if (filtroRapidoAtivo === tipo) {
                 restaurarEstadoFiltro();
@@ -1536,6 +1547,7 @@
                 itemPendente.classList.remove('ativo');
                 itemHoje.classList.remove('ativo');
                 itemVencido.classList.remove('ativo');
+                itemN3.classList.remove('ativo');
             } else {
                 if (!filtroRapidoAtivo) {
                     salvarEstadoFiltro();
@@ -1560,16 +1572,26 @@
                     itemPendente.classList.add('ativo');
                     itemHoje.classList.remove('ativo');
                     itemVencido.classList.remove('ativo');
+                    itemN3.classList.remove('ativo');
                 } else if (tipo === 'hoje') {
                     document.getElementById('filtroSLA').value = 'hoje';
                     itemHoje.classList.add('ativo');
                     itemPendente.classList.remove('ativo');
                     itemVencido.classList.remove('ativo');
+                    itemN3.classList.remove('ativo');
                 } else if (tipo === 'vencido') {
                     document.getElementById('filtroSLA').value = 'vencidos';
                     itemVencido.classList.add('ativo');
                     itemPendente.classList.remove('ativo');
                     itemHoje.classList.remove('ativo');
+                    itemN3.classList.remove('ativo');
+                } else if (tipo === 'n3') {
+                    document.getElementById('filtroSLA').value = 'todos';
+                    document.getElementById('buscaCategoria').value = 'Suporte à Sistemas - OMS/CRM';
+                    itemN3.classList.add('ativo');
+                    itemPendente.classList.remove('ativo');
+                    itemHoje.classList.remove('ativo');
+                    itemVencido.classList.remove('ativo');
                 }
             }
             
@@ -1736,6 +1758,7 @@
             document.getElementById('countPendentes').parentElement.classList.remove('ativo');
             document.getElementById('countSlaHoje').parentElement.classList.remove('ativo');
             document.getElementById('countSlaVencido').parentElement.classList.remove('ativo');
+            document.getElementById('countN3').parentElement.classList.remove('ativo');
 
             Object.values(inputFiltros).forEach(input => {
                 if(input.tagName === 'SELECT') {
