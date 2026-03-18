@@ -2149,7 +2149,7 @@
         });
 
         // --- TEAMS ---
-        function copiarParaTeams() {function copiarParaTeams() {
+        function copiarParaTeams() {
             if (chamadosFiltradosAtuais.length === 0) {
                 alert("Sem dados para copiar.");
                 return;
@@ -2301,8 +2301,8 @@
 
         // --- CSV Importação ---
         window.baixarModeloCSV = function() {
-            const cabecalho = "Chamado;Analista;Categoria;Problema;Fila;AssuntoEmail;SLA(YYYY-MM-DDTHH:MM);DataQuestionamento(YYYY-MM-DDTHH:MM);DataFechamento(YYYY-MM-DD)\n";
-            const exemplo = "INC1234567;João Silva;Outros;Falha na fila;N2;Erro de acesso;2026-03-10T14:00;2026-03-05T10:00;2026-03-06\n";
+            const cabecalho = "Chamado;Analista;Categoria;Problema;Fila;AssuntoEmail;SLA(YYYY-MM-DDTHH:MM:SS);DataQuestionamento(YYYY-MM-DDTHH:MM:SS);DataFechamento(YYYY-MM-DD)\n";
+            const exemplo = "INC1234567;João Silva;Outros;Falha na fila;N2;Erro de acesso;2026-03-10T14:00:00;2026-03-05T10:00:00;2026-03-06\n";
             const blob = new Blob(["\uFEFF" + cabecalho + exemplo], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
