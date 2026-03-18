@@ -344,7 +344,7 @@
 
         .campo {
             flex: 1;
-            min-width: 250px; /* Aumentado para evitar sobreposição excessiva */
+            min-width: 250px;
             display: flex;
             flex-direction: column;
         }
@@ -890,8 +890,8 @@
                 <div class="grid-colunas">
                     <label><input type="checkbox" class="chk-coluna" value="analista" checked> Analista</label>
                     <label><input type="checkbox" class="chk-coluna" value="categoria" checked> Categoria</label>
-                    <label><input type="checkbox" class="chk-coluna" value="problema" checked> Cenário / Problema</label>
-                    <label><input type="checkbox" class="chk-coluna" value="fila" checked> Fila</label>
+                    <label><input type="checkbox" class="chk-coluna" value="problema"> Cenário / Problema</label>
+                    <label><input type="checkbox" class="chk-coluna" value="fila"> Fila</label>
                     <label><input type="checkbox" class="chk-coluna" value="assunto" checked> Assunto do E-mail</label>
                     <label><input type="checkbox" class="chk-coluna" value="sla" checked> SLA</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtQuest" checked> Dt. Quest.</label>
@@ -1510,8 +1510,8 @@
         btnMaisFiltros.addEventListener('click', () => { alternarPainel(filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil, painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas); });
         btnGerenciarColunas.addEventListener('click', () => { alternarPainel(painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas, filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil); });
 
-        // Adicionado: Configuração para coluna dtPrimResp salva no cache do usuário
-        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: true, fila: true, assunto: true, sla: true, dtQuest: true, dtPrimResp: true, dtFecham: true, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false };
+        // Ajuste das colunas salvas padrão (problema e fila agora começam ocultas)
+        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: false, fila: false, assunto: true, sla: true, dtQuest: true, dtPrimResp: true, dtFecham: true, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false };
         
         document.querySelectorAll('.chk-coluna').forEach(chk => {
             if(colunasSalvas[chk.value] !== undefined) {
@@ -1960,7 +1960,6 @@
                             const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59, 999);
                             atendeSLA = slaDate >= hojeInicio && slaDate <= hojeFim;
                         } else if (vSLA === 'expurgo') {
-                            // Regra corrigida para Expurgo: N3 + Data Quest < SLA + Data Fechamento > SLA
                             if (!chamado.dataFechamento || !chamado.dataQuestionamento || chamado.categoria !== 'Suporte à Sistemas - OMS/CRM') {
                                 atendeSLA = false;
                             } else {
