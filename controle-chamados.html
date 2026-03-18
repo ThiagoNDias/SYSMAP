@@ -825,11 +825,11 @@
                 <div class="linha-formulario">
                     <div class="campo">
                         <label for="sla">SLA (Prazo Limite) *</label>
-                        <input type="text" id="sla" placeholder="DD/MM/AAAA HH:MM:SS" maxlength="19" required>
+                        <input type="text" id="sla" placeholder="DD/MM/AAAA HH:MM" maxlength="16" required>
                     </div>
                     <div class="campo">
                     <label for="dataQuestionamento">Data e Hora de Questionamento *</label>
-                        <input type="text" id="dataQuestionamento" placeholder="DD/MM/AAAA HH:MM:SS" maxlength="19" required>
+                        <input type="text" id="dataQuestionamento" placeholder="DD/MM/AAAA HH:MM" maxlength="16" required>
                     </div>
                     <div class="campo">
                         <label for="dataFechamento">Data de Encaminhamento / Fechamento</label>
@@ -1147,20 +1147,14 @@
         // --- Funções de Máscara e Validação de Data ---
         
         // Aplica a formatação de data e hora enquanto o usuário digita e já faz validação visual
-        // Aplica a máscara e suporta segundos (DD/MM/AAAA HH:MM:SS)
         function mascaraDataHora(e) {
             let v = e.target.value.replace(/\D/g, "");
             
-            // Define se o campo exige 14 dígitos (com segundos) ou 12 dígitos
-            const exigeSegundos = e.target.id === 'sla' || e.target.id === 'dataQuestionamento';
-            if (v.length > 14) v = v.substring(0, 14);
+            const exigeHoraMinuto = e.target.id === 'sla' || e.target.id === 'dataQuestionamento';
+            if (v.length > 12) v = v.substring(0, 12);
 
-            if (v.length > 12) {
-                v = v.replace(/(\d{2})(\d{2})(\d{4})(\d{2})(\d{2})(\d{0,2})/, "$1/$2/$3 $4:$5:$6");
-            } else if (v.length > 10) {
+            if (v.length > 8) {
                 v = v.replace(/(\d{2})(\d{2})(\d{4})(\d{2})(\d{0,2})/, "$1/$2/$3 $4:$5");
-            } else if (v.length > 8) {
-                v = v.replace(/(\d{2})(\d{2})(\d{4})(\d{0,2})/, "$1/$2/$3 $4");
             } else if (v.length > 4) {
                 v = v.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
             } else if (v.length > 2) {
@@ -1169,10 +1163,10 @@
             e.target.value = v;
 
             // Validação visual em tempo real
-            const tamanhoEsperado = exigeSegundos ? 19 : (v.length > 10 ? 16 : 10);
+            const tamanhoEsperado = exigeHoraMinuto ? 16 : 10;
             
             if (v.length === tamanhoEsperado) {
-                if (!validarDataBR(v, exigeSegundos)) {
+                if (!validarDataBR(v, exigeHoraMinuto)) {
                     e.target.style.borderColor = "var(--danger-color)";
                     e.target.style.color = "var(--danger-color)";
                 } else {
@@ -1188,18 +1182,18 @@
         // Alerta na tela caso saia do campo com a data errada
         function avisarDataInvalida(e) {
             const v = e.target.value;
-            const exigeSegundos = e.target.id === 'sla' || e.target.id === 'dataQuestionamento';
-            if (v.length > 0 && !validarDataBR(v, exigeSegundos)) {
-                alert("A data ou hora digitada não é válida.\n\nVerifique se o formato está completo e correto (DD/MM/AAAA HH:MM" + (exigeSegundos ? ":SS" : "") + ").");
+            const exigeHoraMinuto = e.target.id === 'sla' || e.target.id === 'dataQuestionamento';
+            if (v.length > 0 && !validarDataBR(v, exigeHoraMinuto)) {
+                alert("A data ou hora digitada não é válida.\n\nVerifique se o formato está completo e correto (DD/MM/AAAA" + (exigeHoraMinuto ? " HH:MM" : "") + ").");
             }
         }
 
-        // Valida se a data digitada realmente existe e se tem segundos (quando exigido)
-        function validarDataBR(dataStr, exigirSegundos = false) {
-            if (!dataStr || dataStr.trim() === '') return !exigirSegundos; 
+        // Valida se a data digitada realmente existe
+        function validarDataBR(dataStr, exigirHoraMinuto = false) {
+            if (!dataStr || dataStr.trim() === '') return !exigirHoraMinuto; 
 
-            // Regex atualizada para suportar segundos opcionais
-            const regex = /^(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2})(?::(\d{2}))?)?$/;
+            // Regex para DD/MM/AAAA ou DD/MM/AAAA HH:MM
+            const regex = /^(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}))?$/;
             const match = dataStr.match(regex);
 
             if (!match) return false;
@@ -1213,22 +1207,14 @@
             if (dia < 1 || dia > diasNoMes) return false;
             if (ano < 1900 || ano > 2100) return false; 
 
-            // Validação de hora, minuto e segundo
+            // Validação de hora e minuto
             if (match[4] && match[5]) {
                 const hora = parseInt(match[4], 10);
                 const minuto = parseInt(match[5], 10);
                 if (hora < 0 || hora > 23) return false;
                 if (minuto < 0 || minuto > 59) return false;
-                
-                // Se o campo exigir segundos, valida se eles existem e estão corretos
-                if (match[6]) {
-                    const segundo = parseInt(match[6], 10);
-                    if (segundo < 0 || segundo > 59) return false;
-                } else if (exigirSegundos) {
-                    return false; // Falha se não tiver segundos e eles forem obrigatórios
-                }
-            } else if (exigirSegundos) {
-                return false; // Falha se não tiver hora nenhuma e os segundos forem obrigatórios
+            } else if (exigirHoraMinuto) {
+                return false; // Falha se não tiver hora/minuto e for obrigatório
             }
 
             return true;
@@ -1649,9 +1635,9 @@
             const valQuest = document.getElementById('dataQuestionamento').value;
             const valFecham = document.getElementById('dataFechamento').value;
 
-            // Bloqueia o envio se tiver formato errado ou faltando os segundos obrigatórios
+            // Bloqueia o envio se tiver formato errado ou faltando os minutos obrigatórios
             if (!validarDataBR(valSla, true) || !validarDataBR(valQuest, true) || !validarDataBR(valFecham, false)) {
-                alert("Atenção: Os campos 'SLA' e 'Data de Questionamento' exigem a data e hora completas com segundos (DD/MM/AAAA HH:MM:SS).\n\nVerifique também a data de fechamento.");
+                alert("Atenção: Os campos 'SLA' e 'Data de Questionamento' exigem a data e hora completas (DD/MM/AAAA HH:MM).\n\nVerifique também a data de fechamento.");
                 loading.style.display = 'none';
                 return;
             }
@@ -2301,8 +2287,8 @@
 
         // --- CSV Importação ---
         window.baixarModeloCSV = function() {
-            const cabecalho = "Chamado;Analista;Categoria;Problema;Fila;AssuntoEmail;SLA(YYYY-MM-DDTHH:MM:SS);DataQuestionamento(YYYY-MM-DDTHH:MM:SS);DataFechamento(YYYY-MM-DD)\n";
-            const exemplo = "INC1234567;João Silva;Outros;Falha na fila;N2;Erro de acesso;2026-03-10T14:00:00;2026-03-05T10:00:00;2026-03-06\n";
+            const cabecalho = "Chamado;Analista;Categoria;Problema;Fila;AssuntoEmail;SLA(YYYY-MM-DDTHH:MM);DataQuestionamento(YYYY-MM-DDTHH:MM);DataFechamento(YYYY-MM-DD)\n";
+            const exemplo = "INC1234567;João Silva;Outros;Falha na fila;N2;Erro de acesso;2026-03-10T14:00;2026-03-05T10:00;2026-03-06\n";
             const blob = new Blob(["\uFEFF" + cabecalho + exemplo], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
