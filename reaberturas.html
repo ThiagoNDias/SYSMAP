@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação de Reaberturas</title>
+    <!-- Biblioteca SheetJS para gerar o arquivo .xlsx -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* Variáveis de Cores idênticas ao original */
+        :root {
+            --bg-color: #f4f4f4;
+            --panel-bg: #fff;
+            --text-color: #333;
+            --text-muted: #555;
+            --border-color: #ccc;
+            --border-light: #eee;
+            --input-bg: #fff;
+            --claro-red: #da291c;
+            --claro-red-dark: #b81f15;
+            --excel-color: #107c41;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-color: #f4f4f4;
+            --text-muted: #aaa;
+            --border-color: #444;
+            --border-light: #333;
+            --input-bg: #2c2c2c;
+            --excel-color: #21a555;
+        }
+
+        /* Estilos Gerais */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel-bg);
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            border-top: 4px solid var(--claro-red);
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 22px;
+            color: var(--claro-red);
+        }
+
+        .painel {
+            background: var(--panel-bg);
+            padding: 25px;
+            border-radius: 8px;
+            border-top: 4px solid var(--claro-red);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        .linha-formulario {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        input[type="file"] {
+            color: var(--text-color);
+            background-color: var(--input-bg);
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            flex: 1;
+        }
+
+        /* Tabela */
+        .tabela-container { 
+            overflow-x: auto; 
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: var(--claro-red);
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--claro-red);
+        }
+
+        .td-expurgo {
+            font-weight: bold;
+        }
+        .expurgo-sim { color: var(--claro-red); }
+        .expurgo-nao { color: var(--excel-color); }
+
+        /* Botões */
+        button { font-family: inherit; }
+
+        .btn-salvar {
+            background-color: var(--claro-red);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-salvar:hover {
+            background-color: var(--claro-red-dark);
+        }
+
+        .btn-excel {
+            background-color: var(--excel-color);
+        }
+
+        .btn-excel:hover {
+            background-color: #0c5c2f;
+        }
+        
+        .mensagem-vazia {
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 30px;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+
+    <div class="navbar">
+        <h1>Avaliação de Reaberturas OMS</h1>
+    </div>
+
+    <!-- Painel de Importação -->
+    <div class="painel">
+        <h2 style="margin-top: 0; color: var(--claro-red); border-bottom: 1px solid var(--border-light); padding-bottom: 10px;">Importar Dados</h2>
+        <div class="linha-formulario">
+            <input type="file" id="inputCsv" accept=".csv">
+        </div>
+    </div>
+
+    <!-- Painel da Tabela e Relatório -->
+    <div class="painel" id="painelTabela" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0; color: var(--claro-red);">Chamados Reabertos</h2>
+            <button class="btn-salvar btn-excel" onclick="gerarRelatorio()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Gerar Relatório
+            </button>
+        </div>
+        
+        <div class="tabela-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Chamado</th>
+                        <th>Dt Reabertura</th>
+                        <th>Caixa de Atendimento</th>
+                        <th style="width: 35%;">Justificativa</th>
+                        <th style="width: 10%;">Expurgo</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaCorpo">
+                    <!-- Linhas geradas via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const inputCsv = document.getElementById('inputCsv');
+        const painelTabela = document.getElementById('painelTabela');
+        const tabelaCorpo = document.getElementById('tabelaCorpo');
+
+        // Escutar upload do arquivo
+        inputCsv.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const text = event.target.result;
+                processarCSV(text);
+            };
+            reader.readAsText(file);
+        });
+
+        // Função para processar o conteúdo do CSV
+        function processarCSV(csvText) {
+            // Divide por quebras de linha e ignora linhas vazias
+            const linhas = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+            
+            if (linhas.length <= 1) {
+                alert("O arquivo selecionado está vazio ou contém apenas o cabeçalho.");
+                return;
+            }
+
+            tabelaCorpo.innerHTML = ''; // Limpar tabela atual
+
+            // Começa a iterar da linha 1 (pulando o cabeçalho)
+            for (let i = 1; i < linhas.length; i++) {
+                // Divide por vírgulas (formato do exemplo passado)
+                const colunas = linhas[i].split(',');
+                
+                if (colunas.length < 3) continue;
+
+                const chamado = colunas[0] ? colunas[0].trim() : '';
+                const dtReabertura = colunas[1] ? colunas[1].trim() : '';
+                const caixaAtendimento = colunas[2] ? colunas[2].trim() : '';
+
+                if(!chamado) continue;
+
+                // Criação da linha da tabela (tr)
+                const tr = document.createElement('tr');
+                
+                // Campos fixos
+                tr.innerHTML = `
+                    <td>${chamado}</td>
+                    <td>${dtReabertura}</td>
+                    <td>${caixaAtendimento}</td>
+                `;
+
+                // Campo Justificativa (editável)
+                const tdJustificativa = document.createElement('td');
+                const inputJustificativa = document.createElement('input');
+                inputJustificativa.type = 'text';
+                inputJustificativa.placeholder = 'Digite a justificativa...';
+                
+                // Campo Expurgo (gerado automaticamente)
+                const tdExpurgo = document.createElement('td');
+                tdExpurgo.className = 'td-expurgo';
+                
+                // Evento de digitação para atualizar o Expurgo em tempo real
+                inputJustificativa.addEventListener('input', function() {
+                    const valor = this.value.trim().toLowerCase();
+                    
+                    if (valor === '') {
+                        tdExpurgo.textContent = '';
+                        tdExpurgo.className = 'td-expurgo';
+                    } else if (valor === 'sysmap') {
+                        tdExpurgo.textContent = 'Não';
+                        tdExpurgo.className = 'td-expurgo expurgo-nao';
+                    } else {
+                        tdExpurgo.textContent = 'Sim';
+                        tdExpurgo.className = 'td-expurgo expurgo-sim';
+                    }
+                });
+
+                tdJustificativa.appendChild(inputJustificativa);
+                tr.appendChild(tdJustificativa);
+                tr.appendChild(tdExpurgo);
+
+                tabelaCorpo.appendChild(tr);
+            }
+
+            // Exibir a tabela após processamento
+            painelTabela.style.display = 'block';
+        }
+
+        // Função para Gerar Relatório e Exportar para .xlsx
+        function gerarRelatorio() {
+            const rows = [];
+            const linhas = document.querySelectorAll('#tabelaCorpo tr');
+
+            if (linhas.length === 0) {
+                alert("Não há dados para gerar o relatório.");
+                return;
+            }
+
+            // Cabeçalho da planilha
+            rows.push(["Chamado", "Dt Reabertura", "Caixa de Atendimento", "Justificativa", "Expurgo"]);
+
+            // Extrair os dados de cada linha preenchida
+            linhas.forEach(tr => {
+                const chamado = tr.cells[0].innerText;
+                const dtReabertura = tr.cells[1].innerText;
+                const caixaAtendimento = tr.cells[2].innerText;
+                const justificativa = tr.cells[3].querySelector('input').value;
+                const expurgo = tr.cells[4].innerText;
+
+                rows.push([chamado, dtReabertura, caixaAtendimento, justificativa, expurgo]);
+            });
+
+            // Criação da estrutura de planilha via SheetJS
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            
+            // Ajustando a largura das colunas do Excel para melhor visualização
+            const wscols = [
+                {wch: 15}, // Chamado
+                {wch: 22}, // Dt Reabertura
+                {wch: 30}, // Caixa de Atendimento
+                {wch: 45}, // Justificativa
+                {wch: 12}  // Expurgo
+            ];
+            ws['!cols'] = wscols;
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Apuração OMS");
+
+            // Define o nome do arquivo final
+            const nomeArquivo = `Relatorio_Apuração_OMS_${new Date().toISOString().split('T')[0]}.xlsx`;
+            
+            // Força o download
+            XLSX.writeFile(wb, nomeArquivo);
+        }
+    </script>
+</body>
+</html>
