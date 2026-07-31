@@ -1206,7 +1206,9 @@
                             <tr>
                                 <th style="background-color: var(--edit-color);">RDM</th>
                                 <th style="background-color: var(--edit-color);">GVP</th>
+                                <th style="background-color: var(--edit-color);">Item de GVP</th>
                                 <th style="background-color: var(--edit-color);">Pacotes</th>
+                                <th style="background-color: var(--edit-color);">Atividade</th>
                                 <th style="background-color: var(--edit-color);">Status</th>
                                 <th style="background-color: var(--edit-color);">Chamados Associados</th>
                                 <th style="background-color: var(--edit-color);">Ações</th>
@@ -1813,7 +1815,7 @@
             document.getElementById('dataQuestionamento').value = converterParaBR(chamado.dataQuestionamento);
             document.getElementById('dataPrimeiraResposta').value = converterParaBR(chamado.dataPrimeiraResposta);
             document.getElementById('dataFechamento').value = converterParaBR(chamado.dataFechamento);
-            
+
             document.getElementById('pacotesChamado').value = chamado.pacotes || '';
             document.getElementById('chkSemPacote').checked = chamado.semPacote || false;
             document.getElementById('dataMudanca').value = converterParaBR(chamado.dataMudanca) || '';
@@ -2801,17 +2803,29 @@ function copiarParaTeams() {
                 let aprovados = (m.chkLider?1:0) + (m.chkGestor?1:0) + (m.chkExecutantes?1:0) + (m.chkGmud?1:0) + (m.chkGerente?1:0);
                 let statusLabel = m.chkExecutada ? '<span style="color:var(--excel-color); font-weight:bold;">Executada</span>' : `${aprovados}/5 Aprovações`;
 
-                // Filtra os chamados ligados a esse pacote e cria o link exigido (finalizando com o número do chamado)
+                // Link para os chamados associados
                 const chamadosAssociados = listaChamados.filter(c => c.categoria === 'RDM' && c.pacotes === m.pacotes);
                 const linksChamados = chamadosAssociados.map(c => 
                     `<a href="https://clarobr.atlassian.net/servicedesk/customer/portal/1016/${c.numero}" target="_blank" style="color:var(--edit-color); font-weight:bold;">${c.numero}</a>`
                 ).join(', ') || '-';
 
+                // Base do link fixo para os campos da mudança
+                const baseUrl = "https://clarobr.atlassian.net/servicedesk/customer/portal/1016/";
+                
+                // Transforma cada campo em um link clicável (se estiver preenchido)
+                const linkRdm = m.rdm ? `<a href="${baseUrl}${m.rdm}" target="_blank" class="link-mudanca">${m.rdm}</a>` : '-';
+                const linkGvp = m.gvp ? `<a href="${baseUrl}${m.gvp}" target="_blank" class="link-mudanca">${m.gvp}</a>` : '-';
+                const linkItemGvp = m.itemGvp ? `<a href="${baseUrl}${m.itemGvp}" target="_blank" class="link-mudanca">${m.itemGvp}</a>` : '-';
+                const linkPacotes = m.pacotes ? `<a href="${baseUrl}${m.pacotes}" target="_blank" class="link-mudanca">${m.pacotes}</a>` : '-';
+                const linkAtividade = m.atividade ? `<a href="${baseUrl}${m.atividade}" target="_blank" class="link-mudanca">${m.atividade}</a>` : '-';
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><strong>${m.rdm}</strong></td>
-                    <td>${m.gvp}</td>
-                    <td>${m.pacotes}</td>
+                    <td><strong>${linkRdm}</strong></td>
+                    <td>${linkGvp}</td>
+                    <td>${linkItemGvp}</td>
+                    <td>${linkPacotes}</td>
+                    <td>${linkAtividade}</td>
                     <td>${statusLabel}</td>
                     <td>${linksChamados}</td>
                     <td>
