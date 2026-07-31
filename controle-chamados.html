@@ -703,6 +703,27 @@
             background-color: rgba(255, 107, 107, 0.15);
             border-color: #ff6b6b;
         }
+
+        /* --- ESTILOS DO MÓDULO DE MUDANÇAS --- */
+        .banner-alerta {
+            position: fixed; top: 45px; left: 0; width: 100%; text-align: center;
+            padding: 12px 20px; z-index: 3999; box-sizing: border-box; display: none; 
+            justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            background-color: #ffc107; color: #333;
+        }
+        .banner-alerta a { color: #000; font-weight: bold; text-decoration: underline; cursor: pointer; margin-left: 10px; }
+
+        .seletor-modulos { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .btn-modulo {
+            background-color: var(--panel-bg); color: var(--text-muted); border: 2px solid var(--border-light);
+            padding: 10px 20px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer;
+        }
+        .btn-modulo.ativo { background-color: var(--claro-red); color: #fff; border-color: var(--claro-red); }
+
+        .checkbox-linha { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; color: var(--text-color); margin-top: 8px;}
+        .checkbox-linha input { width: auto; cursor: pointer; }
+        .area-aprovacoes { border: 1px solid var(--border-light); padding: 15px; border-radius: 6px; background-color: var(--bg-color); margin-bottom: 20px; }
+        .aprovacoes-grid { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
     </style>
 </head>
 <body class="dark-mode"> 
@@ -734,6 +755,20 @@
     </div>
 
     <div id="appContent">
+
+        <!-- Alerta para RDMs sem pacote -->
+        <div id="bannerAlertaRDM" class="banner-alerta">
+            <p style="margin:0;">
+                ⚠️ Existem chamados da categoria RDM que estão aguardando a associação de Pacotes. 
+                <a onclick="filtrarChamadosPendentesRDM()">Clique aqui para editar.</a>
+            </p>
+        </div>
+
+        <!-- ABAS DE NAVEGAÇÃO -->
+        <div class="seletor-modulos" id="areaAbasModulos">
+            <button class="btn-modulo ativo" id="btnAbaChamados" onclick="alternarModulo('chamados')">Chamados</button>
+            <button class="btn-modulo" id="btnAbaMudancas" onclick="alternarModulo('mudancas')">Processos de Mudança (RDM)</button>
+        </div>
         
         <div class="navbar">
             <div class="navbar-brand">
@@ -782,12 +817,27 @@
                             <option value="Suporte à Sistemas - OMS/CRM">Suporte à Sistemas - OMS/CRM</option>
                             <option value="SAP">SAP</option>
                             <option value="IW">IW</option>
+                            <option value="RDM">RDM</option>
                             <option value="Outros">Outros</option>
                         </select>
                     </div>
                     <div class="campo">
                         <label for="problema">Problema / Cenário *</label>
                         <input type="text" id="problema" placeholder="Ex: Falha no login..." required>
+                    </div>
+                    <!-- Campos exclusivos de RDM no Chamado -->
+                    <div class="linha-formulario" id="areaRdmChamado" style="display: none; background: var(--border-light); padding: 15px; border-radius: 6px;">
+                       <div class="campo">
+                           <label for="pacotesChamado">Pacotes (Associação à Mudança)</label>
+                           <input type="text" id="pacotesChamado" placeholder="Número do pacote">
+                           <label class="checkbox-linha">
+                              <input type="checkbox" id="chkSemPacote"> Cadastrar sem pacote no momento
+                          </label>
+                        </div>
+                     <div class="campo" id="campoDataMudanca" style="display: none;">
+                          <label for="dataMudanca">Data da Mudança *</label>
+                          <input type="text" id="dataMudanca" placeholder="DD/MM/AAAA HH:MM" maxlength="16">
+                      </div>
                     </div>
                 </div>
 
@@ -922,6 +972,7 @@
                             <option value="Suporte à Sistemas - OMS/CRM">Suporte à Sistemas - OMS/CRM</option>
                             <option value="SAP">SAP</option>
                             <option value="IW">IW</option>
+                            <option value="RDM">RDM</option>
                             <option value="Outros">Outros</option>
                         </select>
                     </div>
@@ -1079,6 +1130,94 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+        <!-- MÓDULO DE MUDANÇAS (RDMs)                  -->
+        <!-- ========================================== -->
+        <div id="moduloMudancas" style="display: none;">
+            
+            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <button type="button" class="btn-salvar" style="width: auto; padding: 10px 20px; background-color: var(--edit-color);" onclick="abrirFormularioMudanca()">➕ Nova Mudança</button>
+            </div>
+
+            <!-- Formulário de Mudança -->
+            <div class="painel" id="painelFormularioMudanca" style="display: none;">
+                <h2 style="color: var(--edit-color);">Registrar Processo de Mudança</h2>
+                <form id="formMudanca">
+                    <div class="linha-formulario">
+                        <div class="campo">
+                            <label>GVP *</label>
+                            <input type="text" id="gvpMudanca" required>
+                        </div>
+                        <div class="campo">
+                            <label>Pacotes *</label>
+                            <input type="text" id="pacotesMudanca" placeholder="Ex: PKG-1234" required>
+                        </div>
+                    </div>
+                    <div class="linha-formulario">
+                        <div class="campo">
+                            <label>RDM *</label>
+                            <input type="text" id="rdmMudanca" required>
+                        </div>
+                        <div class="campo">
+                            <label>Atividade *</label>
+                            <input type="text" id="atividadeMudanca" required>
+                        </div>
+                    </div>
+                    <div class="linha-formulario">
+                        <div class="campo">
+                            <label>Item de GVP</label>
+                            <input type="text" id="itemGvpMudanca">
+                        </div>
+                        <div class="campo">
+                            <label>Link Nexus</label>
+                            <input type="url" id="linkNexusMudanca">
+                        </div>
+                    </div>
+
+                    <div class="area-aprovacoes">
+                        <label style="font-size: 16px; font-weight: bold; margin-bottom: 15px; display: block;">Aprovações</label>
+                        <div class="aprovacoes-grid">
+                            <label class="checkbox-linha"><input type="checkbox" id="chkLider" class="chk-aprovacao"> Líder técnico</label>
+                            <label class="checkbox-linha"><input type="checkbox" id="chkGestor" class="chk-aprovacao"> Gestor</label>
+                            <label class="checkbox-linha"><input type="checkbox" id="chkExecutantes" class="chk-aprovacao"> Executantes</label>
+                            <label class="checkbox-linha"><input type="checkbox" id="chkGmud" class="chk-aprovacao"> GMUD</label>
+                            <label class="checkbox-linha"><input type="checkbox" id="chkGerente" class="chk-aprovacao"> Gerente</label>
+                        </div>
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 10px;">
+                            <label class="checkbox-linha" style="font-weight: bold; color: var(--claro-red);">
+                                <input type="checkbox" id="chkExecutada" disabled> 
+                                Executada? (Marca todas anteriores. Requer chamado associado)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grupo-botoes">
+                        <button type="button" class="btn-cancelar" onclick="fecharFormularioMudanca()">Cancelar</button>
+                        <button type="submit" class="btn-salvar" style="background-color: var(--edit-color);">Salvar Mudança</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabela de Mudanças -->
+            <div class="painel">
+                <div class="tabela-container">
+                    <table id="tabelaMudancas">
+                        <thead>
+                            <tr>
+                                <th style="background-color: var(--edit-color);">RDM</th>
+                                <th style="background-color: var(--edit-color);">GVP</th>
+                                <th style="background-color: var(--edit-color);">Pacotes</th>
+                                <th style="background-color: var(--edit-color);">Status</th>
+                                <th style="background-color: var(--edit-color);">Chamados Associados</th>
+                                <th style="background-color: var(--edit-color);">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaCorpoMudancas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     <script type="module">
         // -----------------------------------------------------------
         // CONFIGURAÇÕES E LGPD
@@ -1126,6 +1265,10 @@
         const chamadosCollection = collection(db, "chamados");
         const logsCollection = collection(db, "logs_chamados"); 
         const provider = new GoogleAuthProvider();
+        const mudancasCollection = collection(db, "mudancas");
+
+        let listaMudancas = [];
+        let idMudancaEmEdicao = null;
 
         let listaChamados = [];
         let chamadosFiltradosAtuais = [];
@@ -1334,11 +1477,17 @@
                 atualizarListasFiltros();
                 atualizarContadoresSLA();
                 processarVisualizacao(false);
+                verificarPendenciasRDM();
+                renderizarMudancas(); // Atualiza regras de execução caso um chamado tenha sido inserido
             }, (error) => {
                 console.error("Erro ao buscar dados:", error);
                 loading.style.display = 'none';
                 if (error.code === 'permission-denied') alert("Sem permissão para ver os dados.");
-            });
+            })
+            onSnapshot(mudancasCollection, (snapshot) => {
+                listaMudancas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderizarMudancas();
+            });;
         }
 
         function atualizarContadoresSLA() {
@@ -1664,6 +1813,14 @@
             document.getElementById('dataQuestionamento').value = converterParaBR(chamado.dataQuestionamento);
             document.getElementById('dataPrimeiraResposta').value = converterParaBR(chamado.dataPrimeiraResposta);
             document.getElementById('dataFechamento').value = converterParaBR(chamado.dataFechamento);
+            
+            document.getElementById('pacotesChamado').value = chamado.pacotes || '';
+            document.getElementById('chkSemPacote').checked = chamado.semPacote || false;
+            document.getElementById('dataMudanca').value = converterParaBR(chamado.dataMudanca) || '';
+            
+            // Dispara a visualização condicional para exibir os campos corretamente
+            document.getElementById('categoria').dispatchEvent(new Event('change'));
+            document.getElementById('chkSemPacote').dispatchEvent(new Event('change'));
 
             // Garantir que os campos voltem com cor normal ao editar
             camposData.forEach(id => {
@@ -1721,7 +1878,10 @@
                 dataPrimeiraResposta: converterParaISO(valPrimResp),
                 dataFechamento: converterParaISO(valFecham),
                 usuarioAtualizacao: userEmail,
-                dataAtualizacao: agora
+                dataAtualizacao: agora,
+                pacotes: document.getElementById('categoria').value === 'RDM' ? document.getElementById('pacotesChamado').value : '',
+                semPacote: document.getElementById('categoria').value === 'RDM' ? document.getElementById('chkSemPacote').checked : false,
+                dataMudanca: (document.getElementById('categoria').value === 'RDM' && document.getElementById('chkSemPacote').checked) ? converterParaISO(document.getElementById('dataMudanca').value) : '',
             };
             
             try {
@@ -2047,6 +2207,7 @@
                 { nome: 'Portabilidade', temAberto: false },
                 { nome: 'SAP', temAberto: false },
                 { nome: 'IW', temAberto: false },
+                { nome: 'RDM', temAberto: false },
                 { nome: 'Suporte à Sistemas - OMS/CRM', temAberto: true },
                 { nome: 'Outros', temAberto: true }
             ];
@@ -2473,6 +2634,197 @@ function copiarParaTeams() {
             
             loading.style.display = 'none';
             alert(`Importação concluída!\n\nChamados inseridos: ${sucessos}\nIgnorados (Duplicados ou com erro): ${erros}`);
+        }
+
+        // --- LÓGICA DE ALTERNÂNCIA DE MÓDULOS ---
+        const moduloChamadosElements = [document.getElementById('painelFormulario'), document.querySelectorAll('.painel')[1], document.getElementById('painelColunas'), document.getElementById('filtrosAvancados'), document.getElementById('areaResumo'), document.getElementById('areaTabela')];
+        const moduloMudancasElement = document.getElementById('moduloMudancas');
+
+        window.alternarModulo = function(modulo) {
+            document.getElementById('btnAbaChamados').classList.remove('ativo');
+            document.getElementById('btnAbaMudancas').classList.remove('ativo');
+            
+            if(modulo === 'chamados') {
+                document.getElementById('btnAbaChamados').classList.add('ativo');
+                moduloChamadosElements.forEach(el => { if(el) el.style.display = (el.id === 'painelColunas' || el.id === 'filtrosAvancados' || el.id === 'areaResumo' || el.id === 'painelFormulario') ? 'none' : 'block'; });
+                moduloMudancasElement.style.display = 'none';
+            } else {
+                document.getElementById('btnAbaMudancas').classList.add('ativo');
+                moduloChamadosElements.forEach(el => { if(el) el.style.display = 'none'; });
+                moduloMudancasElement.style.display = 'block';
+            }
+        };
+
+        // --- LÓGICA DE CAMPOS RDM NOS CHAMADOS ---
+        const areaRdmChamado = document.getElementById('areaRdmChamado');
+        const chkSemPacote = document.getElementById('chkSemPacote');
+        const inputPacotesChamado = document.getElementById('pacotesChamado');
+        const campoDataMudanca = document.getElementById('campoDataMudanca');
+        const inputDataMudanca = document.getElementById('dataMudanca');
+        const categoriaChamado = document.getElementById('categoria');
+
+        categoriaChamado.addEventListener('change', () => {
+            if (categoriaChamado.value === 'RDM') {
+                areaRdmChamado.style.display = 'flex';
+                inputPacotesChamado.required = !chkSemPacote.checked;
+            } else {
+                areaRdmChamado.style.display = 'none';
+                inputPacotesChamado.required = false;
+                inputDataMudanca.required = false;
+            }
+        });
+
+        chkSemPacote.addEventListener('change', () => {
+            if (chkSemPacote.checked) {
+                inputPacotesChamado.disabled = true;
+                inputPacotesChamado.value = '';
+                inputPacotesChamado.required = false;
+                campoDataMudanca.style.display = 'flex';
+                inputDataMudanca.required = true;
+            } else {
+                inputPacotesChamado.disabled = false;
+                inputPacotesChamado.required = true;
+                campoDataMudanca.style.display = 'none';
+                inputDataMudanca.required = false;
+                inputDataMudanca.value = '';
+            }
+        });
+
+        // Evento para aplicar a máscara na Data da Mudança
+        inputDataMudanca.addEventListener('input', mascaraDataHora);
+        inputDataMudanca.addEventListener('blur', avisarDataInvalida);
+
+        // --- LÓGICA DE ALERTAS RDM PENDENTES ---
+        function verificarPendenciasRDM() {
+            const possuiPendencia = listaChamados.some(c => c.categoria === 'RDM' && c.semPacote);
+            const alerta = document.getElementById('bannerAlertaRDM');
+            alerta.style.display = possuiPendencia ? 'flex' : 'none';
+            document.querySelector('.navbar').style.marginTop = possuiPendencia ? '60px' : '30px';
+        }
+
+        window.filtrarChamadosPendentesRDM = function() {
+            alternarModulo('chamados');
+            limparFiltros();
+            document.getElementById('buscaCategoria').value = 'RDM';
+            processarVisualizacao(true);
+        };
+
+        // --- LÓGICA DO MÓDULO DE MUDANÇAS ---
+        const chkExecutada = document.getElementById('chkExecutada');
+        const chkAprovacoes = document.querySelectorAll('.chk-aprovacao');
+        const pacotesMudancaInput = document.getElementById('pacotesMudanca');
+
+        pacotesMudancaInput.addEventListener('input', () => {
+            const pct = pacotesMudancaInput.value.trim();
+            const pacoteEmUso = pct && listaChamados.some(c => c.categoria === 'RDM' && c.pacotes === pct);
+            chkExecutada.disabled = !pacoteEmUso;
+            if (!pacoteEmUso) chkExecutada.checked = false;
+        });
+
+        chkExecutada.addEventListener('change', () => {
+            if (chkExecutada.checked) chkAprovacoes.forEach(chk => chk.checked = true);
+        });
+
+        window.abrirFormularioMudanca = () => {
+            idMudancaEmEdicao = null;
+            document.getElementById('formMudanca').reset();
+            chkExecutada.disabled = true;
+            document.getElementById('painelFormularioMudanca').style.display = 'block';
+        };
+
+        window.fecharFormularioMudanca = () => {
+            document.getElementById('painelFormularioMudanca').style.display = 'none';
+        };
+
+        window.editarMudanca = (id) => {
+            const m = listaMudancas.find(x => x.id === id);
+            if(!m) return;
+            idMudancaEmEdicao = id;
+            document.getElementById('gvpMudanca').value = m.gvp;
+            document.getElementById('pacotesMudanca').value = m.pacotes;
+            document.getElementById('rdmMudanca').value = m.rdm;
+            document.getElementById('atividadeMudanca').value = m.atividade;
+            document.getElementById('itemGvpMudanca').value = m.itemGvp || '';
+            document.getElementById('linkNexusMudanca').value = m.linkNexus || '';
+            document.getElementById('chkLider').checked = m.chkLider;
+            document.getElementById('chkGestor').checked = m.chkGestor;
+            document.getElementById('chkExecutantes').checked = m.chkExecutantes;
+            document.getElementById('chkGmud').checked = m.chkGmud;
+            document.getElementById('chkGerente').checked = m.chkGerente;
+            
+            // Força a validação do pacote para habilitar o "Executada"
+            pacotesMudancaInput.dispatchEvent(new Event('input'));
+            chkExecutada.checked = m.chkExecutada;
+
+            document.getElementById('painelFormularioMudanca').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.excluirMudanca = async (id) => {
+            if(confirm("Deseja excluir esta Mudança?")) {
+                await deleteDoc(doc(db, "mudancas", id));
+            }
+        };
+
+        document.getElementById('formMudanca').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loading.style.display = 'flex';
+            const dados = {
+                gvp: document.getElementById('gvpMudanca').value,
+                pacotes: document.getElementById('pacotesMudanca').value,
+                rdm: document.getElementById('rdmMudanca').value,
+                atividade: document.getElementById('atividadeMudanca').value,
+                itemGvp: document.getElementById('itemGvpMudanca').value,
+                linkNexus: document.getElementById('linkNexusMudanca').value,
+                chkLider: document.getElementById('chkLider').checked,
+                chkGestor: document.getElementById('chkGestor').checked,
+                chkExecutantes: document.getElementById('chkExecutantes').checked,
+                chkGmud: document.getElementById('chkGmud').checked,
+                chkGerente: document.getElementById('chkGerente').checked,
+                chkExecutada: chkExecutada.checked
+            };
+
+            try {
+                if (idMudancaEmEdicao) await updateDoc(doc(db, "mudancas", idMudancaEmEdicao), dados);
+                else await addDoc(mudancasCollection, dados);
+                fecharFormularioMudanca();
+            } catch (err) {
+                alert("Erro ao salvar mudança.");
+            }
+            loading.style.display = 'none';
+        });
+
+        function renderizarMudancas() {
+            const tbody = document.getElementById('tabelaCorpoMudancas');
+            tbody.innerHTML = '';
+            listaMudancas.forEach(m => {
+                let aprovados = (m.chkLider?1:0) + (m.chkGestor?1:0) + (m.chkExecutantes?1:0) + (m.chkGmud?1:0) + (m.chkGerente?1:0);
+                let statusLabel = m.chkExecutada ? '<span style="color:var(--excel-color); font-weight:bold;">Executada</span>' : `${aprovados}/5 Aprovações`;
+
+                // Filtra os chamados ligados a esse pacote e cria o link exigido (finalizando com o número do chamado)
+                const chamadosAssociados = listaChamados.filter(c => c.categoria === 'RDM' && c.pacotes === m.pacotes);
+                const linksChamados = chamadosAssociados.map(c => 
+                    `<a href="https://clarobr.atlassian.net/servicedesk/customer/portal/1016/${c.numero}" target="_blank" style="color:var(--edit-color); font-weight:bold;">${c.numero}</a>`
+                ).join(', ') || '-';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${m.rdm}</strong></td>
+                    <td>${m.gvp}</td>
+                    <td>${m.pacotes}</td>
+                    <td>${statusLabel}</td>
+                    <td>${linksChamados}</td>
+                    <td>
+                        <button class="btn-icone icone-editar" onclick="editarMudanca('${m.id}')" title="Editar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button class="btn-icone icone-excluir" onclick="excluirMudanca('${m.id}')" title="Excluir">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
     </script>
 </body>
