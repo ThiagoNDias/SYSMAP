@@ -137,8 +137,10 @@
         .grid-colunas {
             display: flex; flex-wrap: wrap; gap: 15px; background: var(--bg-color);
             padding: 15px; border-radius: 6px; border: 1px solid var(--border-light);
+            margin-top: 10px;
         }
         .grid-colunas label { display: flex; align-items: center; gap: 5px; margin-bottom: 0; cursor: pointer; color: var(--text-color); }
+        .divisor-caixas { width: 100%; height: 1px; background: var(--border-light); margin: 5px 0; }
 
         /* Tabela */
         .tabela-container { overflow-x: auto; }
@@ -149,6 +151,11 @@
         th, td { padding: 12px 15px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
         th { background-color: var(--claro-red); color: #fff; font-weight: 600; text-transform: uppercase; font-size: 13px; }
         tr:last-child td { border-bottom: none; }
+
+        .sortable { cursor: pointer; user-select: none; position: relative; padding-right: 25px; }
+        .sortable:hover { background-color: var(--claro-red-dark); }
+        .sort-icon { font-size: 10px; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); opacity: 0.5; }
+        .sort-icon.active { opacity: 1; font-weight: bold; font-size: 12px; }
 
         .link-chamado { color: var(--claro-red); text-decoration: none; font-weight: bold; }
         .link-chamado:hover { text-decoration: underline; }
@@ -229,8 +236,14 @@
         <div class="painel" id="painelFiltros" style="display: none;">
             <h2 class="titulo-painel">Filtro de Caixas de Atendimento</h2>
             <label>Selecione as caixas que deseja analisar no momento:</label>
-            <div class="grid-colunas" id="containerCaixas">
-                <!-- Checkboxes gerados por JS -->
+            <div class="grid-colunas">
+                <label style="font-weight: bold; color: var(--claro-red);">
+                    <input type="checkbox" id="chkMarcarTodas" checked> Marcar / Desmarcar Todas
+                </label>
+                <div class="divisor-caixas"></div>
+                <div id="containerCaixas" style="display: flex; flex-wrap: wrap; gap: 15px; width: 100%;">
+                    <!-- Checkboxes gerados por JS -->
+                </div>
             </div>
         </div>
 
@@ -247,12 +260,8 @@
             <div class="tabela-container">
                 <table>
                     <thead>
-                        <tr>
-                            <th style="width: 15%;">Chamado</th>
-                            <th style="width: 15%;">Dt Reabertura</th>
-                            <th style="width: 25%;">Caixa de Atendimento</th>
-                            <th style="width: 35%;">Justificativa</th>
-                            <th style="width: 10%; text-align: center;">Expurgo</th>
+                        <tr id="cabecalhoTabela">
+                            <!-- Gerado por JS para suportar ordenação -->
                         </tr>
                     </thead>
                     <tbody id="tabelaCorpo">
@@ -305,10 +314,9 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
         
-        // Esta é uma coleção NOVA, não interfere nas coleções de chamados ou mudanças
         const relatoriosCol = collection(db, "relatorios_reaberturas");
 
-        // Elementos DOM - Autenticação
+        // Elementos DOM
         const telaLogin = document.getElementById('telaLogin');
         const appContent = document.getElementById('appContent');
         const btnLoginGoogle = document.getElementById('btnLoginGoogle');
@@ -316,20 +324,24 @@
         const userName = document.getElementById('userName');
         const userAvatar = document.getElementById('userAvatar');
 
-        // Elementos DOM - Sistema
         const inputCsv = document.getElementById('inputCsv');
         const mesAnoInput = document.getElementById('mesAno');
         const setorAnaliseInput = document.getElementById('setorAnalise');
         const painelFiltros = document.getElementById('painelFiltros');
         const containerCaixas = document.getElementById('containerCaixas');
+        const chkMarcarTodas = document.getElementById('chkMarcarTodas');
         const painelTabela = document.getElementById('painelTabela');
+        const cabecalhoTabela = document.getElementById('cabecalhoTabela');
         const tabelaCorpo = document.getElementById('tabelaCorpo');
         const tabelaHistorico = document.getElementById('tabelaHistorico');
 
         // Estado da Aplicação
         let dadosCompletos = []; 
         let caixasUnicas = []; 
-        let historicoBD = []; 
+        let historicoBD = [];
+        
+        let colunaOrdenacao = '';
+        let direcaoOrdenacao = 'asc';
 
         // -----------------------------------------------------------
         // AUTENTICAÇÃO E LOGIN
@@ -340,8 +352,6 @@
                 userAvatar.src = user.photoURL;
                 telaLogin.style.display = 'none';
                 appContent.style.display = 'block';
-                
-                // Carrega o histórico apenas se estiver logado
                 carregarHistorico(); 
             } else {
                 telaLogin.style.display = 'flex';
@@ -352,18 +362,29 @@
         btnLoginGoogle.addEventListener('click', () => {
             signInWithPopup(auth, provider).catch((error) => alert("Erro no login: " + error.message));
         });
-
-        btnLogout.addEventListener('click', () => { 
-            signOut(auth); 
-        });
+        btnLogout.addEventListener('click', () => { signOut(auth); });
 
         // -----------------------------------------------------------
-        // LÓGICA DO SISTEMA
+        // LÓGICA DE FORMATAÇÃO DE DATA
+        // -----------------------------------------------------------
+        // Converte string CSV (ex: 2026-05-05 13:28:27) para DD/MM/YYYY HH:MM:SS
+        function formatarDataBR(dataStr) {
+            if (!dataStr) return '';
+            // Tenta dar match no formato "YYYY-MM-DD HH:MM:SS"
+            const regex = /^(\d{4})-(\d{2})-(\d{2})[\sT](\d{2}:\d{2}:\d{2})/;
+            const match = dataStr.match(regex);
+            if (match) {
+                return `${match[3]}/${match[2]}/${match[1]} ${match[4]}`;
+            }
+            return dataStr; // Retorna original se não bater o regex
+        }
+
+        // -----------------------------------------------------------
+        // LÓGICA DO SISTEMA DE IMPORTAÇÃO
         // -----------------------------------------------------------
         inputCsv.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(event) {
                 processarCSV(event.target.result);
@@ -386,14 +407,17 @@
                 if (colunas.length < 3) continue;
 
                 const chamado = colunas[0] ? colunas[0].trim() : '';
-                const dtReabertura = colunas[1] ? colunas[1].trim() : '';
+                const dtReaberturaRaw = colunas[1] ? colunas[1].trim() : '';
                 const caixaAtendimento = colunas[2] ? colunas[2].trim() : '';
 
                 if(!chamado) continue;
 
+                const dtFormatada = formatarDataBR(dtReaberturaRaw);
+
                 dadosCompletos.push({
                     chamado: chamado,
-                    dtReabertura: dtReabertura,
+                    dtReaberturaRaw: dtReaberturaRaw, // Guardado original para a ordenação correta cronológica
+                    dtReabertura: dtFormatada, // Data a ser exibida DD/MM/YYYY HH:MM:SS
                     caixaAtendimento: caixaAtendimento,
                     justificativa: '',
                     expurgo: ''
@@ -403,10 +427,14 @@
             }
 
             caixasUnicas = Array.from(caixasSet).sort();
+            chkMarcarTodas.checked = true;
             renderizarFiltros();
-            renderizarTabela(); // Renderiza tudo selecionado por padrão
+            renderizarTabela(); 
         }
 
+        // -----------------------------------------------------------
+        // FILTROS DE CAIXAS
+        // -----------------------------------------------------------
         function renderizarFiltros() {
             containerCaixas.innerHTML = '';
             caixasUnicas.forEach(caixa => {
@@ -416,26 +444,106 @@
             });
 
             document.querySelectorAll('.chk-caixa').forEach(chk => {
-                chk.addEventListener('change', renderizarTabela);
+                chk.addEventListener('change', () => {
+                    atualizarEstadoMarcarTodas();
+                    renderizarTabela();
+                });
             });
 
             painelFiltros.style.display = 'block';
         }
 
+        chkMarcarTodas.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            document.querySelectorAll('.chk-caixa').forEach(chk => {
+                chk.checked = isChecked;
+            });
+            renderizarTabela();
+        });
+
+        function atualizarEstadoMarcarTodas() {
+            const total = document.querySelectorAll('.chk-caixa').length;
+            const marcados = document.querySelectorAll('.chk-caixa:checked').length;
+            chkMarcarTodas.checked = (total === marcados);
+        }
+
+        // -----------------------------------------------------------
+        // ORDENAÇÃO E RENDERIZAÇÃO DA TABELA
+        // -----------------------------------------------------------
+        window.ordenarTabela = function(coluna) {
+            if (colunaOrdenacao === coluna) {
+                direcaoOrdenacao = direcaoOrdenacao === 'asc' ? 'desc' : 'asc';
+            } else {
+                colunaOrdenacao = coluna;
+                direcaoOrdenacao = 'asc';
+            }
+            renderizarTabela();
+        };
+
+        function getCabecalhoHtml(label, campoOrigem, width = "auto") {
+            let icone = '↕'; 
+            let classeAtiva = '';
+            
+            if (colunaOrdenacao === campoOrigem) {
+                if (direcaoOrdenacao === 'asc') {
+                    icone = '▲';
+                    classeAtiva = 'active';
+                } else if (direcaoOrdenacao === 'desc') {
+                    icone = '▼';
+                    classeAtiva = 'active';
+                }
+            }
+            
+            return `<th class="sortable" style="width: ${width};" onclick="ordenarTabela('${campoOrigem}')" title="Clique para ordenar">
+                        ${label} <span class="sort-icon ${classeAtiva}">${icone}</span>
+                    </th>`;
+        }
+
+        function atualizarCabecalho() {
+            let htmlCabecalho = getCabecalhoHtml('Chamado', 'chamado', '15%');
+            // Ordenar pela variável "dtReaberturaRaw" para garantir ordenação cronológica correta (ano-mes-dia)
+            htmlCabecalho += getCabecalhoHtml('Dt Reabertura', 'dtReaberturaRaw', '15%');
+            htmlCabecalho += getCabecalhoHtml('Caixa de Atendimento', 'caixaAtendimento', '25%');
+            
+            // Justificativa não é ordenável
+            htmlCabecalho += `<th style="width: 35%;">Justificativa</th>`;
+            
+            htmlCabecalho += getCabecalhoHtml('Expurgo', 'expurgo', '10%');
+            
+            cabecalhoTabela.innerHTML = htmlCabecalho;
+        }
+
         function renderizarTabela() {
+            atualizarCabecalho();
             tabelaCorpo.innerHTML = '';
             
             const checkboxes = document.querySelectorAll('.chk-caixa:checked');
             const caixasAtivas = Array.from(checkboxes).map(chk => chk.value);
-            const dadosFiltrados = dadosCompletos.filter(item => caixasAtivas.includes(item.caixaAtendimento));
+            
+            let dadosFiltrados = dadosCompletos.filter(item => caixasAtivas.includes(item.caixaAtendimento));
+
+            // Aplica ordenação se houver alguma definida
+            if (colunaOrdenacao) {
+                dadosFiltrados.sort((a, b) => {
+                    let valA = a[colunaOrdenacao] || '';
+                    let valB = b[colunaOrdenacao] || '';
+                    
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                    if (valA < valB) return direcaoOrdenacao === 'asc' ? -1 : 1;
+                    if (valA > valB) return direcaoOrdenacao === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
 
             if (dadosFiltrados.length === 0) {
-                tabelaCorpo.innerHTML = `<tr><td colspan="5" class="mensagem-vazia">Nenhum chamado corresponde aos filtros de caixa.</td></tr>`;
+                tabelaCorpo.innerHTML = `<tr><td colspan="5" class="mensagem-vazia">Nenhum chamado corresponde aos filtros selecionados.</td></tr>`;
                 painelTabela.style.display = 'block';
                 return;
             }
 
-            dadosFiltrados.forEach((item, index) => {
+            dadosFiltrados.forEach((item) => {
                 const tr = document.createElement('tr');
                 
                 const linkJira = `https://clarobr.atlassian.net/browse/${item.chamado}`;
@@ -487,6 +595,9 @@
             painelTabela.style.display = 'block';
         }
 
+        // -----------------------------------------------------------
+        // EXPORTAÇÃO E SALVAMENTO (FIREBASE E EXCEL)
+        // -----------------------------------------------------------
         window.salvarEGerarRelatorio = async function() {
             const mesAno = mesAnoInput.value;
             const setor = setorAnaliseInput.value.trim();
@@ -520,10 +631,7 @@
                     chamados: dadosFinais
                 };
 
-                // Salva os dados no banco do Firebase
                 await setDoc(doc(db, "relatorios_reaberturas", docId), payload);
-                
-                // Gera a planilha localmente
                 gerarExcelAprimorado(dadosFinais, nomeBase);
 
                 alert("Relatório salvo no sistema e planilha exportada com sucesso!");
@@ -576,6 +684,9 @@
             XLSX.writeFile(wb, `${nomeArquivo}.xlsx`);
         }
 
+        // -----------------------------------------------------------
+        // HISTÓRICO NO FIREBASE
+        // -----------------------------------------------------------
         async function carregarHistorico() {
             try {
                 const q = query(relatoriosCol, orderBy("dataCriacao", "desc"));
