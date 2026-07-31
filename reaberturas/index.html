@@ -359,7 +359,6 @@
             return dataStr; 
         }
 
-        // Se o usuário alterar o Mês/Ano, refiltra a tabela automaticamente
         mesAnoInput.addEventListener('change', () => { renderizarTabela(); });
 
         // -----------------------------------------------------------
@@ -402,7 +401,7 @@
                     dtReabertura: formatarDataBR(dtReaberturaRaw), 
                     caixaAtendimento: caixaAtendimento,
                     justificativa: '',
-                    justificativaSysmap: '', // Novo Campo
+                    justificativaSysmap: '',
                     expurgo: ''
                 });
 
@@ -422,7 +421,6 @@
             document.getElementById('dropdownList').classList.toggle('show');
         }
 
-        // Fechar se clicar fora
         document.addEventListener('click', function(e) {
             const container = document.getElementById('dropdownCaixas');
             if(container && !container.contains(e.target)) {
@@ -476,7 +474,7 @@
         }
 
         window.removerCaixa = function(e, valor) {
-            e.stopPropagation(); // Evita abrir o menu ao clicar no X
+            e.stopPropagation();
             const chk = document.querySelector(`.chk-caixa[value="${valor}"]`);
             if(chk) {
                 chk.checked = false;
@@ -529,7 +527,7 @@
             htmlCabecalho += getCabecalhoHtml('Dt Reabertura', 'dtReaberturaRaw', '12%');
             htmlCabecalho += getCabecalhoHtml('Caixa de Atendimento', 'caixaAtendimento', '18%');
             htmlCabecalho += `<th style="width: 25%;">Justificativa</th>`;
-            htmlCabecalho += `<th style="width: 25%;">Justificativa Sysmap</th>`; // Campo Novo (Não exportável)
+            htmlCabecalho += `<th style="width: 25%;">Justificativa Sysmap</th>`; 
             htmlCabecalho += getCabecalhoHtml('Expurgo', 'expurgo', '10%');
             cabecalhoTabela.innerHTML = htmlCabecalho;
         }
@@ -540,20 +538,16 @@
             
             const checkboxes = document.querySelectorAll('.chk-caixa:checked');
             const caixasAtivas = Array.from(checkboxes).map(chk => chk.value);
-            const mesAnoFiltro = mesAnoInput.value; // ex: "2026-05"
+            const mesAnoFiltro = mesAnoInput.value; 
 
-            // Filtrar pelas caixas ativas
             let dadosFiltrados = dadosCompletos.filter(item => caixasAtivas.includes(item.caixaAtendimento));
 
-            // Filtrar pela data selecionada em Mês/Ano, caso preenchido
             if (mesAnoFiltro) {
                 dadosFiltrados = dadosFiltrados.filter(item => {
-                    // dtReaberturaRaw formato: "2026-05-05 13:28:27" -> startsWith "2026-05"
                     return item.dtReaberturaRaw && item.dtReaberturaRaw.startsWith(mesAnoFiltro);
                 });
             }
 
-            // Ordenação (Padrão: Crescente por data)
             if (colunaOrdenacao) {
                 dadosFiltrados.sort((a, b) => {
                     let valA = a[colunaOrdenacao] || '';
@@ -586,7 +580,7 @@
                     <td>${item.caixaAtendimento}</td>
                 `;
 
-                // Justificativa Padrão (com Spellcheck)
+                // Justificativa Padrão
                 const tdJustificativa = document.createElement('td');
                 const inputJust = document.createElement('input');
                 inputJust.type = 'text';
@@ -595,7 +589,7 @@
                 inputJust.lang = "pt-BR";
                 inputJust.value = item.justificativa; 
 
-                // Justificativa Sysmap (com Spellcheck)
+                // Justificativa Sysmap
                 const tdJustSysmap = document.createElement('td');
                 const inputJustSysmap = document.createElement('input');
                 inputJustSysmap.type = 'text';
@@ -604,6 +598,9 @@
                 inputJustSysmap.lang = "pt-BR";
                 inputJustSysmap.value = item.justificativaSysmap || ''; 
                 
+                // Exibe o input de Just. Sysmap inicialmente caso o valor contiver 'sysmap'
+                inputJustSysmap.style.display = (item.justificativa || '').trim().toLowerCase() === 'sysmap' ? 'block' : 'none';
+
                 const tdExpurgo = document.createElement('td');
                 tdExpurgo.className = `td-expurgo ${classExpurgo}`;
                 tdExpurgo.textContent = item.expurgo;
@@ -613,6 +610,16 @@
                     item.justificativa = valor; 
                     
                     const valorLower = valor.trim().toLowerCase();
+
+                    // Regra de exibição da Justificativa Sysmap
+                    if (valorLower === 'sysmap') {
+                        inputJustSysmap.style.display = 'block';
+                    } else {
+                        inputJustSysmap.style.display = 'none';
+                        inputJustSysmap.value = ''; 
+                        item.justificativaSysmap = '';
+                    }
+
                     if (valorLower === '') {
                         item.expurgo = '';
                         tdExpurgo.textContent = '';
@@ -660,7 +667,6 @@
             const checkboxes = document.querySelectorAll('.chk-caixa:checked');
             const caixasAtivas = Array.from(checkboxes).map(chk => chk.value);
             
-            // Salvar apenas os da filtragem ativa
             let dadosFinais = dadosCompletos.filter(item => caixasAtivas.includes(item.caixaAtendimento));
             if (mesAno) {
                 dadosFinais = dadosFinais.filter(item => item.dtReaberturaRaw && item.dtReaberturaRaw.startsWith(mesAno));
@@ -726,7 +732,7 @@
                 return;
             }
 
-            // Ordena crescente por data antes de exportar
+            // Força a ordenação cronológica na planilha
             dadosFinais.sort((a, b) => {
                 let vA = a.dtReaberturaRaw || '';
                 let vB = b.dtReaberturaRaw || '';
@@ -743,13 +749,12 @@
         };
 
         function gerarExcelAprimorado(arrayDados, nomeArquivo) {
-            // Nota: Justificativa Sysmap não é exportada.
+            // Nota: O Nº não entra mais e a Justificativa Sysmap não é exportada.
             const rows = [
-                ["Nº", "Chamado", "Dt Reabertura", "Caixa de Atendimento", "Justificativa", "Expurgo"]
+                ["Chamado", "Dt Reabertura", "Caixa de Atendimento", "Justificativa", "Expurgo"]
             ];
 
-            arrayDados.forEach((item, index) => {
-                // Converter data string "2026-05-05 13:28:27" para Objeto Date JS para o Excel reconhecer nativamente
+            arrayDados.forEach((item) => {
                 let excelDate = item.dtReaberturaRaw; 
                 const regex = /^(\d{4})-(\d{2})-(\d{2})[\sT](\d{2}):(\d{2}):(\d{2})/;
                 const match = (item.dtReaberturaRaw || '').match(regex);
@@ -757,13 +762,12 @@
                     excelDate = new Date(match[1], match[2]-1, match[3], match[4], match[5], match[6]);
                 }
 
-                rows.push([index + 1, item.chamado, excelDate, item.caixaAtendimento, item.justificativa, item.expurgo]);
+                rows.push([item.chamado, excelDate, item.caixaAtendimento, item.justificativa, item.expurgo]);
             });
 
-            // cellDates: true permite que o parser converta os objetos Date automaticamente em números do excel
             const ws = XLSX.utils.aoa_to_sheet(rows, { cellDates: true });
 
-            const wscols = [ {wch: 6}, {wch: 18}, {wch: 22}, {wch: 35}, {wch: 45}, {wch: 12} ];
+            const wscols = [ {wch: 18}, {wch: 22}, {wch: 35}, {wch: 45}, {wch: 12} ];
             ws['!cols'] = wscols;
 
             const range = XLSX.utils.decode_range(ws['!ref']);
@@ -784,8 +788,8 @@
 
                     ws[cell_ref].s = cellStyle;
 
-                    // Aplica máscara de Data de Excel na Coluna 2 (Dt Reabertura), exceto no cabeçalho
-                    if(C === 2 && R > 0) {
+                    // Aplica máscara de Data (A coluna Dt Reabertura agora é a C === 1)
+                    if(C === 1 && R > 0) {
                         ws[cell_ref].z = "dd/mm/yyyy hh:mm:ss";
                     }
                 }
@@ -864,7 +868,6 @@
             chkMarcarTodas.checked = true;
             renderizarFiltros();
             
-            // Garantir ordenação cronológica default na edição
             colunaOrdenacao = 'dtReaberturaRaw'; 
             direcaoOrdenacao = 'asc';
             
