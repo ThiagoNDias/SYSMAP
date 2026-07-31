@@ -2697,9 +2697,11 @@
         });
 
         chkSemPacote.addEventListener('change', () => {
+            // A LINHA MÁGICA: Se não for RDM, ignora essa regra e não torna nada obrigatório!
+            if (categoriaChamado.value !== 'RDM') return; 
+
             if (chkSemPacote.checked) {
                 inputPacotesChamado.disabled = true;
-                inputPacotesChamado.value = '';
                 inputPacotesChamado.required = false;
                 campoDataMudanca.style.display = 'flex';
                 inputDataMudanca.required = true;
@@ -2708,7 +2710,6 @@
                 inputPacotesChamado.required = true;
                 campoDataMudanca.style.display = 'none';
                 inputDataMudanca.required = false;
-                inputDataMudanca.value = '';
             }
         });
 
