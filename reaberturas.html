@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Avaliação de Reaberturas</title>
-    <!-- Biblioteca SheetJS para gerar o arquivo .xlsx -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Biblioteca xlsx-js-style para exportar XLSX com formatação (negrito, centralizado) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <style>
         /* Variáveis de Cores idênticas ao original */
         :root {
@@ -19,6 +19,7 @@
             --claro-red: #da291c;
             --claro-red-dark: #b81f15;
             --excel-color: #107c41;
+            --edit-color: #0056b3;
         }
 
         body.dark-mode {
@@ -30,6 +31,7 @@
             --border-light: #333;
             --input-bg: #2c2c2c;
             --excel-color: #21a555;
+            --edit-color: #4da3ff;
         }
 
         /* Estilos Gerais */
@@ -40,9 +42,38 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            padding-bottom: 80px;
             transition: background-color 0.3s, color 0.3s;
         }
 
+        /* TELA DE LOGIN */
+        #telaLogin {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            z-index: 3000;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+        }
+
+        .login-box {
+            background: var(--panel-bg);
+            padding: 40px; border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center;
+            border-top: 5px solid var(--claro-red);
+        }
+
+        .btn-google {
+            background-color: #4285f4; color: #fff;
+            border: none; padding: 12px 24px; border-radius: 4px;
+            font-size: 16px; cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; gap: 10px; margin-top: 20px;
+        }
+
+        .btn-google:hover { background-color: #357ae8; }
+
+        /* NAVBAR PRINCIPAL */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -53,209 +84,305 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-bottom: 25px;
             border-top: 4px solid var(--claro-red);
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .navbar h1 {
-            margin: 0;
-            font-size: 22px;
-            color: var(--claro-red);
+            margin: 0; font-size: 22px; color: var(--claro-red);
         }
 
+        .user-info-container { display: flex; align-items: center; gap: 15px; }
+        .user-info { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--claro-red); }
+        .btn-logout { 
+            background: transparent; border: 1px solid var(--border-color); 
+            color: var(--text-color); padding: 5px 10px; border-radius: 4px; 
+            cursor: pointer; font-size: 12px; 
+        }
+        .btn-logout:hover { background: var(--border-light); }
+
+        #appContent { display: none; } /* Esconde o app antes do login */
+
+        /* PAINÉIS E FORMULÁRIOS */
         .painel {
-            background: var(--panel-bg);
-            padding: 25px;
-            border-radius: 8px;
+            background: var(--panel-bg); padding: 25px; border-radius: 8px;
             border-top: 4px solid var(--claro-red);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 25px;
+        }
+
+        h2.titulo-painel {
+            margin-top: 0; color: var(--claro-red); 
+            border-bottom: 1px solid var(--border-light); 
+            padding-bottom: 10px; font-size: 18px;
         }
 
         .linha-formulario {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-            align-items: center;
+            display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;
         }
 
-        input[type="file"] {
-            color: var(--text-color);
-            background-color: var(--input-bg);
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            flex: 1;
+        .campo { flex: 1; min-width: 250px; display: flex; flex-direction: column; }
+
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--text-muted); }
+
+        input[type="file"], input[type="text"], input[type="month"] {
+            width: 100%; padding: 10px 12px; border: 1px solid var(--border-color);
+            border-radius: 4px; box-sizing: border-box; background-color: var(--input-bg);
+            color: var(--text-color); font-family: inherit;
         }
+
+        input:focus { outline: none; border-color: var(--claro-red); }
+
+        /* Checkboxes das caixas */
+        .grid-colunas {
+            display: flex; flex-wrap: wrap; gap: 15px; background: var(--bg-color);
+            padding: 15px; border-radius: 6px; border: 1px solid var(--border-light);
+        }
+        .grid-colunas label { display: flex; align-items: center; gap: 5px; margin-bottom: 0; cursor: pointer; color: var(--text-color); }
 
         /* Tabela */
-        .tabela-container { 
-            overflow-x: auto; 
-        }
-
+        .tabela-container { overflow-x: auto; }
         table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: var(--panel-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-light);
+            width: 100%; border-collapse: separate; border-spacing: 0;
+            background: var(--panel-bg); border-radius: 8px; border: 1px solid var(--border-light);
         }
-
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            font-size: 14px;
-            border-bottom: 1px solid var(--border-light);
-            vertical-align: middle;
-        }
-
-        th {
-            background-color: var(--claro-red);
-            color: #fff;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 13px;
-            white-space: nowrap;
-        }
-
+        th, td { padding: 12px 15px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+        th { background-color: var(--claro-red); color: #fff; font-weight: 600; text-transform: uppercase; font-size: 13px; }
         tr:last-child td { border-bottom: none; }
 
-        input[type="text"] {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            box-sizing: border-box;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            font-family: inherit;
-        }
+        .link-chamado { color: var(--claro-red); text-decoration: none; font-weight: bold; }
+        .link-chamado:hover { text-decoration: underline; }
+        body.dark-mode .link-chamado { color: #ff6b6b; }
 
-        input[type="text"]:focus {
-            outline: none;
-            border-color: var(--claro-red);
-        }
-
-        .td-expurgo {
-            font-weight: bold;
-        }
+        .td-expurgo { font-weight: bold; text-align: center; }
         .expurgo-sim { color: var(--claro-red); }
         .expurgo-nao { color: var(--excel-color); }
 
         /* Botões */
-        button { font-family: inherit; }
-
         .btn-salvar {
-            background-color: var(--claro-red);
-            color: #fff;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 15px;
-            transition: background-color 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            background-color: var(--claro-red); color: #fff; border: none;
+            padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;
+            font-size: 14px; transition: background-color 0.3s;
+            display: inline-flex; align-items: center; gap: 8px;
         }
-
-        .btn-salvar:hover {
-            background-color: var(--claro-red-dark);
-        }
-
-        .btn-excel {
-            background-color: var(--excel-color);
-        }
-
-        .btn-excel:hover {
-            background-color: #0c5c2f;
-        }
+        .btn-salvar:hover { background-color: var(--claro-red-dark); }
+        .btn-excel { background-color: var(--excel-color); }
+        .btn-excel:hover { background-color: #0c5c2f; }
+        .btn-historico { background-color: var(--edit-color); }
+        .btn-historico:hover { background-color: #004494; }
         
-        .mensagem-vazia {
-            text-align: center;
-            color: var(--text-muted);
-            font-style: italic;
-            padding: 30px;
-        }
+        .mensagem-vazia { text-align: center; color: var(--text-muted); font-style: italic; padding: 30px; }
     </style>
 </head>
 <body class="dark-mode">
 
-    <div class="navbar">
-        <h1>Avaliação de Reaberturas OMS</h1>
-    </div>
-
-    <!-- Painel de Importação -->
-    <div class="painel">
-        <h2 style="margin-top: 0; color: var(--claro-red); border-bottom: 1px solid var(--border-light); padding-bottom: 10px;">Importar Dados</h2>
-        <div class="linha-formulario">
-            <input type="file" id="inputCsv" accept=".csv">
-        </div>
-    </div>
-
-    <!-- Painel da Tabela e Relatório -->
-    <div class="painel" id="painelTabela" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2 style="margin: 0; color: var(--claro-red);">Chamados Reabertos</h2>
-            <button class="btn-salvar btn-excel" onclick="gerarRelatorio()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Gerar Relatório
+    <!-- TELA DE LOGIN -->
+    <div id="telaLogin">
+        <div class="login-box">
+            <h2 style="margin-top:0; color: var(--claro-red);">Acesso Restrito</h2>
+            <p>Faça login com sua conta Google para acessar o sistema.</p>
+            <button id="btnLoginGoogle" class="btn-google">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
+                    <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                    <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                    <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                    <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+                </svg>
+                Entrar com Google
             </button>
         </div>
-        
-        <div class="tabela-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Chamado</th>
-                        <th>Dt Reabertura</th>
-                        <th>Caixa de Atendimento</th>
-                        <th style="width: 35%;">Justificativa</th>
-                        <th style="width: 10%;">Expurgo</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelaCorpo">
-                    <!-- Linhas geradas via JavaScript -->
-                </tbody>
-            </table>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL DO APP -->
+    <div id="appContent">
+        <div class="navbar">
+            <h1>Avaliação de Reaberturas OMS</h1>
+            <div class="user-info-container">
+                <div class="user-info">
+                    <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+                    <span id="userName">Usuário</span>
+                </div>
+                <button id="btnLogout" class="btn-logout">Sair</button>
+            </div>
+        </div>
+
+        <!-- Painel de Configurações Iniciais -->
+        <div class="painel">
+            <h2 class="titulo-painel">Configurações da Análise</h2>
+            <div class="linha-formulario">
+                <div class="campo">
+                    <label for="mesAno">Mês e Ano do Relatório *</label>
+                    <input type="month" id="mesAno" required>
+                </div>
+                <div class="campo">
+                    <label for="setorAnalise">Setor *</label>
+                    <input type="text" id="setorAnalise" placeholder="Ex. CPC" required>
+                </div>
+                <div class="campo">
+                    <label for="inputCsv">Importar Dados (CSV) *</label>
+                    <input type="file" id="inputCsv" accept=".csv">
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtro de Caixas (Aparece após importar o CSV) -->
+        <div class="painel" id="painelFiltros" style="display: none;">
+            <h2 class="titulo-painel">Filtro de Caixas de Atendimento</h2>
+            <label>Selecione as caixas que deseja analisar no momento:</label>
+            <div class="grid-colunas" id="containerCaixas">
+                <!-- Checkboxes gerados por JS -->
+            </div>
+        </div>
+
+        <!-- Painel da Tabela de Análise -->
+        <div class="painel" id="painelTabela" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 class="titulo-painel" style="border:none; margin:0; padding:0;">Chamados para Análise</h2>
+                <button class="btn-salvar btn-excel" onclick="salvarEGerarRelatorio()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Salvar e Exportar
+                </button>
+            </div>
+            
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Chamado</th>
+                            <th style="width: 15%;">Dt Reabertura</th>
+                            <th style="width: 25%;">Caixa de Atendimento</th>
+                            <th style="width: 35%;">Justificativa</th>
+                            <th style="width: 10%; text-align: center;">Expurgo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaCorpo">
+                        <!-- Linhas geradas via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Painel de Histórico do Firebase -->
+        <div class="painel">
+            <h2 class="titulo-painel">Histórico de Relatórios Salvos</h2>
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Identificação (Mês/Ano - Setor)</th>
+                            <th>Data do Salvo</th>
+                            <th>Usuário</th>
+                            <th>Qtd. Chamados</th>
+                            <th style="text-align: center;">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaHistorico">
+                        <tr><td colspan="5" class="mensagem-vazia">Carregando histórico...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <script>
+    <!-- Script de Inicialização e Lógica -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // Configuração do Firebase Original
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3ZVyXVY2YrKAWGCPduipasPsQN-6xHGI",
+            authDomain: "sincronismo-cpc-x-sixbell.firebaseapp.com",
+            projectId: "sincronismo-cpc-x-sixbell",
+            storageBucket: "sincronismo-cpc-x-sixbell.firebasestorage.app",
+            messagingSenderId: "289059675889",
+            appId: "1:289059675889:web:5bd2e0c04f6d2717035350"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        
+        // Esta é uma coleção NOVA, não interfere nas coleções de chamados ou mudanças
+        const relatoriosCol = collection(db, "relatorios_reaberturas");
+
+        // Elementos DOM - Autenticação
+        const telaLogin = document.getElementById('telaLogin');
+        const appContent = document.getElementById('appContent');
+        const btnLoginGoogle = document.getElementById('btnLoginGoogle');
+        const btnLogout = document.getElementById('btnLogout');
+        const userName = document.getElementById('userName');
+        const userAvatar = document.getElementById('userAvatar');
+
+        // Elementos DOM - Sistema
         const inputCsv = document.getElementById('inputCsv');
+        const mesAnoInput = document.getElementById('mesAno');
+        const setorAnaliseInput = document.getElementById('setorAnalise');
+        const painelFiltros = document.getElementById('painelFiltros');
+        const containerCaixas = document.getElementById('containerCaixas');
         const painelTabela = document.getElementById('painelTabela');
         const tabelaCorpo = document.getElementById('tabelaCorpo');
+        const tabelaHistorico = document.getElementById('tabelaHistorico');
 
-        // Escutar upload do arquivo
+        // Estado da Aplicação
+        let dadosCompletos = []; 
+        let caixasUnicas = []; 
+        let historicoBD = []; 
+
+        // -----------------------------------------------------------
+        // AUTENTICAÇÃO E LOGIN
+        // -----------------------------------------------------------
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userName.textContent = user.displayName;
+                userAvatar.src = user.photoURL;
+                telaLogin.style.display = 'none';
+                appContent.style.display = 'block';
+                
+                // Carrega o histórico apenas se estiver logado
+                carregarHistorico(); 
+            } else {
+                telaLogin.style.display = 'flex';
+                appContent.style.display = 'none';
+            }
+        });
+
+        btnLoginGoogle.addEventListener('click', () => {
+            signInWithPopup(auth, provider).catch((error) => alert("Erro no login: " + error.message));
+        });
+
+        btnLogout.addEventListener('click', () => { 
+            signOut(auth); 
+        });
+
+        // -----------------------------------------------------------
+        // LÓGICA DO SISTEMA
+        // -----------------------------------------------------------
         inputCsv.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
             reader.onload = function(event) {
-                const text = event.target.result;
-                processarCSV(text);
+                processarCSV(event.target.result);
             };
             reader.readAsText(file);
         });
 
-        // Função para processar o conteúdo do CSV
         function processarCSV(csvText) {
-            // Divide por quebras de linha e ignora linhas vazias
             const linhas = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
-            
             if (linhas.length <= 1) {
                 alert("O arquivo selecionado está vazio ou contém apenas o cabeçalho.");
                 return;
             }
 
-            tabelaCorpo.innerHTML = ''; // Limpar tabela atual
+            dadosCompletos = [];
+            const caixasSet = new Set();
 
-            // Começa a iterar da linha 1 (pulando o cabeçalho)
             for (let i = 1; i < linhas.length; i++) {
-                // Divide por vírgulas (formato do exemplo passado)
                 const colunas = linhas[i].split(',');
-                
                 if (colunas.length < 3) continue;
 
                 const chamado = colunas[0] ? colunas[0].trim() : '';
@@ -264,99 +391,238 @@
 
                 if(!chamado) continue;
 
-                // Criação da linha da tabela (tr)
+                dadosCompletos.push({
+                    chamado: chamado,
+                    dtReabertura: dtReabertura,
+                    caixaAtendimento: caixaAtendimento,
+                    justificativa: '',
+                    expurgo: ''
+                });
+
+                caixasSet.add(caixaAtendimento);
+            }
+
+            caixasUnicas = Array.from(caixasSet).sort();
+            renderizarFiltros();
+            renderizarTabela(); // Renderiza tudo selecionado por padrão
+        }
+
+        function renderizarFiltros() {
+            containerCaixas.innerHTML = '';
+            caixasUnicas.forEach(caixa => {
+                const lbl = document.createElement('label');
+                lbl.innerHTML = `<input type="checkbox" class="chk-caixa" value="${caixa}" checked> ${caixa}`;
+                containerCaixas.appendChild(lbl);
+            });
+
+            document.querySelectorAll('.chk-caixa').forEach(chk => {
+                chk.addEventListener('change', renderizarTabela);
+            });
+
+            painelFiltros.style.display = 'block';
+        }
+
+        function renderizarTabela() {
+            tabelaCorpo.innerHTML = '';
+            
+            const checkboxes = document.querySelectorAll('.chk-caixa:checked');
+            const caixasAtivas = Array.from(checkboxes).map(chk => chk.value);
+            const dadosFiltrados = dadosCompletos.filter(item => caixasAtivas.includes(item.caixaAtendimento));
+
+            if (dadosFiltrados.length === 0) {
+                tabelaCorpo.innerHTML = `<tr><td colspan="5" class="mensagem-vazia">Nenhum chamado corresponde aos filtros de caixa.</td></tr>`;
+                painelTabela.style.display = 'block';
+                return;
+            }
+
+            dadosFiltrados.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 
-                // Campos fixos
+                const linkJira = `https://clarobr.atlassian.net/browse/${item.chamado}`;
+                const classExpurgo = item.expurgo === 'Sim' ? 'expurgo-sim' : (item.expurgo === 'Não' ? 'expurgo-nao' : '');
+
                 tr.innerHTML = `
-                    <td>${chamado}</td>
-                    <td>${dtReabertura}</td>
-                    <td>${caixaAtendimento}</td>
+                    <td><a href="${linkJira}" target="_blank" class="link-chamado">${item.chamado}</a></td>
+                    <td>${item.dtReabertura}</td>
+                    <td>${item.caixaAtendimento}</td>
                 `;
 
-                // Campo Justificativa (editável)
                 const tdJustificativa = document.createElement('td');
-                const inputJustificativa = document.createElement('input');
-                inputJustificativa.type = 'text';
-                inputJustificativa.placeholder = 'Digite a justificativa...';
+                const inputJust = document.createElement('input');
+                inputJust.type = 'text';
+                inputJust.placeholder = 'Justificativa...';
+                inputJust.value = item.justificativa; 
                 
-                // Campo Expurgo (gerado automaticamente)
                 const tdExpurgo = document.createElement('td');
-                tdExpurgo.className = 'td-expurgo';
-                
-                // Evento de digitação para atualizar o Expurgo em tempo real
-                inputJustificativa.addEventListener('input', function() {
-                    const valor = this.value.trim().toLowerCase();
+                tdExpurgo.className = `td-expurgo ${classExpurgo}`;
+                tdExpurgo.textContent = item.expurgo;
+
+                inputJust.addEventListener('input', function() {
+                    const valor = this.value;
+                    item.justificativa = valor; 
                     
-                    if (valor === '') {
+                    const valorLower = valor.trim().toLowerCase();
+                    if (valorLower === '') {
+                        item.expurgo = '';
                         tdExpurgo.textContent = '';
                         tdExpurgo.className = 'td-expurgo';
-                    } else if (valor === 'sysmap') {
+                    } else if (valorLower === 'sysmap') {
+                        item.expurgo = 'Não';
                         tdExpurgo.textContent = 'Não';
                         tdExpurgo.className = 'td-expurgo expurgo-nao';
                     } else {
+                        item.expurgo = 'Sim';
                         tdExpurgo.textContent = 'Sim';
                         tdExpurgo.className = 'td-expurgo expurgo-sim';
                     }
                 });
 
-                tdJustificativa.appendChild(inputJustificativa);
+                tdJustificativa.appendChild(inputJust);
                 tr.appendChild(tdJustificativa);
                 tr.appendChild(tdExpurgo);
 
                 tabelaCorpo.appendChild(tr);
-            }
+            });
 
-            // Exibir a tabela após processamento
             painelTabela.style.display = 'block';
         }
 
-        // Função para Gerar Relatório e Exportar para .xlsx
-        function gerarRelatorio() {
-            const rows = [];
-            const linhas = document.querySelectorAll('#tabelaCorpo tr');
+        window.salvarEGerarRelatorio = async function() {
+            const mesAno = mesAnoInput.value;
+            const setor = setorAnaliseInput.value.trim();
 
-            if (linhas.length === 0) {
-                alert("Não há dados para gerar o relatório.");
+            if (!mesAno || !setor) {
+                alert("Por favor, preencha os campos obrigatórios: 'Mês e Ano' e 'Setor'.");
                 return;
             }
 
-            // Cabeçalho da planilha
-            rows.push(["Chamado", "Dt Reabertura", "Caixa de Atendimento", "Justificativa", "Expurgo"]);
+            const checkboxes = document.querySelectorAll('.chk-caixa:checked');
+            const caixasAtivas = Array.from(checkboxes).map(chk => chk.value);
+            const dadosFinais = dadosCompletos.filter(item => caixasAtivas.includes(item.caixaAtendimento));
 
-            // Extrair os dados de cada linha preenchida
-            linhas.forEach(tr => {
-                const chamado = tr.cells[0].innerText;
-                const dtReabertura = tr.cells[1].innerText;
-                const caixaAtendimento = tr.cells[2].innerText;
-                const justificativa = tr.cells[3].querySelector('input').value;
-                const expurgo = tr.cells[4].innerText;
+            if(dadosFinais.length === 0) {
+                alert("Não há dados ativos para gerar relatório.");
+                return;
+            }
 
-                rows.push([chamado, dtReabertura, caixaAtendimento, justificativa, expurgo]);
+            const [anoStr, mesStr] = mesAno.split('-');
+            const formatoMesAno = `${mesStr}.${anoStr.substring(2)}`;
+            const nomeBase = `${formatoMesAno}_Reabertos ${setor}`;
+
+            try {
+                const docId = `${mesAno}_${setor.replace(/\s+/g, '')}`; 
+                const payload = {
+                    mesAnoBruto: mesAno,
+                    formatoNome: nomeBase,
+                    setor: setor,
+                    dataCriacao: new Date().toISOString(),
+                    criadoPor: auth.currentUser ? auth.currentUser.email : 'Usuário Desconhecido',
+                    chamados: dadosFinais
+                };
+
+                // Salva os dados no banco do Firebase
+                await setDoc(doc(db, "relatorios_reaberturas", docId), payload);
+                
+                // Gera a planilha localmente
+                gerarExcelAprimorado(dadosFinais, nomeBase);
+
+                alert("Relatório salvo no sistema e planilha exportada com sucesso!");
+                carregarHistorico(); 
+            } catch (err) {
+                console.error(err);
+                alert("Ocorreu um erro ao salvar no sistema de histórico. Verifique se você tem permissão.");
+            }
+        };
+
+        function gerarExcelAprimorado(arrayDados, nomeArquivo) {
+            const rows = [
+                ["Chamado", "Dt Reabertura", "Caixa de Atendimento", "Justificativa", "Expurgo"]
+            ];
+
+            arrayDados.forEach(item => {
+                rows.push([item.chamado, item.dtReabertura, item.caixaAtendimento, item.justificativa, item.expurgo]);
             });
 
-            // Criação da estrutura de planilha via SheetJS
             const ws = XLSX.utils.aoa_to_sheet(rows);
-            
-            // Ajustando a largura das colunas do Excel para melhor visualização
+
             const wscols = [
-                {wch: 15}, // Chamado
-                {wch: 22}, // Dt Reabertura
-                {wch: 30}, // Caixa de Atendimento
-                {wch: 45}, // Justificativa
-                {wch: 12}  // Expurgo
+                {wch: 18}, {wch: 22}, {wch: 35}, {wch: 45}, {wch: 12} 
             ];
             ws['!cols'] = wscols;
+
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for(let R = range.s.r; R <= range.e.r; ++R) {
+                for(let C = range.s.c; C <= range.e.c; ++C) {
+                    const cell_address = {c:C, r:R};
+                    const cell_ref = XLSX.utils.encode_cell(cell_address);
+                    
+                    if(!ws[cell_ref]) continue;
+
+                    let cellStyle = {
+                        alignment: { horizontal: "center", vertical: "center" }
+                    };
+
+                    if(R === 0) {
+                        cellStyle.font = { bold: true };
+                    }
+
+                    ws[cell_ref].s = cellStyle;
+                }
+            }
 
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Apuração OMS");
 
-            // Define o nome do arquivo final
-            const nomeArquivo = `Relatorio_Apuração_OMS_${new Date().toISOString().split('T')[0]}.xlsx`;
-            
-            // Força o download
-            XLSX.writeFile(wb, nomeArquivo);
+            XLSX.writeFile(wb, `${nomeArquivo}.xlsx`);
         }
+
+        async function carregarHistorico() {
+            try {
+                const q = query(relatoriosCol, orderBy("dataCriacao", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                historicoBD = [];
+                tabelaHistorico.innerHTML = '';
+
+                if (querySnapshot.empty) {
+                    tabelaHistorico.innerHTML = `<tr><td colspan="5" class="mensagem-vazia">Nenhum relatório salvo no histórico ainda.</td></tr>`;
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    data.id = doc.id;
+                    historicoBD.push(data);
+                    
+                    const dataFormatada = new Date(data.dataCriacao).toLocaleString('pt-BR');
+                    const usuario = data.criadoPor || 'Desconhecido';
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${data.formatoNome}</strong></td>
+                        <td>${dataFormatada}</td>
+                        <td>${usuario}</td>
+                        <td>${data.chamados.length}</td>
+                        <td style="text-align: center;">
+                            <button class="btn-salvar btn-historico" style="padding: 6px 12px; margin: 0 auto;" onclick="baixarDoHistorico('${data.id}')">
+                                Baixar XLSX
+                            </button>
+                        </td>
+                    `;
+                    tabelaHistorico.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Erro ao carregar histórico: ", err);
+                tabelaHistorico.innerHTML = `<tr><td colspan="5" class="mensagem-vazia">Erro ao carregar histórico. Verifique as regras de segurança do Firestore.</td></tr>`;
+            }
+        }
+
+        window.baixarDoHistorico = function(id) {
+            const relatorio = historicoBD.find(r => r.id === id);
+            if(relatorio) {
+                gerarExcelAprimorado(relatorio.chamados, relatorio.formatoNome);
+            }
+        };
     </script>
 </body>
 </html>
