@@ -724,6 +724,15 @@
         .checkbox-linha input { width: auto; cursor: pointer; }
         .area-aprovacoes { border: 1px solid var(--border-light); padding: 15px; border-radius: 6px; background-color: var(--bg-color); margin-bottom: 20px; }
         .aprovacoes-grid { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
+
+        /* Rodapé de Versão */
+        .rodape-versao {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding: 20px 0 0 0;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body class="dark-mode"> 
@@ -836,7 +845,7 @@
                         </div>
                      <div class="campo" id="campoDataMudanca" style="display: none;">
                           <label for="dataMudanca">Data da Mudança *</label>
-                          <input type="text" id="dataMudanca" placeholder="DD/MM/AAAA HH:MM" maxlength="16">
+                          <input type="text" id="dataMudanca" placeholder="DD/MM/AAAA" maxlength="10">
                       </div>
                     </div>
                 </div>
@@ -1128,9 +1137,8 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ========================================== -->
+        <!-- ========================================== -->
         <!-- MÓDULO DE MUDANÇAS (RDMs)                  -->
         <!-- ========================================== -->
         <div id="moduloMudancas" style="display: none;">
@@ -1199,7 +1207,7 @@
                     <div class="linha-formulario">
                         <div class="campo">
                             <label>Data da RDM</label>
-                            <input type="text" id="dataRdmMudanca" placeholder="DD/MM/AAAA HH:MM" maxlength="16">
+                            <input type="text" id="dataRdmMudanca" placeholder="DD/MM/AAAA" maxlength="10">
                         </div>
                     </div>
 
@@ -1239,6 +1247,10 @@
                 </div>
             </div>
         </div>
+
+        <div class="rodape-versao">v0.0.096</div>
+
+    </div> <!-- Fim do appContent -->
 
     <script type="module">
         // -----------------------------------------------------------
@@ -1325,16 +1337,27 @@
         function mascaraDataHora(e) {
             let v = e.target.value.replace(/\D/g, "");
             
-            // Todos esses campos exigem hora/minuto ao preencher
-            const exigeHoraMinuto = ['sla', 'dataQuestionamento', 'dataPrimeiraResposta', 'dataFechamento', 'dataRdmMudanca'].includes(e.target.id);
-            if (v.length > 12) v = v.substring(0, 12);
-
-            if (v.length > 8) {
-                v = v.replace(/(\d{2})(\d{2})(\d{4})(\d{2})(\d{0,2})/, "$1/$2/$3 $4:$5");
-            } else if (v.length > 4) {
-                v = v.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
-            } else if (v.length > 2) {
-                v = v.replace(/(\d{2})(\d{0,2})/, "$1/$2");
+            // O campo 'dataRdmMudanca' e 'dataMudanca' já não estão nesta lista,
+            // então exigirão apenas a data simples!
+            const exigeHoraMinuto = ['sla', 'dataQuestionamento', 'dataPrimeiraResposta', 'dataFechamento'].includes(e.target.id);
+            
+            if (exigeHoraMinuto) {
+                if (v.length > 12) v = v.substring(0, 12);
+                if (v.length > 8) {
+                    v = v.replace(/(\d{2})(\d{2})(\d{4})(\d{2})(\d{0,2})/, "$1/$2/$3 $4:$5");
+                } else if (v.length > 4) {
+                    v = v.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
+                } else if (v.length > 2) {
+                    v = v.replace(/(\d{2})(\d{0,2})/, "$1/$2");
+                }
+            } else {
+                // Apenas formatação de data (DD/MM/AAAA)
+                if (v.length > 8) v = v.substring(0, 8);
+                if (v.length > 4) {
+                    v = v.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
+                } else if (v.length > 2) {
+                    v = v.replace(/(\d{2})(\d{0,2})/, "$1/$2");
+                }
             }
             e.target.value = v;
 
@@ -1358,7 +1381,7 @@
         // Alerta na tela caso saia do campo com a data errada
         function avisarDataInvalida(e) {
             const v = e.target.value;
-            const exigeHoraMinuto = ['sla', 'dataQuestionamento', 'dataPrimeiraResposta', 'dataFechamento', 'dataRdmMudanca'].includes(e.target.id);
+            const exigeHoraMinuto = ['sla', 'dataQuestionamento', 'dataPrimeiraResposta', 'dataFechamento'].includes(e.target.id);
             if (v.length > 0 && !validarDataBR(v, exigeHoraMinuto)) {
                 alert("A data ou hora digitada não é válida.\n\nVerifique se o formato está completo e correto (DD/MM/AAAA" + (exigeHoraMinuto ? " HH:MM" : "") + ").");
             }
@@ -2196,12 +2219,19 @@
         const iconeLapis = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-editar"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
         const iconeLixeira = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
 
+        // Esta função agora lida corretamente com datas sem hora ('YYYY-MM-DD')
         function formatarDataHoraSimples(dataISO) {
             if (!dataISO) return '-';
             if (dataISO.includes('T')) {
                 const [data, hora] = dataISO.split('T');
                 const partes = data.split('-');
                 return `${partes[2]}/${partes[1]}/${partes[0]} ${hora}`;
+            }
+            
+            // Para quando for apenas data
+            const partes = dataISO.split('-');
+            if (partes.length === 3) {
+                return `${partes[2]}/${partes[1]}/${partes[0]}`;
             }
             return dataISO; 
         }
@@ -2808,8 +2838,8 @@
             loading.style.display = 'flex';
             
             const valDataRdm = document.getElementById('dataRdmMudanca').value;
-            if (valDataRdm && !validarDataBR(valDataRdm, true)) {
-                alert("Atenção: A 'Data da RDM' exige a data e hora completas (DD/MM/AAAA HH:MM) se preenchida.");
+            if (valDataRdm && !validarDataBR(valDataRdm, false)) { // Mudado para 'false' para aceitar apenas data
+                alert("Atenção: A 'Data da RDM' exige uma data válida no formato (DD/MM/AAAA) se preenchida.");
                 loading.style.display = 'none';
                 return;
             }
