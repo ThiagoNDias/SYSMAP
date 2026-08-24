@@ -1807,6 +1807,11 @@
         function abrirFormulario() { 
             idChamadoEmEdicao = null; 
             formChamado.reset(); 
+            
+            // Força a atualização da exibição dos campos de categoria e pacote
+            document.getElementById('categoria').dispatchEvent(new Event('change'));
+            document.getElementById('chkSemPacote').dispatchEvent(new Event('change'));
+
             // Resetar as bordas de erro ao abrir
             camposData.forEach(id => {
                 const el = document.getElementById(id);
@@ -1894,11 +1899,13 @@
 
             const numeroInput = document.getElementById('numero').value.trim();
             const agora = new Date().toISOString();
+            
+            const categoriaSelecionada = document.getElementById('categoria').value;
 
             const dadosFormulario = {
                 numero: numeroInput,
                 analista: document.getElementById('analista').value,
-                categoria: document.getElementById('categoria').value,
+                categoria: categoriaSelecionada,
                 problema: document.getElementById('problema').value,
                 fila: document.getElementById('fila').value,
                 assuntoEmail: document.getElementById('assuntoEmail').value,
@@ -1908,34 +1915,33 @@
                 dataFechamento: converterParaISO(valFecham),
                 usuarioAtualizacao: userEmail,
                 dataAtualizacao: agora,
-                pacotes: document.getElementById('categoria').value === 'RDM' ? document.getElementById('pacotesChamado').value : '',
-                semPacote: document.getElementById('categoria').value === 'RDM' ? document.getElementById('chkSemPacote').checked : false,
-                dataMudanca: (document.getElementById('categoria').value === 'RDM' && document.getElementById('chkSemPacote').checked) ? converterParaISO(document.getElementById('dataMudanca').value) : '',
+                // Esses campos já são zerados automaticamente caso não seja RDM
+                pacotes: categoriaSelecionada === 'RDM' ? document.getElementById('pacotesChamado').value : '',
+                semPacote: categoriaSelecionada === 'RDM' ? document.getElementById('chkSemPacote').checked : false,
+                dataMudanca: (categoriaSelecionada === 'RDM' && document.getElementById('chkSemPacote').checked) ? converterParaISO(document.getElementById('dataMudanca').value) : '',
             };
             
+            // Validação de número de chamado único (Ignorando se for RDM)
+            if (categoriaSelecionada !== 'RDM') {
+                const chamadoDuplicado = listaChamados.find(c => 
+                    c.numero.toLowerCase() === numeroInput.toLowerCase() && 
+                    c.categoria !== 'RDM' && 
+                    c.id !== idChamadoEmEdicao // Não barrar a si mesmo quando for edição
+                );
+
+                if (chamadoDuplicado) {
+                    alert("Este número de chamado já está registrado em outra categoria!");
+                    loading.style.display = 'none';
+                    return;
+                }
+            }
+
             try {
                 if (idChamadoEmEdicao) {
-                    const original = listaChamados.find(c => c.id === idChamadoEmEdicao);
-                    if (original.numero !== numeroInput) {
-                        const q = query(chamadosCollection, where("numero", "==", numeroInput));
-                        const querySnapshot = await getDocs(q);
-                        if (!querySnapshot.empty) {
-                            alert("Este número de chamado já está registrado!");
-                            loading.style.display = 'none';
-                            return;
-                        }
-                    }
                     const docRef = doc(db, "chamados", idChamadoEmEdicao);
                     await updateDoc(docRef, dadosFormulario);
                     await registrarLog('ATUALIZACAO', idChamadoEmEdicao, dadosFormulario, userEmail);
                 } else {
-                    const q = query(chamadosCollection, where("numero", "==", numeroInput));
-                    const querySnapshot = await getDocs(q);
-                    if (!querySnapshot.empty) {
-                        alert("Este número de chamado já está registrado!");
-                        loading.style.display = 'none';
-                        return;
-                    }
                     const docRef = await addDoc(chamadosCollection, { 
                         createdAt: new Date(), 
                         criadoPor: userEmail,
@@ -2697,7 +2703,7 @@
         });
 
         chkSemPacote.addEventListener('change', () => {
-            // A LINHA MÁGICA: Se não for RDM, ignora essa regra e não torna nada obrigatório!
+            // Se não for RDM, ignora essa regra
             if (categoriaChamado.value !== 'RDM') return; 
 
             if (chkSemPacote.checked) {
@@ -2862,13 +2868,13 @@
             }
         });
 
-        // Recuperar e salvar preferências de colunas de Mudanças (Default ajustado conforme pedido)
+        // Recuperar e salvar preferências de colunas de Mudanças
         const colunasSalvasMudanca = JSON.parse(localStorage.getItem('pref_colunas_mudanca')) || { 
             gvp: true, pacotes: true, linkNexus: false, itemGvp: true, rdm: true, atividade: true, status: true, chamadosAssociados: false, dtRdm: false, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false 
         };
         
         document.querySelectorAll('.chk-coluna-mudanca').forEach(chk => {
-            if (chk.value !== 'gvp') { // GVP é a primeira e obrigatória agora
+            if (chk.value !== 'gvp') { 
                 if(colunasSalvasMudanca[chk.value] !== undefined) chk.checked = colunasSalvasMudanca[chk.value];
             }
             chk.addEventListener('change', (e) => {
@@ -2897,7 +2903,6 @@
             const tbody = document.getElementById('tabelaCorpoMudancas');
             tbody.innerHTML = '';
 
-            // Construir Cabeçalho Dinâmico na ordem solicitada
             let htmlCabecalho = `<th style="background-color: var(--edit-color); color: #fff; padding: 12px; font-size: 13px;">GVP</th>`;
             if(colunasSalvasMudanca.pacotes) htmlCabecalho += `<th style="background-color: var(--edit-color); color: #fff; padding: 12px; font-size: 13px;">Pacotes</th>`;
             if(colunasSalvasMudanca.linkNexus) htmlCabecalho += `<th style="background-color: var(--edit-color); color: #fff; padding: 12px; font-size: 13px;">Link Nexus</th>`;
@@ -2940,8 +2945,7 @@
 
                 const tr = document.createElement('tr');
                 
-                // Construir Linha Dinâmica na ordem solicitada
-                let htmlLinha = `<td><strong>${linkGvp}</strong></td>`; // GVP em negrito por ser obrigatório/1ª Coluna
+                let htmlLinha = `<td><strong>${linkGvp}</strong></td>`;
                 if(colunasSalvasMudanca.pacotes) htmlLinha += `<td>${linkPacotes}</td>`;
                 if(colunasSalvasMudanca.linkNexus) htmlLinha += `<td>${nexusCli}</td>`;
                 if(colunasSalvasMudanca.itemGvp) htmlLinha += `<td>${linkItemGvp}</td>`;
