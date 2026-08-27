@@ -94,8 +94,8 @@
             color: var(--text-color); font-family: inherit;
         }
         textarea {
-            resize: none; /* Impede que o usuário puxe pelo canto */
-            overflow: hidden; /* Esconde a barra de rolagem interna */
+            resize: none; 
+            overflow: hidden; 
             min-height: 42px;
             line-height: 1.4;
         }
@@ -144,6 +144,24 @@
         .td-expurgo { font-weight: bold; text-align: center; vertical-align: middle; }
         .expurgo-sim { color: var(--claro-red); }
         .expurgo-nao { color: var(--excel-color); }
+
+        /* CABEÇALHO FLUTUANTE DA TABELA (Nova Classe) */
+        .acoes-flutuantes {
+            position: sticky;
+            top: 0; /* Fixa no topo ao rolar a página */
+            background-color: var(--panel-bg); /* Fundo sólido para cobrir o conteúdo abaixo */
+            z-index: 100; /* Garante que fique acima da tabela */
+            padding: 15px 25px; 
+            margin: -25px -25px 15px -25px; /* Compensa o padding padrão do painel */
+            border-radius: 8px 8px 0 0;
+            border-bottom: 2px solid var(--claro-red);
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            gap: 10px;
+            box-shadow: 0 4px 6px -4px rgba(0,0,0,0.1);
+        }
 
         /* Botões */
         .btn-salvar {
@@ -236,7 +254,9 @@
 
         <!-- Painel da Tabela de Análise -->
         <div class="painel" id="painelTabela" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            
+            <!-- CABEÇALHO FLUTUANTE COM OS BOTÕES (Alterado) -->
+            <div class="acoes-flutuantes">
                 <h2 class="titulo-painel" style="border:none; margin:0; padding:0;">Chamados para Análise</h2>
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-salvar" onclick="salvarRelatorio()">
