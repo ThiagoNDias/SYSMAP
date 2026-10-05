@@ -142,6 +142,34 @@
         .btn-google:hover {
             background-color: #357ae8;
         }
+        
+        /* NAVBAR ADMIN */
+        .navbar-admin {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--panel-bg);
+            padding: 10px 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            margin-top: 30px;
+            border-top: 3px solid var(--edit-color);
+            gap: 25px;
+        }
+        
+        .navbar-admin a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        
+        .navbar-admin a:hover {
+            color: var(--edit-color);
+            text-decoration: underline;
+        }
 
         /* NAVBAR PRINCIPAL */
         .navbar {
@@ -156,7 +184,7 @@
             border-top: 4px solid var(--claro-red);
             flex-wrap: wrap;
             gap: 15px;
-            margin-top: 30px; 
+            margin-top: 15px; 
         }
 
         .navbar-brand {
@@ -773,7 +801,13 @@
             </p>
         </div>
         
-        <div class="navbar">
+        <!-- NAVBAR ADMIN (Invisível por padrão) -->
+        <div class="navbar-admin" id="navbarAdmin">
+            <a href="/reaberturas" target="_blank">Reaberturas</a>
+            <a href="https://trello.com/b/guBsiGdC/tarefas" target="_blank">Trello</a>
+        </div>
+        
+        <div class="navbar" id="navbarPrincipal">
             <div class="navbar-brand">
                 <div class="titulo-container">
                     <img src="controle-chamado.png" alt="Logo" class="logo-titulo">
@@ -785,6 +819,8 @@
                     <a href="http://10.29.148.9/script/list/" target="_blank">HOT DML</a>
                     <a href="https://clarobr.atlassian.net/jira/for-you" target="_blank">Jira Analista</a>
                     <a href="https://portal.sysmap.com.br/" target="_blank">SSG</a>
+                    <a href="/escalas" target="_blank">Escalas</a>
+                    <a href="#" target="_blank">Excel</a>
                 </div>
             </div>
             <div class="user-info-container">
@@ -821,9 +857,9 @@
                         <label for="categoria">Categoria *</label>
                         <select id="categoria" required>
                             <option value="" disabled selected>Selecione...</option>
+                            <option value="Suporte à Sistemas - OMS/CRM">Suporte à Sistemas - OMS/CRM</option>
                             <option value="Gol Revolution">Gol Revolution</option>
                             <option value="Portabilidade">Portabilidade</option>
-                            <option value="Suporte à Sistemas - OMS/CRM">Suporte à Sistemas - OMS/CRM</option>
                             <option value="SAP">SAP</option>
                             <option value="IW">IW</option>
                             <option value="RDM">RDM</option>
@@ -858,6 +894,11 @@
                     <div class="campo">
                         <label for="assuntoEmail">Assunto do E-mail</label>
                         <input type="text" id="assuntoEmail" placeholder="Ex: Correção de erro">
+                    </div>
+                    <div class="campo" style="flex: 0.5; justify-content: center;">
+                        <label class="checkbox-linha" style="margin-top: 25px; font-weight: bold; color: var(--import-color);">
+                            <input type="checkbox" id="chkDevolvido"> Devolvido?
+                        </label>
                     </div>
                 </div>
 
@@ -909,8 +950,11 @@
                     <div class="contador-item" onclick="filtrarSLA('vencido')" title="Filtrar chamados em aberto com SLA vencido">
                         <strong>SLA Vencido:</strong> <span id="countSlaVencido" class="sla-vencido" style="font-size: 16px; color: var(--danger-color);">0</span>
                     </div>
-                    <div class="contador-item" onclick="filtrarSLA('n3')" title="Filtrar chamados N3 (Suporte à Sistemas - OMS/CRM em aberto)">
+                    <div class="contador-item" onclick="filtrarSLA('n3')" title="Filtrar chamados N3 (Suporte à Sistemas - OMS/CRM em aberto e sem devolução)">
                         <strong>N3:</strong> <span id="countN3" style="font-size: 16px; color: var(--template-color); font-weight: bold;">0</span>
+                    </div>
+                    <div class="contador-item" onclick="filtrarSLA('devolvido')" title="Filtrar chamados devolvidos (aguardando análise nossa)">
+                        <strong>Devolvidos:</strong> <span id="countDevolvido" style="font-size: 16px; color: var(--import-color); font-weight: bold;">0</span>
                     </div>
                     <div class="contador-item" onclick="filtrarSLA('expurgo')" title="Filtrar chamados em que o SLA foi descumprido (Expurgo)">
                         <strong>Expurgo:</strong> <span id="countExpurgo" style="font-size: 16px; color: var(--import-color); font-weight: bold;">0</span>
@@ -958,6 +1002,7 @@
                     <label><input type="checkbox" class="chk-coluna" value="dtQuest" checked> Dt. Quest.</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtPrimResp" checked> Dt. Prim. Resp.</label>
                     <label><input type="checkbox" class="chk-coluna" value="dtFecham" checked> Dt. Enc. Fech.</label>
+                    <label><input type="checkbox" class="chk-coluna" value="devolvido"> Devolvido?</label>
                     
                     <label id="lbl-dtCriacao"><input type="checkbox" class="chk-coluna" value="dtCriacao"> Data Criação</label>
                     <label id="lbl-dtAtualizacao"><input type="checkbox" class="chk-coluna" value="dtAtualizacao"> Data Atualização</label>
@@ -976,9 +1021,9 @@
                         <label for="buscaCategoria">Categoria</label>
                         <select id="buscaCategoria">
                             <option value="">Todas</option>
+                            <option value="Suporte à Sistemas - OMS/CRM">Suporte à Sistemas - OMS/CRM</option>
                             <option value="Gol Revolution">Gol Revolution</option>
                             <option value="Portabilidade">Portabilidade</option>
-                            <option value="Suporte à Sistemas - OMS/CRM">Suporte à Sistemas - OMS/CRM</option>
                             <option value="SAP">SAP</option>
                             <option value="IW">IW</option>
                             <option value="RDM">RDM</option>
@@ -1330,33 +1375,36 @@
         const lblDtCriacao = document.getElementById('lbl-dtCriacao');
         const lblDtAtualizacao = document.getElementById('lbl-dtAtualizacao');
         const lblUsrAtualizacao = document.getElementById('lbl-usrAtualizacao');
+        const navbarAdmin = document.getElementById('navbarAdmin');
+        const navbarPrincipal = document.getElementById('navbarPrincipal');
 
         // --- Funções de Máscara e Validação de Data ---
         
-        // Aplica a formatação de data e hora enquanto o usuário digita e já faz validação visual
+        // Aplica a formatação de data e hora enquanto o usuário digita
         function mascaraDataHora(e) {
+            if (e.inputType && e.inputType.startsWith('delete')) return;
+
             let v = e.target.value.replace(/\D/g, "");
             
-            // O campo 'dataRdmMudanca' e 'dataMudanca' já não estão nesta lista,
-            // então exigirão apenas a data simples!
             const exigeHoraMinuto = ['sla', 'dataQuestionamento', 'dataPrimeiraResposta', 'dataFechamento'].includes(e.target.id);
             
             if (exigeHoraMinuto) {
                 if (v.length > 12) v = v.substring(0, 12);
-                if (v.length > 8) {
-                    v = v.replace(/(\d{2})(\d{2})(\d{4})(\d{2})(\d{0,2})/, "$1/$2/$3 $4:$5");
+                if (v.length > 10) {
+                    v = v.replace(/^(\d{2})(\d{2})(\d{4})(\d{2})(\d{1,2})/, "$1/$2/$3 $4:$5");
+                } else if (v.length > 8) {
+                    v = v.replace(/^(\d{2})(\d{2})(\d{4})(\d{1,2})/, "$1/$2/$3 $4");
                 } else if (v.length > 4) {
-                    v = v.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
+                    v = v.replace(/^(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
                 } else if (v.length > 2) {
-                    v = v.replace(/(\d{2})(\d{0,2})/, "$1/$2");
+                    v = v.replace(/^(\d{2})(\d{1,2})/, "$1/$2");
                 }
             } else {
-                // Apenas formatação de data (DD/MM/AAAA)
                 if (v.length > 8) v = v.substring(0, 8);
                 if (v.length > 4) {
-                    v = v.replace(/(\d{2})(\d{2})(\d{0,4})/, "$1/$2/$3");
+                    v = v.replace(/^(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
                 } else if (v.length > 2) {
-                    v = v.replace(/(\d{2})(\d{0,2})/, "$1/$2");
+                    v = v.replace(/^(\d{2})(\d{1,2})/, "$1/$2");
                 }
             }
             e.target.value = v;
@@ -1378,20 +1426,10 @@
             }
         }
 
-        // Alerta na tela caso saia do campo com a data errada
-        function avisarDataInvalida(e) {
-            const v = e.target.value;
-            const exigeHoraMinuto = ['sla', 'dataQuestionamento', 'dataPrimeiraResposta', 'dataFechamento'].includes(e.target.id);
-            if (v.length > 0 && !validarDataBR(v, exigeHoraMinuto)) {
-                alert("A data ou hora digitada não é válida.\n\nVerifique se o formato está completo e correto (DD/MM/AAAA" + (exigeHoraMinuto ? " HH:MM" : "") + ").");
-            }
-        }
-
         // Valida se a data digitada realmente existe
         function validarDataBR(dataStr, exigirHoraMinuto = false) {
             if (!dataStr || dataStr.trim() === '') return !exigirHoraMinuto; 
 
-            // Regex para DD/MM/AAAA ou DD/MM/AAAA HH:MM
             const regex = /^(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}))?$/;
             const match = dataStr.match(regex);
 
@@ -1406,14 +1444,13 @@
             if (dia < 1 || dia > diasNoMes) return false;
             if (ano < 1900 || ano > 2100) return false; 
 
-            // Validação de hora e minuto
             if (match[4] && match[5]) {
                 const hora = parseInt(match[4], 10);
                 const minuto = parseInt(match[5], 10);
                 if (hora < 0 || hora > 23) return false;
                 if (minuto < 0 || minuto > 59) return false;
             } else if (exigirHoraMinuto) {
-                return false; // Falha se não tiver hora/minuto e for obrigatório
+                return false; 
             }
 
             return true;
@@ -1443,21 +1480,17 @@
             }
         }
 
-        // Aplicando os ouvintes para aplicar a máscara ao digitar (input) e alertar ao sair (blur)
         const camposData = ['sla', 'dataQuestionamento', 'dataPrimeiraResposta', 'dataFechamento'];
         camposData.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.addEventListener('input', mascaraDataHora);
-                el.addEventListener('blur', avisarDataInvalida);
             }
         });
         
-        // Aplica mascara também para o Data RDM
         const dtRdmEl = document.getElementById('dataRdmMudanca');
         if(dtRdmEl) {
             dtRdmEl.addEventListener('input', mascaraDataHora);
-            dtRdmEl.addEventListener('blur', avisarDataInvalida);
         }
 
         function ehSuperUsuario() {
@@ -1498,9 +1531,13 @@
             
             if (isAdmin) {
                 campoFiltroCriadoPor.style.display = 'flex';
+                navbarAdmin.style.display = 'flex';
+                navbarPrincipal.style.marginTop = '15px';
             } else {
                 campoFiltroCriadoPor.style.display = 'none';
                 document.getElementById('filtroCriadoPor').value = '';
+                navbarAdmin.style.display = 'none';
+                navbarPrincipal.style.marginTop = '30px';
             }
 
             if (isAdmin) {
@@ -1530,7 +1567,7 @@
                 atualizarContadoresSLA();
                 processarVisualizacao(false);
                 verificarPendenciasRDM();
-                renderizarMudancas(); // Atualiza regras de execução caso um chamado tenha sido inserido
+                renderizarMudancas();
             }, (error) => {
                 console.error("Erro ao buscar dados:", error);
                 loading.style.display = 'none';
@@ -1552,12 +1589,17 @@
             let qtdPendente = 0;
             let qtdN3 = 0;
             let qtdExpurgo = 0;
+            let qtdDevolvido = 0;
 
             listaChamados.forEach(c => {
                 if (!c.dataFechamento) {
                     qtdPendente++;
                     
-                    if (c.categoria === 'Suporte à Sistemas - OMS/CRM') {
+                    if (c.devolvido) {
+                        qtdDevolvido++;
+                    }
+
+                    if (c.categoria === 'Suporte à Sistemas - OMS/CRM' && !c.devolvido) {
                         qtdN3++;
                     }
 
@@ -1571,7 +1613,6 @@
                         }
                     }
                 } else {
-                    // Expurgo: N3 + Data Quest < SLA + Data Fechamento > SLA
                     if (c.sla && c.dataQuestionamento && c.dataFechamento && c.categoria === 'Suporte à Sistemas - OMS/CRM') {
                         const slaDate = new Date(c.sla);
                         const questDate = new Date(c.dataQuestionamento);
@@ -1589,6 +1630,7 @@
             document.getElementById('countSlaVencido').textContent = qtdVencido;
             document.getElementById('countN3').textContent = qtdN3;
             document.getElementById('countExpurgo').textContent = qtdExpurgo;
+            document.getElementById('countDevolvido').textContent = qtdDevolvido;
         }
 
         function atualizarListasFiltros() {
@@ -1715,8 +1757,7 @@
         btnMaisFiltros.addEventListener('click', () => { alternarPainel(filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil, painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas); });
         btnGerenciarColunas.addEventListener('click', () => { alternarPainel(painelColunas, btnGerenciarColunas, iconeColunasSvg, svgColunas, filtrosAvancados, btnMaisFiltros, iconeFiltroSvg, svgFunil); });
 
-        // Ajuste das colunas salvas padrão (problema e fila agora começam ocultas)
-        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: false, fila: false, assunto: true, sla: true, dtQuest: true, dtPrimResp: true, dtFecham: true, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false };
+        const colunasSalvas = JSON.parse(localStorage.getItem('pref_colunas')) || { analista: true, categoria: true, problema: false, fila: false, assunto: true, sla: true, dtQuest: true, dtPrimResp: true, dtFecham: true, devolvido: false, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false };
         
         document.querySelectorAll('.chk-coluna').forEach(chk => {
             if(colunasSalvas[chk.value] !== undefined) {
@@ -1768,6 +1809,7 @@
             const itemVencido = document.getElementById('countSlaVencido').parentElement;
             const itemN3 = document.getElementById('countN3').parentElement;
             const itemExpurgo = document.getElementById('countExpurgo').parentElement;
+            const itemDevolvido = document.getElementById('countDevolvido').parentElement;
 
             if (filtroRapidoAtivo === tipo) {
                 restaurarEstadoFiltro();
@@ -1777,6 +1819,7 @@
                 itemVencido.classList.remove('ativo');
                 itemN3.classList.remove('ativo');
                 itemExpurgo.classList.remove('ativo');
+                itemDevolvido.classList.remove('ativo');
             } else {
                 if (!filtroRapidoAtivo) {
                     salvarEstadoFiltro();
@@ -1801,6 +1844,7 @@
                 itemVencido.classList.remove('ativo');
                 itemN3.classList.remove('ativo');
                 itemExpurgo.classList.remove('ativo');
+                itemDevolvido.classList.remove('ativo');
                 
                 if (tipo === 'pendente') {
                     document.getElementById('filtroSLA').value = 'todos';
@@ -1815,6 +1859,9 @@
                     document.getElementById('filtroSLA').value = 'todos';
                     document.getElementById('buscaCategoria').value = 'Suporte à Sistemas - OMS/CRM';
                     itemN3.classList.add('ativo');
+                } else if (tipo === 'devolvido') {
+                    document.getElementById('filtroSLA').value = 'todos';
+                    itemDevolvido.classList.add('ativo');
                 } else if (tipo === 'expurgo') {
                     document.getElementById('filtroStatus').value = 'fechados';
                     document.getElementById('filtroSLA').value = 'expurgo';
@@ -1831,11 +1878,9 @@
             idChamadoEmEdicao = null; 
             formChamado.reset(); 
             
-            // Força a atualização da exibição dos campos de categoria e pacote
             document.getElementById('categoria').dispatchEvent(new Event('change'));
             document.getElementById('chkSemPacote').dispatchEvent(new Event('change'));
 
-            // Resetar as bordas de erro ao abrir
             camposData.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
@@ -1874,12 +1919,11 @@
             document.getElementById('pacotesChamado').value = chamado.pacotes || '';
             document.getElementById('chkSemPacote').checked = chamado.semPacote || false;
             document.getElementById('dataMudanca').value = converterParaBR(chamado.dataMudanca) || '';
+            document.getElementById('chkDevolvido').checked = chamado.devolvido || false;
             
-            // Dispara a visualização condicional para exibir os campos corretamente
             document.getElementById('categoria').dispatchEvent(new Event('change'));
             document.getElementById('chkSemPacote').dispatchEvent(new Event('change'));
 
-            // Garantir que os campos voltem com cor normal ao editar
             camposData.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
@@ -1903,7 +1947,6 @@
             const valPrimResp = document.getElementById('dataPrimeiraResposta').value;
             const valFecham = document.getElementById('dataFechamento').value;
 
-            // Bloqueia o envio se tiver formato errado ou faltando os minutos
             if (!validarDataBR(valSla, true) || !validarDataBR(valQuest, true)) {
                 alert("Atenção: Os campos 'SLA' e 'Data de Questionamento' exigem a data e hora completas (DD/MM/AAAA HH:MM).");
                 loading.style.display = 'none';
@@ -1924,6 +1967,11 @@
             const agora = new Date().toISOString();
             
             const categoriaSelecionada = document.getElementById('categoria').value;
+            let isDevolvido = document.getElementById('chkDevolvido').checked;
+            
+            if (valFecham) {
+                isDevolvido = false; 
+            }
 
             const dadosFormulario = {
                 numero: numeroInput,
@@ -1938,18 +1986,17 @@
                 dataFechamento: converterParaISO(valFecham),
                 usuarioAtualizacao: userEmail,
                 dataAtualizacao: agora,
-                // Esses campos já são zerados automaticamente caso não seja RDM
                 pacotes: categoriaSelecionada === 'RDM' ? document.getElementById('pacotesChamado').value : '',
                 semPacote: categoriaSelecionada === 'RDM' ? document.getElementById('chkSemPacote').checked : false,
                 dataMudanca: (categoriaSelecionada === 'RDM' && document.getElementById('chkSemPacote').checked) ? converterParaISO(document.getElementById('dataMudanca').value) : '',
+                devolvido: isDevolvido
             };
             
-            // Validação de número de chamado único (Ignorando se for RDM)
             if (categoriaSelecionada !== 'RDM') {
                 const chamadoDuplicado = listaChamados.find(c => 
                     c.numero.toLowerCase() === numeroInput.toLowerCase() && 
                     c.categoria !== 'RDM' && 
-                    c.id !== idChamadoEmEdicao // Não barrar a si mesmo quando for edição
+                    c.id !== idChamadoEmEdicao 
                 );
 
                 if (chamadoDuplicado) {
@@ -2021,6 +2068,7 @@
             document.getElementById('countSlaVencido').parentElement.classList.remove('ativo');
             document.getElementById('countN3').parentElement.classList.remove('ativo');
             document.getElementById('countExpurgo').parentElement.classList.remove('ativo');
+            document.getElementById('countDevolvido').parentElement.classList.remove('ativo');
 
             Object.values(inputFiltros).forEach(input => {
                 if(input.tagName === 'SELECT') {
@@ -2130,6 +2178,11 @@
                 if (valA === undefined || valA === null) valA = '';
                 if (valB === undefined || valB === null) valB = '';
 
+                if (typeof valA === 'boolean' || typeof valB === 'boolean') {
+                    valA = valA ? 1 : 0;
+                    valB = valB ? 1 : 0;
+                }
+
                 if (typeof valA === 'string') valA = valA.toLowerCase();
                 if (typeof valB === 'string') valB = valB.toLowerCase();
 
@@ -2193,6 +2246,14 @@
                     }
                 }
 
+                if (filtroRapidoAtivo === 'n3') {
+                    if (chamado.devolvido) return false;
+                }
+                
+                if (filtroRapidoAtivo === 'devolvido') {
+                    if (!chamado.devolvido) return false;
+                }
+
                 const atendeDataFechamento = dataEstaNoRange(chamado.dataFechamento, vData, 'customInicioFechamento', 'customFimFechamento');
                 const dataQuestPura = chamado.dataQuestionamento ? chamado.dataQuestionamento.split('T')[0] : null;
                 const atendeDataQuest = dataEstaNoRange(dataQuestPura, vDataQuest, 'customInicioQuestionamento', 'customFimQuestionamento');
@@ -2219,7 +2280,6 @@
         const iconeLapis = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-editar"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
         const iconeLixeira = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
 
-        // Esta função agora lida corretamente com datas sem hora ('YYYY-MM-DD')
         function formatarDataHoraSimples(dataISO) {
             if (!dataISO) return '-';
             if (dataISO.includes('T')) {
@@ -2228,7 +2288,6 @@
                 return `${partes[2]}/${partes[1]}/${partes[0]} ${hora}`;
             }
             
-            // Para quando for apenas data
             const partes = dataISO.split('-');
             if (partes.length === 3) {
                 return `${partes[2]}/${partes[1]}/${partes[0]}`;
@@ -2268,12 +2327,12 @@
             }
 
             const regrasOriginais = [
+                { nome: 'Suporte à Sistemas - OMS/CRM', temAberto: true },
                 { nome: 'Gol Revolution', temAberto: false },
                 { nome: 'Portabilidade', temAberto: false },
                 { nome: 'SAP', temAberto: false },
                 { nome: 'IW', temAberto: false },
                 { nome: 'RDM', temAberto: false },
-                { nome: 'Suporte à Sistemas - OMS/CRM', temAberto: true },
                 { nome: 'Outros', temAberto: true }
             ];
 
@@ -2328,6 +2387,7 @@
             if(colunasSalvas.dtQuest) htmlCabecalho += getCabecalhoHtml('Dt. Quest.', 'dataQuestionamento');
             if(colunasSalvas.dtPrimResp) htmlCabecalho += getCabecalhoHtml('Dt. Prim. Resp.', 'dataPrimeiraResposta');
             if(colunasSalvas.dtFecham) htmlCabecalho += getCabecalhoHtml('Dt. Enc. Fech.', 'dataFechamento');
+            if(colunasSalvas.devolvido) htmlCabecalho += getCabecalhoHtml('Devolvido', 'devolvido');
             
             if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlCabecalho += getCabecalhoHtml('Data Criação', 'dataCriacao');
             if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlCabecalho += getCabecalhoHtml('Data Atualização', 'dataAtualizacao');
@@ -2395,6 +2455,7 @@
                 if(colunasSalvas.dtQuest) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataQuestionamento)}</td>`;
                 if(colunasSalvas.dtPrimResp) htmlLinha += `<td class="${classeResp}">${formatarDataHoraSimples(chamado.dataPrimeiraResposta)}</td>`;
                 if(colunasSalvas.dtFecham) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataFechamento)}</td>`;
+                if(colunasSalvas.devolvido) htmlLinha += `<td><strong style="color: ${chamado.devolvido ? 'var(--import-color)' : 'inherit'};">${chamado.devolvido ? 'Sim' : 'Não'}</strong></td>`;
                 
                 if(podeVerColunasOcultas && colunasSalvas.dtCriacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataCriacao)}</td>`;
                 if(podeVerColunasOcultas && colunasSalvas.dtAtualizacao) htmlLinha += `<td>${formatarDataHoraSimples(chamado.dataAtualizacao)}</td>`;
@@ -2559,7 +2620,7 @@
             
             const podeVerColunasOcultas = soThiagoPodeVer();
             
-            let cabecalhoCSV = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Prim. Resp.;Dt. Enc. Fech.";
+            let cabecalhoCSV = "\uFEFFChamado;Analista;Categoria;Problema;Fila;Assunto;SLA;Dt. Quest.;Dt. Prim. Resp.;Dt. Enc. Fech.;Devolvido?";
             if(podeVerColunasOcultas) cabecalhoCSV += ";Data Criação;Data Atualização;Atualizado Por";
             cabecalhoCSV += "\n";
             
@@ -2570,10 +2631,11 @@
                 const dtq = formatarDataHoraSimples(c.dataQuestionamento);
                 const dtpr = formatarDataHoraSimples(c.dataPrimeiraResposta);
                 const dtf = formatarDataHoraSimples(c.dataFechamento);
+                const devolv = c.devolvido ? 'Sim' : 'Não';
                 
                 const clean = (txt) => (txt || '').replace(/"/g, '""').replace(/(\r\n|\n|\r)/gm, " ");
                 
-                let linhaCSV = `"${clean(c.numero)}";"${clean(c.analista)}";"${clean(c.categoria)}";"${clean(c.problema)}";"${clean(c.fila)}";"${clean(c.assuntoEmail)}";"${sla}";"${dtq}";"${dtpr}";"${dtf}"`;
+                let linhaCSV = `"${clean(c.numero)}";"${clean(c.analista)}";"${clean(c.categoria)}";"${clean(c.problema)}";"${clean(c.fila)}";"${clean(c.assuntoEmail)}";"${sla}";"${dtq}";"${dtpr}";"${dtf}";"${devolv}"`;
                 
                 if (podeVerColunasOcultas) {
                     const dtCri = formatarDataHoraSimples(c.dataCriacao);
@@ -2673,7 +2735,8 @@
                     dataPrimeiraResposta: colunas[8]?.trim() || '',
                     dataFechamento: colunas[9]?.trim() || '',
                     usuarioAtualizacao: userEmail,
-                    dataAtualizacao: agora
+                    dataAtualizacao: agora,
+                    devolvido: false
                 };
 
                 try {
@@ -2733,7 +2796,6 @@
         });
 
         chkSemPacote.addEventListener('change', () => {
-            // Se não for RDM, ignora essa regra
             if (categoriaChamado.value !== 'RDM') return; 
 
             if (chkSemPacote.checked) {
@@ -2751,14 +2813,16 @@
 
         // Evento para aplicar a máscara na Data da Mudança nos Chamados
         inputDataMudanca.addEventListener('input', mascaraDataHora);
-        inputDataMudanca.addEventListener('blur', avisarDataInvalida);
 
         // --- LÓGICA DE ALERTAS RDM PENDENTES ---
         function verificarPendenciasRDM() {
             const possuiPendencia = listaChamados.some(c => c.categoria === 'RDM' && c.semPacote);
             const alerta = document.getElementById('bannerAlertaRDM');
             alerta.style.display = possuiPendencia ? 'flex' : 'none';
-            document.querySelector('.navbar').style.marginTop = possuiPendencia ? '60px' : '30px';
+            
+            const isAdmin = soThiagoPodeVer();
+            const navbarAtiva = isAdmin ? document.getElementById('navbarAdmin') : document.getElementById('navbarPrincipal');
+            navbarAtiva.style.marginTop = possuiPendencia ? '60px' : '30px';
         }
 
         window.filtrarChamadosPendentesRDM = function() {
@@ -2819,7 +2883,6 @@
             const dtRdm = document.getElementById('dataRdmMudanca');
             if(dtRdm) { dtRdm.style.borderColor = "var(--border-color)"; dtRdm.style.color = "var(--text-color)"; }
             
-            // Força a validação do pacote para habilitar o "Executada"
             pacotesMudancaInput.dispatchEvent(new Event('input'));
             chkExecutada.checked = m.chkExecutada;
 
@@ -2838,7 +2901,7 @@
             loading.style.display = 'flex';
             
             const valDataRdm = document.getElementById('dataRdmMudanca').value;
-            if (valDataRdm && !validarDataBR(valDataRdm, false)) { // Mudado para 'false' para aceitar apenas data
+            if (valDataRdm && !validarDataBR(valDataRdm, false)) { 
                 alert("Atenção: A 'Data da RDM' exige uma data válida no formato (DD/MM/AAAA) se preenchida.");
                 loading.style.display = 'none';
                 return;
@@ -2885,7 +2948,6 @@
         const iconeColunasMudancaSvg = document.getElementById('iconeColunasMudancaSvg');
         const cabecalhoTabelaMudancas = document.getElementById('cabecalhoTabelaMudancas');
 
-        // Abre/Fecha painel de colunas
         btnGerenciarColunasMudanca.addEventListener('click', () => {
             if (painelColunasMudanca.style.display === 'none') {
                 painelColunasMudanca.style.display = 'block'; 
@@ -2898,7 +2960,6 @@
             }
         });
 
-        // Recuperar e salvar preferências de colunas de Mudanças
         const colunasSalvasMudanca = JSON.parse(localStorage.getItem('pref_colunas_mudanca')) || { 
             gvp: true, pacotes: true, linkNexus: false, itemGvp: true, rdm: true, atividade: true, status: true, chamadosAssociados: false, dtRdm: false, dtCriacao: false, dtAtualizacao: false, usrAtualizacao: false 
         };
