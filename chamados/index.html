@@ -213,31 +213,111 @@
             text-align: left;
         }
 
-        .nav-links {
+        /* Container da direita do Navbar (Links + Usuário) */
+        .navbar-right {
             display: flex;
-            gap: 15px;
             align-items: center;
-            border-left: 2px solid var(--border-light);
-            padding-left: 15px;
+            gap: 20px;
         }
 
-        .nav-links a {
+        /* Menu Dropdown de Links */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            background-color: transparent;
+            color: var(--text-color);
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dropbtn:hover {
+            background-color: var(--border-light);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: var(--panel-bg);
+            min-width: 200px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 6px;
+            z-index: 5000;
+            border: 1px solid var(--border-light);
+            margin-top: 5px;
+        }
+
+        .dropdown-content a {
             color: var(--text-muted);
+            padding: 12px 16px;
             text-decoration: none;
+            display: block;
             font-size: 13px;
-            transition: color 0.3s;
             font-weight: 500;
+            border-bottom: 1px solid var(--border-light);
+            transition: all 0.2s;
         }
 
-        .nav-links a:hover {
+        .dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-content a:hover, .dropdown-submenu:hover .submenu-btn {
+            background-color: var(--border-light);
             color: var(--claro-red);
-            text-decoration: underline;
+            text-decoration: none;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Submenu Dropdown (Escalas) */
+        .dropdown-submenu {
+            position: relative;
+        }
+
+        .dropdown-submenu .submenu-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-submenu-content {
+            display: none;
+            position: absolute;
+            right: 100%;
+            top: 0;
+            background-color: var(--panel-bg);
+            min-width: 150px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 6px;
+            border: 1px solid var(--border-light);
+            margin-right: 2px;
+        }
+
+        .dropdown-submenu:hover .dropdown-submenu-content {
+            display: block;
         }
 
         .user-info-container {
             display: flex;
             align-items: center;
             gap: 15px;
+            border-left: 2px solid var(--border-light);
+            padding-left: 20px;
         }
 
         .user-info {
@@ -809,22 +889,35 @@
                     <img src="controle-chamado.png" alt="Logo" class="logo-titulo">
                     <h1>Controle de Chamados</h1>
                 </div>
-                <div class="nav-links">
-                    <a href="https://tecmundo-max.github.io/SPS_01/chamados.html" target="_blank">SPS • Chamados</a>
-                    <a href="https://clarobr.atlassian.net/jira/dashboards/27247" target="_blank">Dash Analistas</a>
-                    <a href="http://10.29.148.9/script/list/" target="_blank">HOT DML</a>
-                    <a href="https://clarobr.atlassian.net/jira/for-you" target="_blank">Jira Analista</a>
-                    <a href="https://portal.sysmap.com.br/" target="_blank">SSG</a>
-                    <a href="/SYSMAP/escalas" target="_blank">Escalas</a>
-                    <a href="#" target="_blank">Excel</a>
-                </div>
             </div>
-            <div class="user-info-container">
-                <div class="user-info">
-                    <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
-                    <span id="userName">Usuário</span>
+            <div class="navbar-right">
+                <!-- Dropdown Links úteis -->
+                <div class="dropdown">
+                    <button class="dropbtn">Links úteis ▼</button>
+                    <div class="dropdown-content">
+                        <a href="https://tecmundo-max.github.io/SPS_01/chamados.html" target="_blank">SPS • Chamados</a>
+                        <a href="https://clarobr.atlassian.net/jira/dashboards/27247" target="_blank">Dash Analistas</a>
+                        <a href="http://10.29.148.9/script/list/" target="_blank">HOT DML</a>
+                        <a href="https://clarobr.atlassian.net/jira/for-you" target="_blank">Jira Analista</a>
+                        <a href="https://portal.sysmap.com.br/" target="_blank">SSG</a>
+                        
+                        <div class="dropdown-submenu">
+                            <a href="#" class="submenu-btn">Escalas ▸</a>
+                            <div class="dropdown-submenu-content">
+                                <a href="/SYSMAP/escalas/" target="_blank">Agendador</a>
+                                <a href="https://sysmapsolutions.sharepoint.com/:x:/r/sites/ClaroB2C/_layouts/15/Doc.aspx?sourcedoc=%7B84B8F33A-F280-48C7-9A11-7BAC94A8ECAA%7D&file=Escala%20B2C%20POS_PRE.xlsx&fromShare=true&action=default&mobileredirect=true" target="_blank">Planilha</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <button id="btnLogout" class="btn-logout">Sair</button>
+
+                <div class="user-info-container">
+                    <div class="user-info">
+                        <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+                        <span id="userName">Usuário</span>
+                    </div>
+                    <button id="btnLogout" class="btn-logout">Sair</button>
+                </div>
             </div>
         </div>
 
@@ -1294,7 +1387,7 @@
             </div>
         </div>
 
-        <div class="rodape-versao">v0.0.098</div>
+        <div class="rodape-versao">v01.00.000</div>
 
     </div> <!-- Fim do appContent -->
 
