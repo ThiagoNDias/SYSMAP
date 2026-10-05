@@ -152,10 +152,10 @@
             padding: 10px 25px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
-            margin-top: 30px;
             border-top: 3px solid var(--edit-color);
             gap: 25px;
+            width: max-content;
+            margin: 0 auto 25px auto;
         }
         
         .navbar-admin a {
@@ -711,6 +711,7 @@
             padding: 6px 15px;
             border-radius: 6px;
             border-left: 4px solid var(--claro-red);
+            flex-wrap: wrap;
         }
         
         .contador-item {
@@ -801,12 +802,7 @@
             </p>
         </div>
         
-        <!-- NAVBAR ADMIN (Invisível por padrão) -->
-        <div class="navbar-admin" id="navbarAdmin">
-            <a href="/reaberturas" target="_blank">Reaberturas</a>
-            <a href="https://trello.com/b/guBsiGdC/tarefas" target="_blank">Trello</a>
-        </div>
-        
+        <!-- NAVBAR PRINCIPAL -->
         <div class="navbar" id="navbarPrincipal">
             <div class="navbar-brand">
                 <div class="titulo-container">
@@ -819,7 +815,7 @@
                     <a href="http://10.29.148.9/script/list/" target="_blank">HOT DML</a>
                     <a href="https://clarobr.atlassian.net/jira/for-you" target="_blank">Jira Analista</a>
                     <a href="https://portal.sysmap.com.br/" target="_blank">SSG</a>
-                    <a href="/escalas" target="_blank">Escalas</a>
+                    <a href="/SYSMAP/escalas" target="_blank">Escalas</a>
                     <a href="#" target="_blank">Excel</a>
                 </div>
             </div>
@@ -830,6 +826,12 @@
                 </div>
                 <button id="btnLogout" class="btn-logout">Sair</button>
             </div>
+        </div>
+
+        <!-- NAVBAR ADMIN (Invisível por padrão, logo abaixo do principal) -->
+        <div class="navbar-admin" id="navbarAdmin" style="display: none;">
+            <a href="/SYSMAP/reaberturas/" target="_blank">Reaberturas</a>
+            <a href="https://trello.com/b/guBsiGdC/tarefas" target="_blank">Trello</a>
         </div>
 
         <!-- ABAS DE NAVEGAÇÃO -->
@@ -939,28 +941,7 @@
                 </div>
             </div>
             
-            <div class="linha-formulario" style="justify-content: space-between; margin-bottom: 0; align-items: center;">
-                <div class="contador-painel" id="contadoresSLA">
-                    <div class="contador-item" onclick="filtrarSLA('pendente')" title="Filtrar chamados pendentes (sem data de fechamento)">
-                        <strong>Pendentes:</strong> <span id="countPendentes" style="font-size: 16px; color: var(--edit-color); font-weight: bold;">0</span>
-                    </div>
-                    <div class="contador-item" onclick="filtrarSLA('hoje')" title="Filtrar chamados em aberto que vencem hoje">
-                        <strong>SLA para hoje:</strong> <span id="countSlaHoje" class="status-aberto" style="font-size: 16px;">0</span>
-                    </div>
-                    <div class="contador-item" onclick="filtrarSLA('vencido')" title="Filtrar chamados em aberto com SLA vencido">
-                        <strong>SLA Vencido:</strong> <span id="countSlaVencido" class="sla-vencido" style="font-size: 16px; color: var(--danger-color);">0</span>
-                    </div>
-                    <div class="contador-item" onclick="filtrarSLA('n3')" title="Filtrar chamados N3 (Suporte à Sistemas - OMS/CRM em aberto e sem devolução)">
-                        <strong>N3:</strong> <span id="countN3" style="font-size: 16px; color: var(--template-color); font-weight: bold;">0</span>
-                    </div>
-                    <div class="contador-item" onclick="filtrarSLA('devolvido')" title="Filtrar chamados devolvidos (aguardando análise nossa)">
-                        <strong>Devolvidos:</strong> <span id="countDevolvido" style="font-size: 16px; color: var(--import-color); font-weight: bold;">0</span>
-                    </div>
-                    <div class="contador-item" onclick="filtrarSLA('expurgo')" title="Filtrar chamados em que o SLA foi descumprido (Expurgo)">
-                        <strong>Expurgo:</strong> <span id="countExpurgo" style="font-size: 16px; color: var(--import-color); font-weight: bold;">0</span>
-                    </div>
-                </div>
-
+            <div class="linha-formulario" style="justify-content: flex-end; margin-bottom: 0; align-items: center;">
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button type="button" class="btn-salvar" style="margin-top: 0; padding: 0 20px; height: 42px; border-radius: 6px; width: auto; font-size: 14px;" id="btnNovoChamado" onclick="abrirFormulario()">
                         ➕ Novo Chamado
@@ -1016,6 +997,27 @@
                     <button type="button" class="btn-cancelar" style="padding: 6px 12px; font-size: 13px; flex: none; width: auto;" onclick="limparFiltros()">Limpar Filtros</button>
                 </div>
                 
+                <div style="margin-bottom: 20px;">
+                    <label style="font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 10px;">Filtros Rápidos</label>
+                    <div class="contador-painel" id="contadoresSLA" style="margin-bottom: 0;">
+                        <div class="contador-item" onclick="filtrarSLA('pendente')" title="Filtrar chamados pendentes (sem data de fechamento)">
+                            <strong>Pendentes:</strong> <span id="countPendentes" style="font-size: 16px; color: var(--edit-color); font-weight: bold;">0</span>
+                        </div>
+                        <div class="contador-item" onclick="filtrarSLA('hoje')" title="Filtrar chamados em aberto que vencem hoje">
+                            <strong>SLA para hoje:</strong> <span id="countSlaHoje" class="status-aberto" style="font-size: 16px;">0</span>
+                        </div>
+                        <div class="contador-item" onclick="filtrarSLA('vencido')" title="Filtrar chamados em aberto com SLA vencido">
+                            <strong>SLA Vencido:</strong> <span id="countSlaVencido" class="sla-vencido" style="font-size: 16px; color: var(--danger-color);">0</span>
+                        </div>
+                        <div class="contador-item" onclick="filtrarSLA('n3')" title="Filtrar chamados N3 (Suporte à Sistemas - OMS/CRM em aberto e sem devolução)">
+                            <strong>N3:</strong> <span id="countN3" style="font-size: 16px; color: var(--template-color); font-weight: bold;">0</span>
+                        </div>
+                        <div class="contador-item" onclick="filtrarSLA('devolvido')" title="Filtrar chamados devolvidos (aguardando análise nossa)">
+                            <strong>Devolvidos:</strong> <span id="countDevolvido" style="font-size: 16px; color: var(--import-color); font-weight: bold;">0</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="linha-formulario">
                     <div class="campo">
                         <label for="buscaCategoria">Categoria</label>
@@ -1045,7 +1047,6 @@
                             <option value="vencidos">Vencidos (<= Agora)</option>
                             <option value="hoje">Para Hoje</option>
                             <option value="noprazo">No Prazo (> Agora)</option>
-                            <option value="expurgo">Expurgo (Fechados após SLA)</option>
                         </select>
                     </div>
                 </div>
@@ -1293,7 +1294,7 @@
             </div>
         </div>
 
-        <div class="rodape-versao">v0.0.096</div>
+        <div class="rodape-versao">v0.0.098</div>
 
     </div> <!-- Fim do appContent -->
 
@@ -1532,12 +1533,12 @@
             if (isAdmin) {
                 campoFiltroCriadoPor.style.display = 'flex';
                 navbarAdmin.style.display = 'flex';
-                navbarPrincipal.style.marginTop = '15px';
+                navbarPrincipal.style.marginBottom = '15px';
             } else {
                 campoFiltroCriadoPor.style.display = 'none';
                 document.getElementById('filtroCriadoPor').value = '';
                 navbarAdmin.style.display = 'none';
-                navbarPrincipal.style.marginTop = '30px';
+                navbarPrincipal.style.marginBottom = '25px';
             }
 
             if (isAdmin) {
@@ -1588,7 +1589,6 @@
             let qtdVencido = 0;
             let qtdPendente = 0;
             let qtdN3 = 0;
-            let qtdExpurgo = 0;
             let qtdDevolvido = 0;
 
             listaChamados.forEach(c => {
@@ -1612,16 +1612,6 @@
                             qtdVencido++;
                         }
                     }
-                } else {
-                    if (c.sla && c.dataQuestionamento && c.dataFechamento && c.categoria === 'Suporte à Sistemas - OMS/CRM') {
-                        const slaDate = new Date(c.sla);
-                        const questDate = new Date(c.dataQuestionamento);
-                        const fechamentoDate = new Date(c.dataFechamento);
-
-                        if (questDate < slaDate && fechamentoDate > slaDate) {
-                            qtdExpurgo++;
-                        }
-                    }
                 }
             });
 
@@ -1629,7 +1619,6 @@
             document.getElementById('countSlaHoje').textContent = qtdHoje;
             document.getElementById('countSlaVencido').textContent = qtdVencido;
             document.getElementById('countN3').textContent = qtdN3;
-            document.getElementById('countExpurgo').textContent = qtdExpurgo;
             document.getElementById('countDevolvido').textContent = qtdDevolvido;
         }
 
@@ -1734,7 +1723,7 @@
 
         const temaSalvo = localStorage.getItem('tema_chamados');
         if (temaSalvo === 'claro') { document.body.classList.remove('dark-mode'); btnTema.textContent = '🌙 Tema'; } 
-        else { document.body.classList.add('dark-mode'); btnTema.textContent = '☀️ Tema'; }
+        else { document.body.classList.add('dark-mode'); btnTema.textContent = '☀️️ Tema'; }
 
         btnTema.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
@@ -1808,7 +1797,6 @@
             const itemHoje = document.getElementById('countSlaHoje').parentElement;
             const itemVencido = document.getElementById('countSlaVencido').parentElement;
             const itemN3 = document.getElementById('countN3').parentElement;
-            const itemExpurgo = document.getElementById('countExpurgo').parentElement;
             const itemDevolvido = document.getElementById('countDevolvido').parentElement;
 
             if (filtroRapidoAtivo === tipo) {
@@ -1818,7 +1806,6 @@
                 itemHoje.classList.remove('ativo');
                 itemVencido.classList.remove('ativo');
                 itemN3.classList.remove('ativo');
-                itemExpurgo.classList.remove('ativo');
                 itemDevolvido.classList.remove('ativo');
             } else {
                 if (!filtroRapidoAtivo) {
@@ -1843,7 +1830,6 @@
                 itemHoje.classList.remove('ativo');
                 itemVencido.classList.remove('ativo');
                 itemN3.classList.remove('ativo');
-                itemExpurgo.classList.remove('ativo');
                 itemDevolvido.classList.remove('ativo');
                 
                 if (tipo === 'pendente') {
@@ -1862,10 +1848,6 @@
                 } else if (tipo === 'devolvido') {
                     document.getElementById('filtroSLA').value = 'todos';
                     itemDevolvido.classList.add('ativo');
-                } else if (tipo === 'expurgo') {
-                    document.getElementById('filtroStatus').value = 'fechados';
-                    document.getElementById('filtroSLA').value = 'expurgo';
-                    itemExpurgo.classList.add('ativo');
                 }
             }
             
@@ -2067,7 +2049,6 @@
             document.getElementById('countSlaHoje').parentElement.classList.remove('ativo');
             document.getElementById('countSlaVencido').parentElement.classList.remove('ativo');
             document.getElementById('countN3').parentElement.classList.remove('ativo');
-            document.getElementById('countExpurgo').parentElement.classList.remove('ativo');
             document.getElementById('countDevolvido').parentElement.classList.remove('ativo');
 
             Object.values(inputFiltros).forEach(input => {
@@ -2234,14 +2215,6 @@
                             const hojeInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
                             const hojeFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59, 999);
                             atendeSLA = slaDate >= hojeInicio && slaDate <= hojeFim;
-                        } else if (vSLA === 'expurgo') {
-                            if (!chamado.dataFechamento || !chamado.dataQuestionamento || chamado.categoria !== 'Suporte à Sistemas - OMS/CRM') {
-                                atendeSLA = false;
-                            } else {
-                                const fechamentoDate = new Date(chamado.dataFechamento);
-                                const questDate = new Date(chamado.dataQuestionamento);
-                                atendeSLA = (questDate < slaDate) && (fechamentoDate > slaDate);
-                            }
                         }
                     }
                 }
@@ -2820,9 +2793,7 @@
             const alerta = document.getElementById('bannerAlertaRDM');
             alerta.style.display = possuiPendencia ? 'flex' : 'none';
             
-            const isAdmin = soThiagoPodeVer();
-            const navbarAtiva = isAdmin ? document.getElementById('navbarAdmin') : document.getElementById('navbarPrincipal');
-            navbarAtiva.style.marginTop = possuiPendencia ? '60px' : '30px';
+            navbarPrincipal.style.marginTop = possuiPendencia ? '60px' : '30px';
         }
 
         window.filtrarChamadosPendentesRDM = function() {
