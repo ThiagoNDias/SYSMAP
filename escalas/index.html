@@ -480,6 +480,11 @@
         let emailsVisiveis = false;
         let idFolgaEmEdicao = null; 
 
+        // Declaração de elementos visuais importantes
+        const telaLogin = document.getElementById('telaLogin');
+        const appContent = document.getElementById('appContent');
+        const loading = document.getElementById('loading');
+
         // Ícones SVG
         const iconeEditar = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-editar"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
         const iconeExcluir = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icone-excluir"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
@@ -587,8 +592,14 @@
         document.getElementById('btnLoginGoogle').addEventListener('click', () => signInWithPopup(auth, provider));
         document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
 
-        // --- LISTENERS FIRESTORE ---
+        // --- LISTENERS FIRESTORE (COM TRATAMENTO DE ERROS) ---
         function iniciarListeners() {
+            const erroFirebase = (erro) => {
+                console.error("Erro no Firebase:", erro);
+                alert("Erro ao carregar os dados! O Firebase bloqueou o acesso. Verifique as regras de segurança no painel do Firestore.");
+                loading.style.display = 'none';
+            };
+
             onSnapshot(doc(db, "escala_configuracoes", "geral"), (docSnap) => {
                 if (docSnap.exists()) {
                     configSistema = docSnap.data();
@@ -596,7 +607,7 @@
                     if(!configSistema.datasBloqueadas) configSistema.datasBloqueadas = [];
                 }
                 atualizarUIConfig();
-            });
+            }, erroFirebase);
 
             onSnapshot(dbAnalistas, (snap) => {
                 analistas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -608,14 +619,14 @@
                 atualizarTabelaAnalistas();
                 calcularSaldos();
                 atualizarOpcoesPlantaoOrigem();
-            });
+            }, erroFirebase);
 
             onSnapshot(query(dbPlantao), (snap) => {
                 plantoes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 atualizarTabelaEscala();
                 calcularSaldos();
                 atualizarOpcoesPlantaoOrigem();
-            });
+            }, erroFirebase);
 
             onSnapshot(query(dbFolgas), (snap) => {
                 folgas = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
@@ -623,7 +634,7 @@
                 calcularSaldos();
                 atualizarOpcoesPlantaoOrigem();
                 loading.style.display = 'none';
-            });
+            }, erroFirebase);
         }
 
         // --- LÓGICA DE NEGÓCIO E SALDOS ---
